@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
+	http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:applicationContext.xml</param-value>
+	</context-param>
+	<!-- The filter-name matches name of a 'shiroFilter' bean inside applicationContext.xml -->
+	<filter>
+		<filter-name>shiroFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<param-name>targetFilterLifecycle</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>shiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<listener>
+		<listener-class>com.huigou.uasp.client.SessionListener</listener-class>
+	</listener>
+	<servlet-mapping>    
+		<servlet-name>default</servlet-name>    
+		<url-pattern>*.css</url-pattern>    
+	</servlet-mapping>  
+	<servlet-mapping>    
+		<servlet-name>default</servlet-name>    
+		<url-pattern>*.gif</url-pattern>    
+	</servlet-mapping>  
+	<servlet-mapping>    
+		<servlet-name>default</servlet-name>    
+		<url-pattern>*.jpg</url-pattern>    
+	</servlet-mapping>
+	<servlet-mapping>    
+		<servlet-name>default</servlet-name>    
+		<url-pattern>*.png</url-pattern>    
+	</servlet-mapping>      
+	<servlet-mapping>    
+		<servlet-name>default</servlet-name>    
+		<url-pattern>*.js</url-pattern>    
+	</servlet-mapping>    
+	<servlet-mapping>   
+		<servlet-name>default</servlet-name>   
+		<url-pattern>*.html</url-pattern>   
+	</servlet-mapping>
+	<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.woff</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.woff2</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.ttf</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.otf</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.eot</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.svg</url-pattern>
+    </servlet-mapping>
+	<filter>
+		<filter-name>plug-in</filter-name>
+		<filter-class>com.huigou.uasp.bmp.plugin.PlugInFilter</filter-class>
+	</filter>
+	<!--不让.view的请求经过过滤器 iwebOffice使用免得inputStream被提前读取了 -->
+	<filter-mapping>
+		<filter-name>plug-in</filter-name>
+		<url-pattern>*.view</url-pattern>
+	</filter-mapping>
+	
+	<!-- 用于初始化Spring容器的Listener-->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
+	<!-- 定义整合SiteMesh和核心 Filter -->
+	<filter>
+		<filter-name>sitemesh</filter-name>
+		<filter-class>com.opensymphony.sitemesh.webapp.SiteMeshFilter</filter-class>
+	</filter>
+	<filter-mapping> 
+		<filter-name>sitemesh</filter-name> 
+		<url-pattern>*.do</url-pattern> 
+	</filter-mapping>
+	<filter-mapping> 
+		<filter-name>sitemesh</filter-name> 
+		<url-pattern>*.jsp</url-pattern> 
+	</filter-mapping>
+	<filter-mapping> 
+		<filter-name>sitemesh</filter-name> 
+		<url-pattern>*.job</url-pattern> 
+	</filter-mapping>
+	<filter-mapping> 
+		<filter-name>sitemesh</filter-name> 
+		<url-pattern>*.print</url-pattern> 
+	</filter-mapping>
+	
+	<!--spring mvc 引入 及地址后缀控制-->
+	<servlet>
+		<servlet-name>springMVC</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring-mvc.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springMVC</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>   
+		<servlet-name>springMVC</servlet-name>   
+		<url-pattern>*.job</url-pattern>   
+	</servlet-mapping>
+	<servlet-mapping>   
+		<servlet-name>springMVC</servlet-name>   
+		<url-pattern>*.load</url-pattern>   
+	</servlet-mapping>
+	<servlet-mapping>   
+		<servlet-name>springMVC</servlet-name>   
+		<url-pattern>*.ajax</url-pattern>   
+	</servlet-mapping>
+	<servlet-mapping>   
+		<servlet-name>springMVC</servlet-name>   
+		<url-pattern>*.webApp</url-pattern>   
+	</servlet-mapping>
+	<servlet-mapping>   
+		<servlet-name>springMVC</servlet-name>   
+		<url-pattern>*.print</url-pattern>   
+	</servlet-mapping>
+	<!--SpringMVC中获取request对象 -->
+	<listener>
+		<listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+	</listener>
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<servlet>
+		<servlet-name>CXFServlet</servlet-name>
+		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CXFServlet</servlet-name>
+		<url-pattern>/ws/*</url-pattern>
+	</servlet-mapping>
+	<welcome-file-list>
+		<welcome-file>Index.jsp</welcome-file>
+	</welcome-file-list>
+	<!-- webservice 加入Tomcat的BASIC验证的配置 -->
+	<!-- 需要在tomcat-users.xml文件xml元素tomcat-users中间配置访问的角色和用户如下：
+		<role rolename="webservice"/>
+		<user username="webservice_user" password="webservice_user" roles="webservice"/> 
+	-->	
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>cxf web services</web-resource-name>
+			<url-pattern>/ws/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>webservice</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<login-config>
+		<auth-method>BASIC</auth-method>
+		<realm-name>This is protected service,please Enter your name and password</realm-name>
+	</login-config>
+	<distributable />
+	<session-config>
+		<session-timeout>300</session-timeout>
+	</session-config>
+</web-app>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="processNodeFunction" label="活动节点功能" table="BPM_PROCESS_NODE_FUNCTION">
+		<sql-query>
+			select * from bpm_process_node_function t where 1=1
+		</sql-query>
+		<condition column="VIEW_ID" name="viewId" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="BUSINESS_PROCESS_ID" name="businessProcessId" type="java.lang.String" symbol="=" alias="t"/>
+	</query>
+
+</query-mappings>

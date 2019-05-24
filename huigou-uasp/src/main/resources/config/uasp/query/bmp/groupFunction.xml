@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="functions" label="业务功能" table="BPM_FUNCTIONS">
+		<sql-query>
+			select * from bpm_functions t where 1=1
+		</sql-query>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+
+	</query>
+
+	<query name="functionsGroup" label="业务功能分组" table="BPM_FUNCTIONS_GROUP">
+		<sql-query>
+			select * from bpm_functions_group t where t.bpm_functions_id =:bpmFunctionsId
+		</sql-query>
+		<sql name="queryFunctionsGroupById">
+			select * from bpm_functions_group t where t.bpm_functions_id =? order by t.sequence asc
+		</sql>
+	</query>
+
+	<query name="functionsDetails" label="业务功能对应连接" table="BPM_FUNCTIONS_DETAILS">
+		<sql-query>
+			select * from bpm_functions_details t where t.bpm_functions_id =:bpmFunctionsId
+		</sql-query>
+		<condition column="FUNCTIONS_GROUP_ID" name="functionsGroupId" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="NAME_ZH" name="nameZh" type="java.lang.String" symbol="=" alias="t"/>
+		<sql name="queryFunctionsDetailsById">
+			select t.*, f.url as fun_url,f.icon
+			  from bpm_functions_details t, sa_opfunction f
+			 where t.code = f.code
+			   and t.bpm_functions_id = ?
+			 order by t.sequence asc
+		</sql>
+	</query>
+
+
+</query-mappings>

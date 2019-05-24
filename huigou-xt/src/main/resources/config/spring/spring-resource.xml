@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- 国际化默认资源 -->
+	<bean class="com.huigou.uasp.bmp.configuration.model.I18nDefaultConfig">
+		<property name="defaultName" value="common" />
+		<property name="defaultDictionary" value="handleResult,yesorno,cooperationModel" />
+	</bean>
+
+	<bean class="com.huigou.context.MessageSourceContext">
+		<property name="localeResolver" ref="localeResolver" />
+		<property name="messageSource" ref="messageSource" />
+	</bean>
+
+	<!-- 基于Cookie的本地化解析器 -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+		<property name="cookieMaxAge" value="604800" />
+		<property name="defaultLocale" value="zh_CN" />
+		<property name="cookieName" value="Language" />
+	</bean>
+
+	<bean id="messageSource" class="com.huigou.context.ResourceFormatBundleMessageSource">
+		<property name="defaultEncoding" value="utf-8" />
+		<property name="messageSourceBasenames" ref="messageSourceBasenames" />
+		<property name="defbasenames">
+			<list>
+				<value>i18n/messages</value>
+				<value>i18n/pages</value>
+				<value>i18n/common</value>
+			</list>
+		</property>
+	</bean>
+
+
+</beans>

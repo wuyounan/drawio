@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="bizclassification" label="业务分类配置">
+		<sql-query>
+			select t.* from sa_bizclassification t where 1=1
+		</sql-query>
+		<condition column="parent_Id" name="parentId" symbol="=" alias="t" />
+		<condition column="code" name="code" symbol="like" alias="t" />
+		<condition column="name" name="name" symbol="like" alias="t" />
+		<sql name="queryTree">
+			select t.*,
+                   (select count(0) from sa_bizclassification where parent_id = t.id) as has_Children
+              from sa_bizclassification t 
+            where 1=1
+		</sql>
+		<condition column="id" name="excludeIds" symbol="in" alias="t" >
+			t.id not in :excludeIds
+		</condition>
+		<sql name="queryTreeByPermission">
+			select t.*,
+			       (select count(0) from sa_bizclassification where parent_id = t.id) as has_Children
+			  from sa_bizclassification t
+			 where t.id in (select pp.resource_id
+			                  from SA_OPOrg            p,
+			                       SA_OPOrg            o,
+			                       SA_OPAuthorize      a,
+			                       SA_OPRole           r,
+			                       SA_OPRolePermission rp,
+			                       SA_OPPermission     pp
+			                 where p.person_id = ?
+			                   and p.full_id like concat(o.full_id,'%')
+			                   and o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and rp.permission_id = pp.id
+			                   and pp.resource_kind_id = ?
+			                   and pp.node_kind_id = ?
+			                   and p.status = 1
+			                   and o.status = 1
+			                   and r.status = 1
+			                   and pp.status = 1)
+			   and t.status = 1
+			   and t.parent_id = ?
+			 order by t.sequence asc
+		</sql>
+	</query> 
+
+	
+	<query name="bizclassificationdetail" label="业务分类配置明细">
+		<sql-query>
+			select f.code, f.name, f.biz_code,f.status, t.*
+		  from sa_bizclassificationdetail t, sa_flexfieldbizgroup f
+		 where t.biz_property_id = f.id
+		   and t.biz_classification_id = :bizClassificationId
+		</sql-query>
+		<condition column="biz_classification_id" name="bizClassificationId" append="false" symbol="=" alias="t"/>
+		<sql name="checkByBizCode">
+			select c.name
+		  from sa_bizclassificationdetail t,
+		       sa_bizclassification       c,
+		       sa_flexfieldbizgroup       g
+		 where t.biz_classification_id = c.id
+		   and t.biz_property_id = g.id
+		   and g.biz_code = ?
+		</sql>
+		<sql name="queryByClassificationId">
+			select t.id,
+		       t.biz_property_id,
+		       t.biz_type,
+		       t.biz_name,
+		       t.dialog_width,
+		       t.entity_class_name,
+		       g.code,
+		       g.biz_code
+		  from sa_bizclassificationdetail t, sa_flexfieldbizgroup g
+		 where t.biz_property_id = g.id
+		   and t.biz_classification_id = ?
+		 order by t.sequence asc
+		</sql>
+	</query>
+
+	
+</query-mappings>

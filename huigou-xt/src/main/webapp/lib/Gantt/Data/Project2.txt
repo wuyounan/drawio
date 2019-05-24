@@ -1,0 +1,247 @@
+﻿{    
+    "UID": "100",
+    "Name": "乐山城投项目管理",
+    "StartDate": "2013-07-01T08:00:00",
+	"FinishDate": "2013-12-31T15:00:00",
+    "CalendarUID": "1",
+
+    "Calendars": [{
+        "WeekDays": [{
+            "DayWorking": 0,
+            "DayType": 1
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 2,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 3,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 4,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 5,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 6,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 0,
+            "DayType": 7
+        }],
+        "Name": "标准",
+        "UID": "1",
+        "BaseCalendarUID": "-1",
+        "IsBaseCalendar": 1,
+        "Exceptions": []
+    }],
+    "Tasks": 
+	
+	[
+{
+    "UID": "1", 
+    "Name": "前期准备阶段",
+    "Duration": 23,
+    "Start": "2013-07-01T00:00:00",
+    "Finish": "2013-07-31T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [],
+    "ParentTaskUID": -1,
+	children:[
+	{
+    "UID": "11", 
+    "Name": "01.项目提出",
+    "Duration": 2,
+    "Start": "2013-07-01T00:00:00",
+    "Finish": "2013-07-02T23:59:59",
+    "PercentComplete": 100,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": []
+},
+{
+    "UID": "12", 
+    "Name": "02.选址许可",
+    "Duration": 2,
+    "Start": "2013-07-03T00:00:00",
+    "Finish": "2013-07-04T23:59:59",
+    "PercentComplete": 100,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [],
+},
+{
+    "UID": "13", 
+    "Name": "03.立项批复",
+    "Duration": 2,
+    "Start": "2013-07-05T00:00:00",
+    "Finish": "2013-07-08T23:59:59",
+    "PercentComplete": 50,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": []
+},
+{
+    "UID": "14", 
+    "Name": "04.水土方案",
+    "Duration": 2,
+    "Start": "2013-07-09T00:00:00",
+    "Finish": "2013-07-10T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": []
+},
+{
+    "UID": "15", 
+    "Name": "05.水土审批",
+    "Duration": 2,
+    "Start": "2013-07-11T00:00:00",
+    "Finish": "2013-07-12T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [{PredecessorUID: 14,Type: 1,LinkLag: 0}]
+},
+{
+    "UID": "16", 
+    "Name": "06.环境报告编制",
+    "Duration": 2,
+    "Start": "2013-07-15T00:00:00",
+    "Finish": "2007-07-16T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": []
+},
+{
+    "UID": "17", 
+    "Name": "07.环境报告审批",
+    "Duration": 11,
+    "Start": "2013-07-17T00:00:00",
+    "Finish": "2013-07-31T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": []
+}
+	]
+},
+{
+    "UID": "2", 
+    "Name": "招标与办证情况",
+    "Duration": 23,
+    "Start": "2013-08-01T00:00:00",
+    "Finish": "2013-08-31T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [],
+    "ParentTaskUID": -1
+},
+{
+    "UID": "3", 
+    "Name": "工程管理",
+    "Duration": 23,
+    "Start": "2013-09-01T00:00:00",
+    "Finish": "2013-09-30T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [],
+    "ParentTaskUID": -1
+},
+{
+    "UID": "4", 
+    "Name": "合同管理",
+    "Duration": 23,
+    "Start": "2013-10-01T00:00:00",
+    "Finish": "2013-10-31T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [],
+    "ParentTaskUID": -1
+},
+{
+    "UID": "5", 
+    "Name": "资金支付",
+    "Duration": 23,
+    "Start": "2013-11-01T00:00:00",
+    "Finish": "2013-12-31T23:59:59",
+    "PercentComplete": 0,
+    "Summary": 1,
+    "Critical": 0,
+    "Milestone": 0,
+    "PredecessorLink": [],
+    "ParentTaskUID": -1
+}
+]
+	
+	,
+    "Principals": [{"Name": "张三","UID": 1,"Department": "1"},{"Name": "李四","UID": 2,"Department": "2"},{"Name": "赵五","UID": 3,"Department": "3"}],
+    "Departments": [{"Name": "规则设计部","UID": 1},{"Name": "工程部","UID": 2},{"Name": "造价部","UID": 3}],
+	"Resources": [
+		{"Name": "张三","UID": "1","Type": 1,"MaxUnits": 100},
+	    {"Name": "李四","UID": "2","Type": 1,"MaxUnits": 100},
+        {"Name": "王五","UID": "3","Type": 1,"MaxUnits": 100}
+	]
+}

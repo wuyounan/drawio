@@ -1,0 +1,91 @@
+﻿{    
+    "UID": "100",
+    "Name": "乐山城投项目管理",
+    "StartDate": "2013-07-01T08:00:00",
+	"FinishDate": "2013-12-31T15:00:00",
+    "CalendarUID": "1",
+
+    "Calendars": [{
+        "WeekDays": [{
+            "DayWorking": 0,
+            "DayType": 1
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 2,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 3,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 4,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 5,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 1,
+            "DayType": 6,
+            "WorkingTimes": [{
+                "FromTime": "08:00:00",
+                "ToTime": "12:00:00"
+            },
+            {
+                "FromTime": "13:00:00",
+                "ToTime": "17:00:00"
+            }]
+        },
+        {
+            "DayWorking": 0,
+            "DayType": 7
+        }],
+        "Name": "标准",
+        "UID": "1",
+        "BaseCalendarUID": "-1",
+        "IsBaseCalendar": 1,
+        "Exceptions": []
+    }],
+    "Tasks": [],
+    "Principals": [{"Name": "张三","UID": 1,"Department": "1"},{"Name": "李四","UID": 2,"Department": "2"},{"Name": "赵五","UID": 3,"Department": "3"}],
+    "Departments": [{"Name": "规则设计部","UID": 1},{"Name": "工程部","UID": 2},{"Name": "造价部","UID": 3}],
+	"Resources": [
+		{"Name": "张三","UID": "1","Type": 1,"MaxUnits": 100},
+	    {"Name": "李四","UID": "2","Type": 1,"MaxUnits": 100},
+        {"Name": "王五","UID": "3","Type": 1,"MaxUnits": 100}
+	]
+}

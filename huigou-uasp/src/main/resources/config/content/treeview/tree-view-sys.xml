@@ -1,0 +1,108 @@
+<!-- 
+# 树形组件配置文件,开发人员只需要配置tree节点. 
+# 配置说明： # tree,表示一棵树，在页面需要通过name引用所配置的树，故name属性必要； 
+# ajax,是否让树支持ajax，即数据量大时可局部取数据；
+# dataModel,树的数据模型定义，主要定义数据来源；
+# table,数据来源表，目前只支持一张表; 
+# primaryKey,表的主键；
+# connectBy,表的自联结键；
+# label,树上显示节点名称的列; 
+# hiddenCol,其它要查询的字段,用逗号隔开 
+# root,查询节点的根； 
+# defaultCondition，查询条件，配置为 列=:param1 其中，"列"为表中的列，:param1 为变量，该值通过页面标签赋值。 
+# 如果没有查询条件，请不要配置condition项！ 
+# orderby,order排序方式 
+-->
+<tree-mappings>
+	<tree name="org" desc="组织机构">
+		<ajax>true</ajax>
+		<dataModel>
+			<table>SA_OPORG</table>
+			<primaryKey>ID</primaryKey>
+			<connectBy>PARENT_ID</connectBy>
+			<label>NAME</label>
+			<hiddenCol>ORG_KIND_ID,FULL_ID,FULL_NAME,ORG_ID,ORG_NAME,CENTER_ID,CENTER_NAME,DEPT_ID,DEPT_NAME,POSITION_ID,POSITION_NAME,PERSON_ID
+			</hiddenCol>
+			<root>parent_id = :orgRoot or id = :orgRoot</root>
+			<orderby>FULL_SEQUENCE</orderby>
+			<condition column="org_kind_id" name="orgKindId" symbol="in"/>
+			<condition column="status" name="status" symbol="in"/>
+			<condition column="is_virtual" name="isVirtual" symbol="in"/>
+		</dataModel>
+	</tree>
+
+	<tree name="excludePosOrg" desc="组织机构(排除岗位)">
+		<ajax>true</ajax>
+		<dataModel>
+			<table>V_SA_OPORG_EXCLUDE_POS</table>
+			<primaryKey>ID</primaryKey>
+			<connectBy>PARENT_ID</connectBy>
+			<label>NAME</label>
+			<hiddenCol>CODE,ORG_KIND_ID,FULL_ID,FULL_NAME,ORG_ID,ORG_NAME,CENTER_ID,CENTER_NAME,DEPT_ID,DEPT_NAME,POSITION_ID,POSITION_NAME,PERSON_ID
+			</hiddenCol>
+			<root>parent_id =:orgRoot or id = :orgRoot</root>
+			<orderby>FULL_SEQUENCE</orderby>
+			<condition column="org_kind_id" name="orgKindId" symbol="in"/>
+			<condition column="status" name="status" symbol="in"/>
+			<condition column="is_virtual" name="isVirtual" symbol="in"/>
+		</dataModel>
+	</tree>
+	<!-- 功能菜单 -->
+	<tree name="opFunction" desc="功能菜单">
+		<ajax>true</ajax>
+		<dataModel>
+			<table>SA_OPFUNCTION</table>
+			<primaryKey>ID</primaryKey>
+			<label>NAME</label>
+			<hiddenCol>CODE,URL,DESCRIPTION,ICON</hiddenCol>
+			<connectBy>PARENT_ID</connectBy>
+			<root>parent_id ='1'</root>
+			<orderby>SEQUENCE</orderby>
+			<order>ASC</order>
+		</dataModel>
+	</tree>
+	
+	<tree name="saOrgFun" desc="组织机构函数记录维护">
+		<ajax>true</ajax>
+		<dataModel>
+			<table>sa_orgfun</table>
+			<primaryKey>ID</primaryKey>
+			<label>NAME</label>
+			<hiddenCol>CODE,is_last</hiddenCol>
+			<connectBy>PARENT_ID</connectBy>
+			<root>parent_id ='0'</root>
+			<orderby>SEQUENCE</orderby>
+			<order>ASC</order>
+			<condition column="status" name="status" symbol="in"/>
+		</dataModel>
+	</tree>
+	
+	<tree name="procTreeView" desc="流程树">
+		<ajax>true</ajax>
+		<dataModel>
+			<table>wf_procdef</table>
+			<primaryKey>id</primaryKey>
+			<label>name</label>
+			<hiddenCol>code,node_kind_id,full_id,full_name</hiddenCol>
+			<connectBy>parent_id</connectBy>
+			<root>parent_id ='1'</root>
+			<orderby>sequence</orderby>
+			<order>asc</order>
+			<condition column="node_kind_id" name="nodeKindId" symbol="in"/>
+		</dataModel>
+	</tree>
+	
+	<tree name="dataManageTypeTreeView" desc="数据管理权限树">
+		<ajax>true</ajax>
+		<dataModel>
+			<table>sa_opdatamanagetype</table>
+			<primaryKey>id</primaryKey>
+			<label>name</label>
+			<hiddenCol>code,node_kind_id,full_id,full_name</hiddenCol>
+			<connectBy>parent_id</connectBy>
+			<root>parent_id ='0'</root>
+			<orderby>sequence</orderby>
+			<order>asc</order>
+		</dataModel>
+	</tree>
+</tree-mappings>

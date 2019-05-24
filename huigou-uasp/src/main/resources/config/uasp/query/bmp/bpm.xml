@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="approvalRule" label="审批规则">
+		<sql-query>
+			 select t.* from WF_ApprovalElement t where 1 = 1
+		</sql-query>
+		<sql name="queryApprovalHandlerKinds">
+			select t.* from WF_ApprovalHandlerKind t where 1 = 1
+		</sql>
+		<sql name="queryProcApprovalElements">
+			select new com.huigou.uasp.bpm.configuration.domain.query.ProcApprovalElementDesc(
+			       o.id, d.procId, d.procName, d.code, d.name, 
+			       e.id, e.code, e.name, o.sequence)
+			from ProcApprovalElement o
+			  join o.procDefinition d
+			  join o.approvalElement e
+			 where d.procId = :procId
+			   and d.code = :procUnitId
+			   order by o.sequence
+		</sql>
+		<sql name="checkDuplicate">
+			select o from ApprovalRule o 
+			   where id != :id 
+			     and parentId = :parentId 
+			     and upper(name) = :name
+			     and procId = :procId
+			     and procUnitId = :procUnitId
+		</sql>
+		<sql name="updateChildrenFullName">
+			update WF_ApprovalRule
+			   set full_name = concat(:newFullName, substr(full_name, length(:oldFullName) + 1, length(full_name))),
+			       full_id = concat(:newFullId, substr(full_Id, length(:oldFullId) + 1, length(full_Id))),
+			       version = version_seq.Nextval
+			 where full_Id like :fullId
+		</sql>
+		<sql name="queryApprovalRules">
+			select t.*, (select count(*) from wf_approvalrule i where i.parent_id = t.id) has_children
+			  from wf_approvalrule t
+			 where t.parent_Id = :parentId
+			   and t.proc_Id = :procId
+			   and t.proc_Unit_Id = :procUnitId
+			   and t.org_Id = :orgId
+		</sql>
+		<sql name="queryApprovalRuleScopes">
+			select t.*, o.full_name
+			  from wf_approvalrulescope t, sa_oporg o
+			 where t.approval_rule_id = :approvalRuleId
+			    and t.org_id = o.id
+		</sql>
+		<sql name="queryApprovalRuleElements">
+			select t.*, e.data_source_config, e.name element_name
+			  from wf_approvalruleelement t
+			  left join wf_approvalelement e
+			    on t.element_code = e.code
+			 where t.approval_rule_id = :approvalRuleId
+		</sql>
+		<sql name="queryApprovalRuleHandlers">
+			select t.*, k.name handler_kind_name, k.data_source_config
+			  from wf_approvalrulehandler t 
+			  left join wf_approvalhandlerkind k 
+			    on t.handler_kind_code = k.code 
+			 where t.approval_rule_id = :approvalRuleId
+		</sql>
+		<sql name="queryHandlerChildren">
+			select t.*, k.name handler_kind_name, k.data_source_config
+			  from wf_approvalrulehandlerassist t, wf_approvalhandlerkind k
+			 where t.handler_kind_code = k.code
+			   and t.kind_id = :kindId
+			   and t.approval_rule_handler_id = :approvalRuleHandlerId
+			 order by t.sequence  		
+		</sql>
+		<sql name="queryUIElementPermissions">
+			select *
+			  from WF_ApprovalRuleHandlerUIPerm t
+			 where t.approval_rule_handler_id = :approvalRuleHandlerId
+		</sql>
+		<sql name="queryApprovalHandlerById">
+			select o from ApprovalRuleHandler o where o.id = :id
+		</sql>
+		<sql name="queryProcunithandlerByIdAndNotEnd">
+			select t.id from wf_procunithandler t where t.approval_rule_handler_id=? and t.status =0
+		</sql>
+		<sql name="countTaskByProcunithandlerId">
+			select count(0) from act_hi_taskinst_extension t where t.proc_unit_handler_id_=?
+		</sql>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="approvalRuleElement" label="审批规则要素">
+	   <sql name="queryForFlowChart">
+			select re.element_code, re.foperator, re.fvalue, re.fvalue_id,
+			       e.name Element_name
+			  from WF_ApprovalElement e, WF_ApprovalRuleElement re
+			 where e.code = re.element_code
+			   and re.approval_rule_id = ?
+			 order by e.sequence	   
+	   </sql>
+	</query>
+	
+	<query name="taskInstExtension">
+	    <sql name="queryTaskDetail">
+			select t.id_ id, t.kind_id_ kind_id, t.status_id_ status_id,
+			       t.process_definition_key_ process_definition_key,
+			       t.task_def_key_ task_def_key, t.business_key_ biz_id,
+			       t.business_code_ biz_code, t.proc_inst_id_ proc_inst_id,
+			       t.proc_unit_handler_id_ proc_unit_handler_id,
+			       t.executor_person_id_ executor_person_id, 
+			       p.end_time_ proc_inst_end_time,
+			       p.status_id_ proc_inst_status_id,
+			       p.applicant_person_member_id_ applicant_person_member_id
+			  from act_hi_taskinst_extension t
+			  left join act_hi_procinst_extension p
+			    on t.proc_inst_id_ = p.proc_inst_id_
+			 where t.id_ = ?
+        </sql>
+		<sql name="queryProcUnitHandlersByBizId">
+			select te.task_def_key_ task_def_key,
+			       te.id_ id,
+			       te.name_ as name, 
+			       uh.sub_proc_unit_name,
+			       te.catalog_id_ catalog_id,
+			       te.kind_id_ task_kind,
+			       te.start_time_ start_time,
+			       te.end_time_ end_time,
+			       round(te.duration_ / (60 * 60 * 1000), 2) duration,
+			       te.status_id_ status_id,
+			       te.status_name_ status_name,
+			       te.executor_ogn_name_ executor_ogn_name,
+			       te.executor_dept_name_ executor_dept_name,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.executor_person_id_ executor_person_id, 
+			       te.proc_unit_handler_id_ proc_unit_handler_id,
+			       uh.approval_rule_handler_id,
+			       uh.approval_rule_id,
+			       uh.group_id,
+			       te.opinion_ opinion,
+			       te.result_ result
+			  from act_hi_taskinst_extension te
+			  left join wf_procunithandler uh
+			    on te.proc_unit_handler_id_ = uh.id
+			 where te.business_key_ = :businessKey
+			 order by te.start_time_  asc
+		</sql>
+		<sql name="queryApprovalHistoryByProcInstId">
+			select te.task_def_key_ task_def_key, te.id_ id, te.name_ name,
+			       te.executor_ogn_name_ executor_ogn_name,
+			       te.executor_dept_name_ executor_dept_name,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.start_time_ start_time, te.end_time_ end_time,
+			       round(te.duration_ / (60 * 60 * 1000), 2) duration,
+			       te.status_id_ status_id, te.status_name_ status_name,
+			       te.executor_ogn_name_ || '.' || executor_dept_name_ || '.' ||
+			       te.executor_person_member_name_ executor_full_name,
+			       te.proc_unit_handler_id_, uh.approval_rule_handler_id,
+			       uh.approval_rule_id, uh.group_id
+			  from act_hi_taskinst_extension te,
+			       wf_procunithandler uh
+			 where te.proc_inst_id_ = :procInstId
+			   and te.proc_unit_handler_id_ = uh.id(+)
+			 order by te.id_	
+		</sql>
+		<sql name="queryBackTasksByBizCode">
+			select te.id_ id,  te.task_def_key_ task_def_key, te.name_ name, p.sub_proc_unit_name,
+			       te.executor_dept_name_ || '.' || te.executor_person_member_name_ executor_full_name,
+			       te.status_name_ status_name, nvl(p.group_id, 0) group_id, pd.sequence process_definition_group_id,
+			       te.proc_unit_handler_id_ proc_unit_handler_id
+			  from act_hi_taskinst_extension te
+			  left join wf_procdef pd
+			    on te.process_definition_key_ = pd.proc_id
+			   and te.task_def_key_ = pd.code
+			  left join wf_procunithandler p
+			    on te.task_def_key_ = p.proc_unit_id
+			   and te.proc_unit_handler_id_ = p.id
+			   and p.biz_code = ?
+			 where te.business_code_ = ?
+			   and te.status_id_ in ('completed')
+			   and te.kind_id_ in ('task')
+			   and nvl(te.cooperation_model_id_, 'chief') = 'chief'
+			 order by te.version_
+		</sql>
+		<sql name="queryApplicantByProcInstId">
+			select te.id_                 id,
+		       te.task_def_key_       task_def_key,
+		       te.name_               name,
+		       te.executor_full_id_   executor_full_id,
+		       te.executor_full_name_ executor_full_name,
+		       te.business_key_       business_key,
+		       te.business_code_      business_code,
+		       te.executor_url_       executor_url
+		  from act_hi_taskinst_extension te
+		 where te.proc_inst_id_ = ?
+		   and te.task_def_key_ = 'Apply'
+		   and te.previous_id_ is null
+		 order by te.id_ desc
+		</sql>
+		<sql name="queryApplicantByBizId">
+			select te.id_                           id,
+		       te.task_def_key_                 task_def_key,
+		       te.name_                         as name,
+		       te.executor_full_id_             as executor_full_id,
+		       te.executor_full_name_           as executor_full_name,
+		       te.business_key_                 as business_key,
+		       te.business_code_                as business_code,
+		       te.executor_url_                 as executor_url,
+		       te.applicant_person_member_id_   as applicant_person_member_id,
+		       te.applicant_person_member_name_ as applicant_person_member_name
+		  from act_hi_taskinst_extension te
+		 where te.business_key_ = ?
+		   and te.previous_id_ is null
+		 order by te.id_ desc
+		</sql>
+		<sql name="loadRuntimeTaskById">
+			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
+			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.parent_task_id_ parent_task_id, te.description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.task_def_key_ task_def_key, te.delegation_ delegation,
+			       te.priority_ priority, te.start_time_ start_time, '' end_time,
+			       te.due_date_ due_date, te.suspension_state_ suspension_state,
+			       te.kind_id_ kind_id, te.creator_url_ creator_url,
+			       te.executor_url_ executor_url,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.creator_full_id_ creator_full_id,
+			       te.executor_full_id_ executor_full_id,
+			       te.executor_names_ executor_names, te.status_id_ status_id,
+			       te.status_name_ status_name, te.catalog_id_ catalog_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.previous_id_ previous_id, te.business_key_ as biz_Id,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ as proc_unit_handler_id
+			  from act_ru_task_extension te
+			 where te.id_ = ?
+		</sql>
+		<sql name="loadRuntimeTaskByBizId">
+			select te.id_ id,
+			       te.proc_inst_id_ proc_inst_id,
+			       te.proc_def_id_ proc_def_id,
+			       te.name_ name,
+			       te.process_definition_key_ process_definition_key,
+			       te.parent_task_id_ parent_task_id,
+			       te.description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.task_def_key_ task_def_key,
+			       te.delegation_ delegation,
+			       te.priority_ priority,
+			       te.start_time_ start_time,
+			       '' end_time,
+			       te.due_date_ due_date,
+			       te.suspension_state_ suspension_state,
+			       te.kind_id_ kind_id,
+			       te.creator_url_ creator_url,
+			       te.executor_url_ executor_url,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.creator_person_member_id_ creator_person_member_id,
+			       te.creator_full_id_ creator_full_id,
+			       te.executor_full_id_ executor_full_id,
+			       te.executor_names_ executor_names,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.executor_person_member_id_ executor_person_member_id,
+			       te.status_id_ status_id,
+			       te.status_name_ status_name,
+			       te.catalog_id_ catalog_id,
+			       te.previous_id_ previous_id,
+			       te.business_key_ as biz_Id,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ as proc_unit_handler_id
+			  from act_ru_task_extension te
+			 where te.business_key_ = ?
+		</sql>
+		<sql name="loadHistoricTaskById">
+			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
+			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.parent_task_id_ parent_task_id, te.description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.task_def_key_ task_def_key, te.priority_ priority,
+			       te.start_time_ start_time, te.end_time_ end_time,
+			       te.due_date_ due_date, '' suspension_state, te.kind_id_ kind_id,
+			       te.creator_url_ creator_url, te.executor_url_ executor_url,
+			       te.duration_ delegation,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.creator_full_id_ creator_full_id,
+			       te.executor_full_id_ executor_full_id,
+			       te.executor_names_ executor_names, te.status_id_ status_id,
+			       te.status_name_ status_name, te.catalog_id_ catalog_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.previous_id_ previous_id, te.business_key_ as biz_Id,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ as proc_unit_handler_id
+			  from act_hi_taskinst_extension te
+			 where te.id_ = ?			
+		</sql>
+		<sql name="queryHiTaskInstByBizCode">
+			select te.id_ id, te.proc_def_id_ proc_def_id, te.task_def_key_ task_def_key,
+			       te.proc_inst_id_ proc_inst_id, te.execution_id_ execution_id,
+			       te.name_ name, te.description_ description, te.start_time_ start_time,
+			       te.end_time_ end_time, te.priority_ priority, te.form_key_ form_key,
+			       te.catalog_id_ catalog_id, te.kind_id_ kind_id,
+			       te.creator_full_name_ creator_full_name,
+			       te.creator_ogn_id_ creator_ogn_id,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_id_ creator_dept_id,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.creator_person_member_id_ creator_person_member_id,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.executor_full_name_ executor_full_name, te.status_id_ status_id,
+			       te.executor_ogn_id_ executor_ogn_id,
+			       te.executor_ogn_name_ executor_ogn_name,
+			       te.executor_dept_id_ executor_dept_id,
+			       te.executor_dept_name_ executor_dept_name,
+			       te.executor_person_member_id_ executor_person_member_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.status_name_ status_name, te.business_code_ biz_code,
+			       te.executor_url_ executor_url, te.business_key_ biz_id,
+			       te.proc_unit_handler_id_ proc_unit_handler_id,
+			       te.need_timing_ need_timing
+			  from act_hi_taskinst_extension te
+			 where te.business_code_ = :bizCode
+			 order by te.start_time_
+		</sql>
+		<sql name="queryHiTaskInstByBizCodeAndKindId">
+			select te.id_ id, te.proc_def_id_ proc_def_id, te.task_def_key_ task_def_key,
+			       te.proc_inst_id_ proc_inst_id, te.execution_id_ execution_id,
+			       te.name_ name, te.description_ description, te.start_time_ start_time,
+			       te.end_time_ end_time, te.priority_ priority, te.form_key_ form_key,
+			       te.catalog_id_ catalog_id, te.kind_id_ kind_id,
+			       te.creator_full_name_ creator_full_name,
+			       te.creator_ogn_id_ creator_ogn_id,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_id_ creator_dept_id,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.creator_person_member_id_ creator_person_member_id,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.executor_full_name_ executor_full_name, te.status_id_ status_id,
+			       te.executor_ogn_id_ executor_ogn_id,
+			       te.executor_ogn_name_ executor_ogn_name,
+			       te.executor_dept_id_ executor_dept_id,
+			       te.executor_dept_name_ executor_dept_name,
+			       te.executor_person_member_id_ executor_person_member_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.status_name_ status_name, te.business_code_ biz_code,
+			       te.executor_url_ executor_url, te.business_key_ biz_id,
+			       te.proc_unit_handler_id_ proc_unit_handler_id,
+			       te.need_timing_ need_timing
+			  from act_hi_taskinst_extension te
+			 where te.business_code_ = :bizCode
+			   and te.kind_id_ = :kindId
+			 order by te.start_time_
+		</sql>
+		<sql name="taskInstRelationQuery">
+			select r.task_id, r.related_task_id, te.proc_inst_id_ proc_inst_id,
+			       te.name_ as name, te.process_definition_key_ process_definition_key,
+			       te.task_def_key_ task_def_key, te.description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name, te.kind_id_ kind_id,
+			       te.executor_url_ executor_url,
+			       te.creator_person_member_name_ creator_psm_name,
+			       te.executor_names_ executor_names, te.status_id_ status_id,
+			       te.status_name_ status_name, te.catalog_id_ catalog_id,
+			       te.executor_person_member_name_ executor_psm_name,
+			       te.previous_id_ previous_id, te.business_key_ as biz_Id,
+			       te.start_time_ start_time, te.end_time_ end_time,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ as proc_unit_handler_id
+			  from act_hi_taskinst_relation r, act_hi_taskinst_extension te
+			 where r.related_task_id = te.id_
+		</sql>
+		<sql name="queryTrackingTasks">
+			select te.description_ description, te.proc_inst_id_ proc_inst_id, te.id_,
+			       te.name_ as name,
+			       te.creator_person_member_id_ creator_person_member_id,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.start_time_ start_time, te.executor_url_ executor_url,
+			       p.business_key_ biz_id, p.proc_sys_name
+			  from act_hi_taskinst_extension te, v_act_hi_procinst p
+			 where te.proc_inst_id_ = p.proc_inst_id_
+			   and te.task_def_key_ = 'Apply'
+			   and p.end_time_ is null
+			   and te.previous_id_ is null
+			   and te.status_id_ = 'completed'
+			   and te.creator_person_member_id_ like :personId
+		</sql>
+		<sql name="queryHiTaskIdsByProcInstAndPreviousId">
+			select id
+			  from HistoricTaskInstanceExtension
+			 where processInstanceId = :procInstId
+			   and previousId = :previousId
+			   and catalogId = 'process'
+			   and kindId = 'task'
+			   and statusId not in ('ready', 'sleeping', 'executing')
+		</sql>
+		<sql name="queryRuTaskIdsByProcInstAndPreviousId">
+			select id from RuntimeTaskExtension where processInstanceId = :procInstId and previousId = :previousId
+		</sql>
+		<sql name="queryRuTaskIdsByProcInstId">
+			select id from RuntimeTaskExtension where processInstanceId = :procInstId
+		</sql>
+		<sql name="queryNotCompleteHiTaskInstExtensionsByProcInstId">
+			select o from HistoricTaskInstanceExtension o where o.id in (select id from RuntimeTaskExtension where processInstanceId = :procInstId)
+		</sql>
+		<sql name="updateTaskInstAssignee">
+			update act_hi_taskinst set assignee_ = ? where id_ = ?
+		</sql>
+		<sql name="updateActInstAssignee">
+			update act_hi_actinst set assignee_ = ? where id_ = ?
+		</sql>
+		<sql name="updateRuTaskInstStartTime">
+			update act_ru_task t set t.create_time_ = ? where t.id = ?
+		</sql>
+		<sql name="updateRuTaskInstExtensionStartTime">
+			update act_ru_task_extension t set t.create_time_ = ? where t.id = ?
+		</sql>
+		<sql name="updateHiTaskInstStartTime">
+			update act_hi_taskinst t set t.start_time_ = ? where t.id = ?
+		</sql>
+		<sql name="countTaskinstByBusinessKey">
+			select count(0) from act_hi_taskinst_extension t where t.business_key_ = ?
+		</sql>
+		<sql name="countTaskinstByBusinessKeyAndPersonId">
+			select count(0) from act_hi_taskinst_extension t where t.business_key_ = ? and t.executor_person_id_= ?
+		</sql>
+		<sql name="countWaitedAssistantTask">
+			select count(0)
+			  from act_hi_taskinst_extension t
+			 where t.proc_unit_handler_id_ in
+			       (select h.id from wf_procunithandler h where h.biz_id = ? and h.chief_id = ? )
+			       and t.status_id_ = 'waited'
+		</sql>
+		<sql name="queryAssistantTaskIds">
+			select id_
+			  from act_ru_task_extension t
+			 where t.proc_unit_handler_id_ in
+			       (select h.id from wf_procunithandler h where h.biz_id = ? and h.chief_id = ? )
+		</sql>
+	</query>
+	
+	<query name="procApprovalRuleParse">
+		<sql name="selectNearestRuleOrgId">
+			select p.id
+			  from WF_ApprovalRule t, sa_oporg p, sa_oporg c
+			 where t.proc_id = ?
+			   and t.proc_unit_id = ?
+			   and t.org_id = p.id
+			   and p.org_kind_id = 'ogn'
+			   and c.org_kind_id = 'ogn'
+			   and c.full_id like concat(p.full_id, '%')
+			   and c.org_id = ?
+			 order by p.full_id desc
+		</sql>
+		<sql name="queryRule">
+			select o
+			  from ApprovalRule o
+			 where o.orgId = :orgId
+			   and o.procId = :procId
+			   and o.procUnitId = :procUnitId
+			   and o.nodeKindId in(:nodeKindId, 2)
+			   and o.status = 1
+			   and o.scopeKindId = 1
+			 order by priority
+		</sql>
+		<sql name="queryScopeRule">
+			select o
+			  from ApprovalRule o join o.approvalRuleScopes s
+			 where o.procId = :procId
+			   and o.procUnitId = :procUnitId
+			   and o.nodeKindId in(:nodeKindId, 2)
+			   and o.status = 1
+			   and o.scopeKindId = 2 
+			   and s.orgId = :orgId
+			 order by priority
+		</sql>
+	</query>
+	
+	<query name="procUnitHandler">
+		<sql name="queryProcunitHandlersByBizCode">
+			select h.*, r.name approval_rule_name
+			  from wf_procunithandler h
+			  left join wf_approvalrule r
+			    on h.approval_rule_id = r.id
+			 where biz_code = :bizCode
+			 order by h.proc_unit_id, group_id	
+		</sql>
+		<sql name="queryOneTaskByBizIdAndProcUnitHandlerId">
+			select e.id_ as task_id, e.status_id_ as status_id
+			  from act_hi_taskinst_extension e
+			 where e.business_key_ = ?
+			   and e.proc_unit_handler_id_ = ?
+			 order by e.version_ desc
+		</sql>
+		<sql name="queryProcUnitHandlersByBizId">
+			select uh.*,
+			       rh.handler_kind_id,
+			       rh.kind_id,
+			       rh.allow_add,
+			       rh.must_pass,
+			       rh.allow_transfer,
+			       rh.allow_abort,
+			       rh.need_timing,
+			       rh.help_section
+			  from wf_procunithandler uh
+			  left join wf_approvalrulehandler rh
+			    on uh.approval_rule_handler_id = rh.id
+			 where uh.biz_id = ?
+			   and uh.proc_unit_id = ?
+			   and uh.cooperation_model_id != 'cc'
+			   and uh.status >= 0
+			 order by uh.execution_times, uh.group_id, uh.sequence
+		</sql>
+		<sql name="queryAllProcUnitHandlersByBizId">
+			select uh.*,
+			       rh.handler_kind_id,
+			       rh.kind_id,
+			       rh.allow_add,
+			       rh.allow_transfer,
+			       rh.allow_abort,
+			       rh.need_timing,
+			       rh.help_section
+			  from wf_procunithandler uh
+			  left join wf_approvalrulehandler rh
+			    on uh.approval_rule_handler_id = rh.id
+			  left join wf_procdef wp
+			    on uh.proc_unit_id = wp.code
+			 where uh.biz_id = ?
+			   and uh.cooperation_model_id != 'cc'
+			   and uh.status >= 0
+			   and wp.proc_id = ?
+			 order by wp.sequence, uh.execution_times, uh.group_id, uh.sequence
+		</sql>
+		<sql name="queryCounterSignHandlers">
+			select t.id,
+			       t.proc_unit_id,
+			       t.sub_proc_unit_name,
+			       t.org_name,
+			       t.dept_name,
+			       t.handler_id,
+			       t.handler_name,
+			       t.group_id,
+			       t.sequence,
+			       'psm' org_kind_name,
+			       h.allow_add,
+			       t.cooperation_model_id
+			  from wf_procunithandler t
+			  left join wf_approvalrulehandler h
+			    on t.approval_rule_handler_id = h.id
+			 where t.biz_id = :bizId
+			   and t.proc_unit_id = :procUnitId
+			   and t.status >= 0
+			   and (t.result is null or t.result not in (4, 5))
+			   and t.cooperation_model_id in ('chief', 'mend')
+			 order by t.group_id, t.sequence
+		</sql>
+		<sql name="getActiveProcUnitGroupId">
+			select min(group_id)
+			  from act_hi_taskinst_extension t, wf_procunithandler i
+			 where i.biz_id = ?
+			   and t.proc_unit_handler_id_ = i.id
+			   and i.cooperation_model_id != 'cc'
+			   and i.proc_unit_id = ?
+			   and i.status = 0
+			   and t.catalog_id_ = 'process'
+			   and t.status_id_ in ('waited', 'ready')
+		</sql>
+		<sql name="queryUIElmentPermissions">
+			select a.*
+			  from WF_ApprovalRuleHandlerUIPerm a
+			 where a.approval_rule_handler_id in
+			       (select ah.id
+			          from wf_procunithandler ph, wf_approvalrulehandler ah
+			         where ph.id = ?
+			           and ph.approval_rule_handler_id = ah.id)
+		</sql>
+		<!-- 查询流程环节审批规则ID -->
+		<sql name="queryProcUnitApprovalRuleId">
+			select distinct ph.approval_rule_id
+			  from wf_procunithandler ph
+			 where ph.biz_id = ?
+			   and ph.proc_unit_id = ?
+			   and ph.approval_rule_id is not null
+		</sql>
+		<!-- 查询流程环节处理人和任务信息 -->
+		<sql name="queryProcUnitHandlersAndTaskInsts">
+			select uh.proc_unit_id, uh.proc_unit_name, uh.sub_proc_unit_name, te.id_ id,
+			       te.name_ as name, uh.org_name, uh.dept_name, uh.position_name,
+			       uh.handler_name, te.catalog_id_ catalog_id, te.start_time_ start_time,
+			       te.end_time_ end_time, round(te.duration_ / (60 * 60 * 1000), 2) duration,
+			       te.status_id_ status_id, te.status_name_ status_name, uh.group_id,
+			       te.opinion_ opinion, te.result_ result
+			  from wf_procunithandler uh
+			  left join act_hi_taskinst_extension te
+			    on te.proc_unit_handler_id_ = uh.id
+			 where uh.biz_id = ?
+			       and uh.proc_unit_id = ?
+			       and uh.cooperation_model_id != 'cc'
+   				   and uh.status >= 0
+			 order by uh.group_id, te.start_time_		    
+		</sql>
+	</query>
+	
+	<query name="procDefinition" label="流程定义">
+		<sql-query>
+			select t.id, t.code, t.name, t.parent_id, t.status, t.description,
+			       t.sequence, t.version, t.approval_bridge_proc_id, t.node_kind_id,
+			       t.need_timing, t.limit_time, t.full_name, t.full_id,t.merge_handler_kind,
+			       t.show_query_handlers,
+			       (select count(0) from wf_procdef i where i.parent_id = t.id) has_children,
+			       t.proc_id, t.proc_name
+			  from wf_procdef t
+			 where 1 = 1
+		</sql-query>
+		<condition column="parent_id" name="parentId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<sql name="queryOneLevel">
+			select t.*
+			  from wf_procdef t
+			 where t.parent_id = ?
+			   and t.status = 1
+			   and t.node_kind_id = 'folder'
+			 order by t.sequence asc
+		</sql>
+	</query>
+    <query name="workflow" label="任务查询">
+		<sql name="queryRuntimeTasks">
+			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
+			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.parent_task_id_ parent_task_id, te.description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.task_def_key_ task_def_key, te.delegation_ delegation,
+			       te.priority_ priority, te.start_time_ start_time, '' end_time,
+			       te.due_date_ due_date, te.suspension_state_ suspension_state,
+			       te.kind_id_ kind_id, te.creator_url_ creator_url,
+			       te.executor_url_ executor_url,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.creator_full_id_ creator_full_id,
+			       te.executor_full_id_ executor_full_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.executor_names_ executor_names, te.status_id_ status_id,
+			       te.status_name_ status_name, te.catalog_id_ catalog_id,
+			       te.previous_id_ previous_id, te.business_key_ as biz_Id,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ proc_unit_handler_id,
+			       te.sub_proc_unit_name_ sub_proc_unit_name,
+			       pi.start_time_ proc_inst_start_time, pi.end_time_ proc_inst_end_time,
+			       te.applicant_person_member_id_ applicant_person_member_id,
+			       te.applicant_person_member_name_ applicant_person_member_name,
+			       pi.proc_sys_name, pi.proc_name
+			  from act_ru_task_extension te
+			  left join v_act_hi_procinst pi
+			    on te.proc_inst_id_ = pi.proc_inst_id_
+			 where 1 = 1	
+		</sql>
+		<sql name="queryHistoryTasks">
+			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
+			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.parent_task_id_ parent_task_id, description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.task_def_key_ task_def_key, te.priority_ priority,
+			       te.start_time_ start_time, te.end_time_ end_time,
+			       te.due_date_ due_date, '' suspension_state, te.kind_id_ kind_id,
+			       te.creator_url_ creator_url, te.executor_url_ executor_url,
+			       '' delegation,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.creator_full_id_ creator_full_id,
+			       te.executor_full_id_ executor_full_id,
+			       te.executor_names_ executor_names, te.status_id_ status_id,
+			       te.status_name_ status_name, te.catalog_id_ catalog_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.previous_id_ previous_id, te.business_key_ as biz_Id,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ as proc_unit_handler_id,
+			       te.sub_proc_unit_name_ as sub_proc_unit_name,
+			       pi.start_time_ proc_inst_start_time, pi.end_time_ proc_inst_end_time,
+			       te.applicant_person_member_id_ applicant_person_member_id,
+			       te.applicant_person_member_name_ applicant_person_member_name,
+			       pi.proc_sys_name, pi.proc_name
+			  from act_hi_taskinst_extension te
+			  left join v_act_hi_procinst pi
+			    on te.proc_inst_id_ = pi.proc_inst_id_
+			 where 1 = 1
+		</sql>
+		<sql name="queryCollectTasks">
+			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
+			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       parent_task_id_ parent_task_id, description_ description,
+			       te.creator_ogn_name_ creator_ogn_name,
+			       te.creator_dept_name_ creator_dept_name,
+			       te.task_def_key_ task_def_key, te.priority_ priority,
+			       te.start_time_ start_time, te.end_time_ end_time,
+			       te.due_date_ due_date, '' suspension_state, te.kind_id_ kind_id,
+			       te.creator_url_ creator_url, te.executor_url_ executor_url,
+			       '' delegation,
+			       te.creator_person_member_name_ creator_person_member_name,
+			       te.creator_full_id_ creator_full_id,
+			       te.executor_full_id_ executor_full_id,
+			       te.executor_names_ executor_names, te.status_id_ status_id,
+			       te.status_name_ status_name, te.catalog_id_ catalog_id,
+			       te.executor_person_member_name_ executor_person_member_name,
+			       te.previous_id_ previous_id, te.business_key_ as biz_Id,
+			       te.business_code_ as biz_code,
+			       te.proc_unit_handler_id_ as proc_unit_handler_id,
+			       te.sub_proc_unit_name_ as sub_proc_unit_name,
+			       te.applicant_person_member_id_ applicant_person_member_id,
+			       te.applicant_person_member_name_ applicant_person_member_name,
+			       pi.proc_name
+			  from act_hi_taskinst_extension te
+			  left join v_act_hi_procinst pi
+			    on te.proc_inst_id_ = pi.proc_inst_id_, WF_TaskCollection pc
+			 where te.id_ = pc.task_id
+		</sql>
+		<sql name="queryTaskStatistics">
+			select count(*) to_do_task_count,
+			       sum(decode(task_def_key_, 'Apply', 1, 0)) apply_task_count
+			  from act_hi_taskinst_extension t
+			 where t.executor_person_member_id_ like :personId
+			   and t.status_id_ in ('ready', 'sleeping', 'executing')
+		</sql>
+	</query>
+	
+	
+	<query name="procunitHandlerQuery" label="流程处理人查询">
+		<sql-query>
+			select pe.applicant_person_member_id_   as applicant_person_member_id,
+			       pe.applicant_person_member_name_ as applicant_person_member_name,
+			       pe.key_                          as proc_id,
+			       pe.description_                  as proc_description,
+			       pe.start_time_                   as proc_start_time,
+			       pe.end_time_                     as proc_end_time,
+			       pe.applicant_full_id_            as full_id,
+			       ph.proc_unit_name,
+			       ph.sub_proc_unit_name,
+			       ph.biz_id,
+			       ph.biz_code,
+			       ph.handled_date,
+			       ph.result                        as handle_result,
+			       ph.handler_id                    as person_member_id,
+			       ph.handler_name,
+			       ph.group_id,
+			       ph.version,
+			       pd.name                          as proc_name,
+			       pd.full_name                     as proc_full_name,
+			       te.status_id_                    as task_status_id,
+			       te.status_name_                  as task_status_name,
+			       te.description_                  as task_description,
+			       te.start_time_                   as task_start_time,
+			       te.end_time_                     as task_end_time
+			  from act_hi_procinst_extension pe, wf_procdef pd, wf_procunithandler ph
+			  left join act_hi_taskinst_extension te
+			    on ph.id = te.proc_unit_handler_id_
+			 where pe.key_ = pd.proc_id
+			   and pd.node_kind_id = 'proc'
+			   and pe.business_key_ = ph.biz_id
+			   and pe.status_id_ = 'executing'
+		</sql-query>
+		<condition column="applicant_full_id_" name="administrativeOrgFullId" symbol="half_like" alias="pe"/>
+		<condition column="full_id" name="procFullId" symbol="half_like" alias="pd"/>
+		<condition column="handler_name" name="executorPersonMemberName" symbol="like" alias="ph"/>
+		<condition column="start_time_" name="startDate" type="java.util.Date" symbol="&gt;=" alias="pe"/>
+		<condition column="end_time_" name="endDate" type="java.util.Date" symbol="&lt;=" alias="pe"/>
+		<condition column="applicant_person_member_name_" name="applicantPersonNemberName" symbol="like" alias="pe"/>
+		<condition column="searchContent" name="searchContent" symbol="like" alias="ph">
+			(ph.biz_code like :searchContent or pe.description_ like :searchContent)
+		</condition>
+		<condition column="isNotTask" name="isNotTask" type="java.lang.Integer" symbol="=" alias="t">
+			te.id_ is null
+		</condition>
+	</query>
+</query-mappings>

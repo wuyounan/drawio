@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="log" label="日志查询">
+		<sql-query>
+			select t.id, t.organ_id, t.organ_name, t.dept_id, t.dept_name,
+			       t.person_member_id, t.person_member_name, t.client_ip, t.server_ip,
+			       t.login_date, t.logout_date, t.logout_kind_id,
+			       t.logout_person_memeber_id, t.full_id, t.logout_person_memeber_name,
+			       t.full_name, t.error_message, t.login_name
+			  from SA_HistoricSession t
+			 where 1 = 1			
+		</sql-query>
+		
+		<sql name="queryOperationlog">
+			select t.id, t.app_id, t.app_code, t.app_name, t.organ_id, t.organ_name,
+			       t.role_kind_Id, t.role_kind_Name, t.dept_id, t.dept_name,
+			       t.position_id, t.position_name, t.person_member_id,
+			       t.person_member_name, t.full_id, t.full_name, t.begin_date,
+			       t.end_date, t.ip, t.mac, t.class_name, t.method_name, t.log_type,
+			       t.operate_name, t.status_id, t.status_name,
+			       t.person_security_level_name, t.resource_security_level_name,
+			       t.machine_security_level_name, t.person_security_level_id,
+			       t.resource_security_level_id, t.machine_security_level_id,
+			       t.description
+			  from SA_OPERATIONLOG t
+			 where 1 = 1			
+		</sql>
+
+		<condition column="full_id" name="fullId" symbol="half_like" alias="t"/>
+		<condition column="login_name" name="loginName" symbol="like" alias="t"/>
+		<condition column="person_member_name" name="personName" symbol="like" alias="t"/>
+		<condition column="client_ip" name="ip" symbol="like" alias="t"/>
+		<condition column="login_Date" name="beginDate" symbol="&gt;="  type="java.util.Date" alias="t"/>
+		<condition column="login_Date" name="endDate" symbol="&lt;="  type="java.util.Date" alias="t"/>
+	</query>
+</query-mappings>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:http-conf="http://cxf.apache.org/transports/http/configuration"
+	xsi:schemaLocation="
+	http://cxf.apache.org/jaxws 
+	http://cxf.apache.org/schemas/jaxws.xsd 
+	http://cxf.apache.org/jaxrs
+    http://cxf.apache.org/schemas/jaxrs.xsd
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://cxf.apache.org/transports/http/configuration 
+	http://cxf.apache.org/schemas/configuration/http-conf.xsd
+	">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-extension-jaxws.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+	
+	<!-- <bean id="webServicesAgent" class="org.apache.cxf.spring.remoting.Jsr181HandlerMapping"> 
+		<property name="urlPrefix"> <value>/</value> </property> </bean> -->
+	<!-- 输入日志拦截器 -->
+	<bean id="jaxrsLoggingInInterceptor" class="com.huigou.uasp.log4j.interceptor.Log4jLoggingInInterceptor"></bean>
+	<!-- 输出日志拦截器 -->
+	<bean id="jaxrsLoggingOutInterceptor" class="com.huigou.uasp.log4j.interceptor.Log4jLoggingOutInterceptor"></bean>
+	<!-- 日志记录服务 -->
+	<bean id="logWebServiceBean" class="com.huigou.uasp.log.webservice.impl.LogWebServiceImpl" />
+	
+	<jaxws:server id="logWebService" address="/log/logWebService" serviceClass="com.huigou.uasp.log.webservice.LogWebService">
+		<jaxws:serviceBean>
+			<ref bean="logWebServiceBean" />
+		</jaxws:serviceBean>
+	</jaxws:server>
+	
+    <!-- 统一架构平台服务 -->
+	<jaxrs:server id="dataManageWebService" address="/bmp">
+		<jaxrs:serviceBeans>
+			<ref bean="dataManageService" />
+			<ref bean="authorizeQueryService" />
+			<ref bean="configurationService" />
+		</jaxrs:serviceBeans>
+		<jaxrs:inInterceptors>
+			<ref bean="jaxrsLoggingInInterceptor" />
+		</jaxrs:inInterceptors>
+		<jaxrs:outInterceptors>
+			<ref bean="jaxrsLoggingOutInterceptor" />
+		</jaxrs:outInterceptors>
+	</jaxrs:server>
+	
+</beans>

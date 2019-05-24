@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+          http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- ehCache 实现 -->
+	<!-- 会话DAO -->
+	<bean id="shiroSessionDAO"
+		class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
+		<property name="activeSessionsCacheName" value="shiro-activeSessionCache" />
+		<property name="cacheManager" ref="shiroCacheManager" />
+		<property name="sessionIdGenerator" ref="sessionIdGenerator" />
+	</bean>
+
+	<!-- 会话ID生成器 -->
+	<bean id="sessionIdGenerator"
+		class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" />
+
+	<!-- shiro整合echcache的缓存配置 -->
+	<bean id="shiroCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<!-- 注入ehcache的对象 spring-ehcache.xml -->
+		<property name="cacheManager" ref="ehCacheManager" />
+	</bean>
+
+	<!-- redis 实现 -->
+	<!-- redisSessionDAO -->
+	<!--<bean id="shiroSessionDAO" class="org.crazycake.shiro.RedisSessionDAO">
+		<property name="redisManager" ref="shiroRedisManager" />
+	</bean>-->
+
+	<!-- cacheManager -->
+	<!--<bean id="shiroCacheManager" class="org.crazycake.shiro.RedisCacheManager">
+		<property name="redisManager" ref="shiroRedisManager" />
+	</bean>-->
+
+	<!-- shiro redisManager -->
+	<!--<bean id="shiroRedisManager" class="org.crazycake.shiro.RedisManager">
+		<property name="host" value="${shiro.host}" />
+		<property name="port" value="${shiro.port}" />
+		<property name="expire" value="${shiro.expire}" />
+	</bean>-->
+</beans>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<easy-search-mappings>
+	<easy-search name="approvalBizElement" desc="选择业务审批要素" >
+		<sql>
+		  select id, code, name, kind_id, data_source_config, sequence from wf_approvalelement where kind_id = 2 order by sequence
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="kindId" code="kindId" type='hidden'/>
+		<field name="编码" code="code" width="160"/>
+		<field name="名称" code="name"  width="200"/>
+		<field name="数据源配置" code="dataSourceConfig" type="hidden"/>
+	</easy-search>
+	<easy-search name="procApprovalElement" desc="选择流程审批要素" >
+		<sql>
+		 select id, code, name, kind_id, data_source_config, sequence from 
+		 (select id, code, name, kind_id,data_source_config, sequence from wf_approvalelement  
+		    where kind_id = 1
+		 union
+		 select t.id, t.code, t.name, t.kind_id, t.data_source_config, t.sequence from wf_approvalelement t, wf_procapprovalelement p, wf_procdef d
+            where t.id = p.element_id
+               and p.proc_id = d.id
+               and d.proc_id = :procKey
+               and d.code = :procUnitId
+         )
+         order by sequence
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="编码" code="code" width="160"/>
+		<field name="名称" code="name"  width="200"/>
+		<field name="类型" code="kindId" type='hidden'/>
+		<field name="数据源配置" code="dataSourceConfig" type="hidden"/>
+	</easy-search>
+	<easy-search name="approvalHandlerKind" desc="选择审批人类别" >
+		<sql>
+		  select id, code, name, data_source_id, data_source_config, sequence from wf_approvalHandlerKind order by sequence
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="编码" code="code" width="150"/>
+		<field name="名称" code="name"  width="200"/>
+		<field name="数据源配置" code="dataSourceConfig" type="hidden"/>
+	</easy-search>
+	<easy-search name="bindProc" desc="选择流程">
+		<sql>
+			select arp.id_ as id, arp.rev_ as rev, arp.category_ as category,
+			       arp.name_ as name, arp.key_ as key,
+			       arp.deployment_id_ as deployment_id,
+			       arp.resource_name_ as resource_name,
+			       arp.dgrm_resource_name_ as dgrm_resource_name,
+			       arp.description_ as description,
+			       arp.has_start_form_key_ as has_start_form_key,
+			       arp.suspension_state_ as suspension_state,
+			       arp.tenant_id_ as tenant_id
+			  from act_re_procdef arp
+			 where arp.key_ not in
+			       (select proc_id from wf_procdef where proc_id is not null)			
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="rev" code="rev" type='hidden'/>
+		<field name="category" code="category" type='hidden'/>
+		<field name="version" code="version" type='hidden'/>
+		<field name="deploymentId" code="deploymentId" type='hidden'/>
+		<field name="resourceName" code="resourceName" type='hidden'/>
+		<field name="dgrmResourceName" code="dgrmResourceName" type='hidden'/>
+		<field name="description" code="description" type='hidden'/>
+		<field name="hasStartFormKey" code="hasStartFormKey" type='hidden'/>
+		<field name="suspensionState" code="suspensionState" type='hidden'/>
+		<field name="tenantId" code="tenantId" type='hidden'/>
+		
+		<field name="名称" code="name"  width="300"/>
+		<field name="编号" code="key"  width="300"/>
+    </easy-search>
+    
+    <easy-search name="procIds" desc="流程定义Id集合">
+		<sql>
+			select t.name, t.proc_id
+			  from Wf_Procdef t
+			 where t.node_kind_id = 'proc' 
+		</sql> 
+		<field name="流程ID" code="procId"  width="120"/>   
+		<field name="流程名称" code="name"  width="120"/> 
+		<orderby>proc_id</orderby>
+	</easy-search>
+</easy-search-mappings>

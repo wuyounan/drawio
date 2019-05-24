@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="jdbcDao" class="com.huigou.data.jdbc.impl.JDBCDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+		<property name="lobHandler" ref="lobHandler" />
+	</bean>
+
+	<bean id="sqlQuery" class="com.huigou.data.jdbc.impl.SQLQueryImpl">
+		<property name="jdbcDao" ref="jdbcDao" />
+		<property name="permissionBuilder" ref="queryPermissionBuilder" />
+	</bean>
+
+	<bean id="sqlExecutorDao" class="com.huigou.data.query.executor.impl.SQLExecutorDaoImpl">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+		<property name="lobHandler" ref="lobHandler" />
+		<property name="sqlBuilder" ref="sqlBuilder" />
+		<property name="sqlQuery" ref="sqlQuery" />
+		<property name="queryXmlManager" ref="queryXmlManager" />
+	</bean>
+	
+	<bean id="generalRepository" class="com.huigou.data.repository.GeneralRepository">
+	</bean>
+	
+	<bean id="commonDomainService" class="com.huigou.data.domain.service.CommonDomainService">
+		<property name="generalRepository" ref="generalRepository" />
+		<property name="sqlExecutorDao" ref="sqlExecutorDao" />
+	</bean>
+	
+	<bean id="sqlBuilder" class="com.huigou.data.query.parser.impl.SQLBuilderImpl">
+		<property name="permissionBuilder" ref="queryPermissionBuilder" />
+	</bean>
+</beans>

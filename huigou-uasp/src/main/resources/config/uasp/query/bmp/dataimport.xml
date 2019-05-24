@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="excelImportTemplate" label="数据导入配置">
+		<sql-query>
+			select t.* from sa_excelimporttemplate t where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<sql name="queryDetails">
+			select * from sa_excelimporttemplatedetail where template_id = :templateId
+		</sql>
+		<sql name="loadDetails">
+			select t.* from sa_excelimporttemplatedetail t where t.template_id = ? order by t.excel_column_number asc
+		</sql>
+	</query>
+	
+	<query name="excelImportLog" label="数据导入日志">
+		<sql-query>
+			select t.* from sa_excelimportlog t where 1=1
+		</sql-query>
+		<condition column="template_id" name="parentId" symbol="=" alias="t"/>
+		<condition column="person_member_name" name="queryKeyValue" symbol="like" alias="t"/>
+	</query>
+	
+</query-mappings>

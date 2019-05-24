@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="attachmentConfiguration" label="查询附件配置">
+		<sql-query>
+			 select t.* from sa_attachmentconfig t  where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		
+	</query>
+	
+	<query name="attachmentConfigurationDetails" label="查询附件配置">
+		<sql-query>
+			 select * from sa_attachmentconfigdetail t where t.attachmentconfig_id = :parentId
+		</sql-query>
+		<condition column="attachmentconfig_id" name="parentId" symbol="=" alias="t" append="false"/>
+		<sql name="queryByBizCode">
+		   select d.id,d.id as detail_id,
+		       c.allow_Delete,
+		       c.code as biz_kind_id,
+		       d.allow_multiple,
+		       d.code,
+		       d.name,
+		       d.file_kind,
+		       d.col_span as colspan
+		  from sa_attachmentconfig c, sa_attachmentconfigdetail d
+		 where c.id = d.attachmentconfig_id
+		   and c.code = ?
+		 order by d.sequence asc
+		</sql>
+		<sql name="checkNeedcMoreFile">
+			select d.allow_multiple
+			  from sa_attachmentconfig t, sa_attachmentconfigdetail d
+			 where t.id = d.attachmentconfig_id
+			   and t.code = ?
+			   and d.code = ?
+		</sql>
+	</query>
+	
+	<query name="attachment" label="附件信息">
+		<sql name="loadById">
+			select t.* from  sa_attachment t where t.id = ?
+		</sql>
+		<sql name="queryByBizId">
+			select t.* from  sa_attachment t where t.biz_kind_id = ? and t.biz_id=? and status = 1 
+		</sql>
+		<sql name="insertAttachment">
+			insert into sa_attachment
+			  (id,
+			   biz_kind_id,
+			   biz_id,
+			   biz_sub_kind_id,
+			   path,
+			   file_name,
+			   file_size,
+			   file_kind,
+			   created_by_id,
+			   created_date,
+			   created_by_name,
+			   clear_cache,
+			   upload_kind,
+			   remark,
+			   status,
+			   sequence)
+			values
+			  (:id,
+			   :bizKindId,
+			   :bizId,
+			   :bizSubKindId,
+			   :path,
+			   :fileName,
+			   :fileSize,
+			   :fileKind,
+			   :createdById,
+			   :createdDate,
+			   :createdByName,
+			   :clearCache,
+			   :uploadKind,
+			   :remark,
+			   :status,
+			   :sequence)
+		</sql>
+	</query>
+</query-mappings>

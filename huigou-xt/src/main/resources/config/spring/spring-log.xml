@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!-- 日志配置 -->
+	
+	<!-- 
+	<bean id="logApplication" class="com.huigou.uasp.log.application.impl.MongoDBLogApplicationImpl"></bean>
+	<bean id="bizLogDetail" class="com.huigou.uasp.log.domain.model.MongoDBBizLogDetail" scope="prototype"></bean>
+	<bean id="bizLog" class="com.huigou.uasp.log.domain.model.MongoDBBizLog" scope="prototype"></bean>
+	<bean id="logAspect" class="com.huigou.uasp.log.aspect.LogAspect">
+		<property name="logApplication" ref="logApplication"></property>
+	</bean>
+	-->
+	
+	<bean id="logApplication" class="com.huigou.uasp.log.application.impl.DBLogApplicationImpl"></bean>
+	<bean id="bizLogDetail" class="com.huigou.uasp.log.domain.model.DBBizLogDetail" scope="prototype"></bean>
+	<bean id="bizLog" class="com.huigou.uasp.log.domain.model.DBBizLog" scope="prototype"></bean>
+	<bean id="logAspect" class="com.huigou.uasp.log.aspect.LogAspect">
+		<property name="logApplication" ref="logApplication"></property>
+	</bean>
+	
+</beans>

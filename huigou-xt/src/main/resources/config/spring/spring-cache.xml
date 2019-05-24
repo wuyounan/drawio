@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans.xsd
+     http://www.springframework.org/schema/cache
+     http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+	<!-- cache-manager属性用来指定当前所使用的CacheManager对应的bean的名称，默认是cacheManager -->
+	<cache:annotation-driven />
+
+	<!-- 定义cacheManager -->
+	<bean id="cacheManager" class="com.huigou.data.cache.SpringAdaptingCacheManager">
+		<property name="transactionAware" value="true" />
+		<property name="caches">
+			<set>
+				<bean class="com.huigou.data.cache.SpringAdaptingCache">
+					<property name="name" value="springAdaptingCache" />
+					<property name="iCache" ref="springOneDateCache" />
+				</bean>
+			</set>
+		</property>
+	</bean>
+
+	<bean id="springOneDateCache" class="com.huigou.cache.service.impl.EhCacheCreateImpl">
+		<property name="cacheManager" ref="ehCacheManager" />
+		<property name="timeToIdleSeconds" value="0" />
+		<property name="timeToLiveSeconds" value="86400" />
+	</bean>
+	
+	<!-- 
+	<bean id="springOneDateCache" class="com.huigou.cache.service.impl.RedisCacheImpl">
+        <property name="redisTemplate" ref="redisTemplate"/>
+        <property name="name" value="springOneDateCache"/> 
+        <property name="liveTime" value="86400"/>
+        <property name="compressed" value="true"/>
+    </bean>
+   -->
+
+</beans>

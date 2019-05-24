@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="codingRule" label="编码规则">
+		<sql-query>
+			select t.* from SA_CodingRule t where 1 = 1
+		</sql-query>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<sql name="selectByCode">
+			select * from SA_CodingRule where code = ?
+		</sql>
+		<sql name="selectDetail">
+			select *
+			  from SA_CodingRuleDetail t
+			 where codingRule_id = ?
+			 order by t.sequence		
+		</sql>
+	</query>
+	
+	<query name="codingRuleDetail" label="编码规则明细">
+		<sql-query>
+			select t.* from SA_CodingRuleDetail t where t.codingRule_id = :parentId
+		</sql-query>
+		<condition column="codingRule_id" name="parentId" symbol="=" alias="t" append="false"/>
+	</query>
+</query-mappings>

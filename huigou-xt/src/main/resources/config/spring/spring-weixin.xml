@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--微信配置 -->
+    <bean id="wxCpInMemoryConfigStorage" class="me.chanjar.weixin.cp.api.WxCpInMemoryConfigStorage">
+        <property name="corpId" value="${corpId}"></property>
+        <property name="corpSecret" value="${corpSecret}"></property>
+    </bean>
+
+    <bean id="wxCpService" class="me.chanjar.weixin.cp.api.WxCpServiceImpl">
+        <property name="wxCpConfigStorage" ref="wxCpInMemoryConfigStorage"></property>
+    </bean>
+
+    <bean id="weiXinService" class="com.huigou.system.weixin.service.impl.WeiXinServiceImpl">
+        <property name="personRepository" ref="personRepository"></property>
+        <property name="wxCpService" ref="wxCpService"></property>
+    </bean>
+<!--
+    <bean class="com.huigou.system.weixin.controller.WeiXinController">
+        <property name="weiXinService" ref="weiXinService"></property>
+    </bean>-->
+</beans>

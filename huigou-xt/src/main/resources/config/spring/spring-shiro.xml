@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+          http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!--继承重写DefaultWebSessionManager，解决频繁访问redis的问题  -->
+	<bean id="shiroSessionManager" class="com.huigou.shiro.session.ShiroSessionManager">
+		<property name="sessionDAO" ref="shiroSessionDAO" />
+		<!-- session 有效时间为半小时 （毫秒单位） -->
+		<property name="globalSessionTimeout" value="18000000" />
+		<property name="sessionValidationInterval" value="1800000" />
+		<property name="sessionValidationSchedulerEnabled" value="false" />
+		<!--  更改session cookie的名字 -->
+		<property name="sessionIdCookie.name" value="SSESSIONID"/>
+		<property name="sessionListeners">
+	        <list>
+	            <ref bean="shiroSessionListener"/>
+	        </list>
+	    </property>
+	</bean>
+	
+	<bean id="shiroSessionListener" class="com.huigou.shiro.session.ShiroSessionListener">
+		<property name="sessionDAO" ref="shiroSessionDAO" />
+	</bean>
+
+	<!-- 系统默认认证及授权域 -->
+	<bean id="standardRealm" class="com.huigou.shiro.realm.StandardRealm"/>
+	
+	<!-- 不需要密码直接登录 -->
+	<bean id="simpleRealm" class="com.huigou.shiro.realm.SimpleRealm"/>
+
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="sessionManager" ref="shiroSessionManager" />
+		<property name="cacheManager" ref="shiroCacheManager" />
+		<property name="realms">
+			<list>
+				<ref bean="standardRealm" />
+				<!--<ref bean="ldapRealm" />-->
+				<ref bean="simpleRealm" />
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod" value="org.apache.shiro.SecurityUtils.setSecurityManager" />
+		<property name="arguments" ref="securityManager" />
+	</bean>
+
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager" />
+		<property name="loginUrl" value="${shiro.loginUrl}" /> 
+		<property name="filterChainDefinitions">
+			<value>
+				/login = anon
+				/logout = logout
+				/static/** = anon
+				/images/**= anon
+				/lib/** = anon
+			</value>
+		</property>
+	</bean>
+
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+	
+	<!-- ldap 配置 AD也是这样配置
+	 <bean id="contextFactory" class="org.apache.shiro.realm.ldap.JndiLdapContextFactory">
+        <property name="url" value="${shiro.ldap.serverUrlPrefix}"/>
+        <property name="systemUsername" value="${shiro.ldap.systemUsername}"/>
+        <property name="systemPassword" value="${shiro.ldap.systemPassword}"/>
+    </bean> -->
+    <!-- 配置登录认证访问ldap的树域 
+     <bean id="ldapRealm" class="com.huigou.shiro.realm.LdapRealm">
+        <property name="userDnTemplate" value="${shiro.ldap.userDnTemplate}"/>
+        <property name="contextFactory" ref="contextFactory" />
+    </bean>-->
+    
+</beans>

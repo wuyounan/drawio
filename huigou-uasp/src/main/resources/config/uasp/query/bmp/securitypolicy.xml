@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="applicationSystem" label="应用系统">
+		<sql-query>
+			select t.id,
+		       t.code,
+		       t.name,
+		       t.class_prefix,
+		       t.version,
+		       t.sequence
+		  from sa_applicationsystem t where 1 = 1
+		</sql-query>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="class_prefix" name="classPrefix" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="applicationSystemDesc" label="应用系统">
+		<sql-query>
+			select new com.huigou.cache.ApplicationSystemDesc(id, code, name, classPrefix) from ApplicationSystem 
+		</sql-query>
+	</query>
+	
+	
+	<query name="machine" label="机器">
+		<sql-query>
+		  select t.id, t.code, t.name, t.ip, t.mac, t.security_grade,t.status, t.remark, t.version
+	        from SA_Machine t
+	       where 1 = 1
+		</sql-query>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="ip" name="ip" symbol="like" alias="t"/>
+		<condition column="security_grade" name="securityGrade" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="personAccount" label="人员账号">
+		<sql-query>
+			 select t.id,
+	             t.login_name,
+	             t.status,
+	             t.locked_date,
+	             t.version,
+	             t.last_modified_password_date,
+	             t.last_login_date
+	        from sa_personAccountManagement t
+	       where 1 = 1
+		</sql-query>
+		<condition column="full_id" name="fullId" symbol="half_like" alias="t"/>
+	</query>
+	
+	<query name="personLoginLimit" label="人员登录限制">
+		<sql-query>
+			select t.id,
+		       t.person_id,
+		       t.Login_Name,
+		       m.mac as mac_address,
+		       m.ip as ip_address,
+		       m.code,
+		       m.name,
+		       t.sequence
+		  from SA_PersonLoginLimit t, sa_machine m
+		 where t.machine_id = m.id 
+		</sql-query>
+		<condition column="full_id" name="fullId" symbol="half_like" alias="t"/>
+		<sql name="queryByLoginName">
+			select t.Login_Name, m.code machine_Code, m.name machine_Name,
+			       m.ip as machine_ip, m.mac machine_Mac_Address, m.status machine_Status,
+			       m.security_grade
+			  from SA_PersonLoginLimit t, SA_Machine m
+			 where t.machine_id = m.id
+			   and t.login_name = ?
+			   and m.status = 1
+		</sql>
+	</query>
+	
+	<query name="securitypolicy" label="安全策略">
+		<sql-query>
+			select t.id,
+		       t.enable_internet_login,
+		       t.intranet_segment,
+		       t.password_validity_interval,
+		       t.password_expire_give_days,
+		       t.password_minimum_length,
+		       t.lock_user_password_error_time,
+		       t.enable_complexity,
+		       t.auto_unlock_time,
+		       t.security_grade,
+		       t.number_count,
+		       t.uppercase_count,
+		       t.lowercase_count,
+		       t.special_character_count,
+		       t.init_password,
+		       t.status,
+		       t.version
+		  from SA_SecurityPolicy t
+		 where 1 = 1
+		</sql-query>
+		<condition column="security_grade" name="securityGrade" symbol="=" alias="t"/>
+	</query>
+	
+</query-mappings>

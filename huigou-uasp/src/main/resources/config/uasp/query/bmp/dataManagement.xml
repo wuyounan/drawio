@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="opdatakind" label="数据管理权限维度定义" table="SA_OPDATAKIND">
+		<sql-query>
+			select t.* from sa_opdatakind t where 1=1
+		</sql-query>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="DATA_KIND" name="dataKind" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="status" name="status" type="java.lang.Integer" symbol="=" alias="t"/>
+	</query>
+
+	<query name="opdatamanagetype" label="数据管理权限类型" table="SA_OPDATAMANAGETYPE">
+		<sql-query>
+			select t.* from sa_opdatamanagetype t where 1=1
+		</sql-query>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="FULL_ID" name="fullId" type="java.lang.String" symbol="half_like" alias="t"/>
+		<condition column="status" name="status" type="java.lang.Integer" symbol="=" alias="t"/>
+		<condition column="parent_Id" name="parentId" symbol="=" alias="t" />
+		<condition column="node_kind_id" name="nodeKindId" symbol="=" alias="t" />
+		<condition column="paramValue" name="paramValue" symbol="like" alias="t">
+			(t.code like :paramValue or t.name like :paramValue)
+		</condition>
+		<sql name="queryByParentId">
+           select t.*,
+			       (select count(0)
+			          from sa_opdatamanagetype t1
+			         where t1.parent_Id = t.id
+			           and t1.status in (1, 0)) as has_children
+			  from sa_opdatamanagetype t
+			 where t.status in (1, 0)
+        </sql>
+        <condition column="id" name="excludeIds" symbol="in" alias="t" >
+			t.id not in :excludeIds
+		</condition>
+	</query>
+	
+	<query name="opdatamanagetypekind" label="数据管理权限类型资源维度明细" table="SA_OPDATAMANAGETYPEKIND">
+		<sql-query>
+			select t.id, k.code, k.name, k.data_kind, k.sequence
+			  from sa_opdatamanagetypekind t, sa_opdatakind k
+			 where t.data_kind_id = k.id
+			   and t.data_manage_id = :parentId
+		</sql-query>
+		<sql name="queryByTypeId">
+			select k.id, k.code, k.name, k.data_kind, k.sequence
+				  from sa_opdatamanagetypekind t, sa_opdatakind k
+				 where t.data_kind_id = k.id
+				   and t.data_manage_id = ?
+				 order by k.sequence asc
+		</sql>
+	</query>
+	
+	<query name="opdatamanagedetail" label="数据管理权限取值定义" table="SA_OPDATAMANAGEDETAIL">
+		<sql-query>
+			select t.id,
+			       t.name,
+			       t.data_manage_id,
+			       t.remark,
+			       m.code,
+			       m.name as manage_name,
+			       m.sequence
+			  from sa_opdatamanagedetail t, sa_opdatamanagetype m
+			 where t.data_manage_id = m.id
+		</sql-query>
+		<condition column="DATA_MANAGE_ID" name="dataManageId" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="code" name="code" type="java.lang.String" symbol="like" alias="m"/>
+		<condition column="full_id" name="fullId" type="java.lang.String" symbol="half_like" alias="m"/>
+	</query>
+
+	<query name="opdatamanagedetailresource" label="数据管理权限包含维度资源" table="SA_OPDATAMANAGEDETAILRESOURCE">
+		<sql-query>
+			select t.id,
+			       t.resource_key,
+			       t.resource_value,
+			       t.full_id,
+			       t.full_name,
+			       k.code,
+			       k.name,
+			       k.data_kind
+			  from sa_opdatamanagedetailresource t
+			  left join sa_opdatakind k
+			    on t.data_kind_id = k.id
+			 where t.data_managedetal_id = :dataManagedetalId
+			 order by k.sequence, t.data_kind_id asc
+		</sql-query>
+	</query>
+	
+	
+	<query name="opdatamanagebusiness" label="数据管理权限业务类型" table="SA_OPDATAMANAGEBUSINESS">
+		<sql-query>
+			select t.*, m.code as manage_code, m.name as manage_name
+			  from sa_opdatamanagebusiness t
+			  left join sa_opdatamanagetype m
+			    on t.data_manage_id = m.id
+			 where 1 = 1
+		</sql-query>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="FULL_ID" name="fullId" type="java.lang.String" symbol="half_like" alias="t"/>
+		<condition column="status" name="status" type="java.lang.Integer" symbol="=" alias="t"/>
+		<condition column="parent_Id" name="parentId" symbol="=" alias="t" />
+		<condition column="node_kind_id" name="nodeKindId" symbol="=" alias="t" />
+		<condition column="full_id" name="dataManageFullId" symbol="half_like" alias="m" />
+		<condition column="paramValue" name="paramValue" symbol="like" alias="t">
+			(m.code like :paramValue or m.name like :paramValue)
+		</condition>
+		<sql name="queryByParentId">
+           select t.*,
+			       (select count(0)
+			          from sa_opdatamanagebusiness t1
+			         where t1.parent_Id = t.id
+			           and t1.status in (1, 0)) as has_children
+			  from sa_opdatamanagebusiness t
+			 where t.status in (1, 0)
+        </sql>
+        <condition column="id" name="excludeIds" symbol="in" alias="t" >
+			t.id not in :excludeIds
+		</condition>
+	</query>
+	
+	<query name="opdatamanagebusinessField" label="数据管理权限业务过滤字段定义" table="SA_OPDATAMANAGEBUSINESS_FIELD">
+		<sql-query>
+			select t.*, k.data_kind as data_kind_id,k.sequence as kind_sequence
+			  from sa_opdatamanagebusiness_field t
+			  left join sa_opdatakind k
+			    on t.data_kind_code = k.code
+			 where t.datamanagebusiness_id = :parentId
+		</sql-query>
+		<condition column="is_org_condition" name="isOrgCondition" type="java.lang.Integer" symbol="=" alias="t"/>
+		<sql name="queryManageCodeByBusinessCode">
+			select m.code
+			  from sa_opdatamanagebusiness t, sa_opdatamanagetype m
+			 where t.data_manage_id = m.id
+			   and t.code = ?
+		</sql>
+		<!-- 数据管理权限字段定义 -->
+		<sql name="queryFieldsByBusinessCode">
+			select t.*, k.id as data_kind_id
+			  from sa_opdatamanagebusiness m, sa_opdatamanagebusiness_field t
+			  left join sa_opdatakind k
+			    on t.data_kind_code = k.code
+			 where t.datamanagebusiness_id = m.id
+			   and m.code = ?
+		</sql>
+	</query>
+
+	<query name="opdatamanagement" label="数据管理权限授权" table="SA_OPDATAMANAGEMENT">
+		<sql-query>
+			select t.id,t.data_managedetal_id,t.data_manage_id,d.name, p.code, p.name as manage_name, p.full_name
+			  from sa_opdatamanagement t, sa_opdatamanagedetail d, sa_opdatamanagetype p
+			 where t.data_managedetal_id = d.id
+			   and t.data_manage_id = p.id
+			   and t.manager_id = :managerId
+		</sql-query>
+		<condition column="code" name="code" type="java.lang.String" symbol="like" alias="p">
+			(d.name like :code or p.code like :code)
+		</condition>
+		<condition column="full_id" name="fullId" type="java.lang.String" symbol="half_like" alias="p"/>
+		
+	</query>
+	
+	<query name="dataManagement" label="数据管理权限授权" table="SA_OPDATAMANAGEMENT">
+		<!-- 根据权限类别编码及人员ID查询数据权限资源定义ID 查询最近的授权记录-->
+		<sql name="queryPersonDataManageDetailByCode">
+			select distinct b.data_managedetal_id
+				  from (select m.data_managedetal_id,
+				               rank() over(partition by t.code order by o.full_id desc) as rn
+				          from sa_opdatamanagement m,
+				               sa_opdatamanagetype t,
+				               sa_oporg            o,
+				               sa_opperson         s,
+				               sa_oporg            p
+				         where m.data_manage_id = t.id
+				           and m.manager_id = o.id
+				           and p.person_id = s.id
+				           and p.full_id like concat(o.full_id, '%')
+				           and p.status = 1
+				           and o.status = 1
+				           and t.status = 1
+				           and t.code = ?
+				           and s.id = ?) b
+				 where b.rn = 1
+		</sql>
+		<!-- 根据资源定义ID查询资源明细 -->
+		<sql name="queryDataManageDetailResource">
+			select k.code                as data_kind_code,
+			       k.data_kind,
+			       t.resource_key        as key,
+			       t.resource_value      as value,
+			       t.full_id,
+			       t.full_name,
+			       t.org_data_kind
+			  from sa_opdatamanagedetailresource t, sa_opdatakind k
+			 where t.data_kind_id = k.id
+			   and t.data_managedetal_id = ?
+		</sql>
+	</query>
+	
+	<query name="queryDataManagementByOrgFullId" label="查询数据管理权限继承数据">
+		<sql-query>
+			select b.*
+				  from (select t.id,
+				               t.data_manage_id,
+				               t.data_managedetal_id,
+				               d.name,
+				               p.code,
+				               p.name as manage_name,
+				               p.full_name,
+				               p.full_id,
+				               o.name as org_name,
+				               o.full_name as org_full_name,
+				               o.full_id as org_full_id,
+				               rank() over(partition by p.code order by o.full_id desc) rn
+				          from sa_opdatamanagement   t,
+				               sa_opdatamanagedetail d,
+				               sa_opdatamanagetype   p,
+				               sa_oporg              o
+				         where t.data_managedetal_id = d.id
+				           and t.data_manage_id = p.id
+				           and o.id = t.manager_id
+				           and o.status = 1
+				           and :orgFullId like concat(o.full_id, '%')) b
+				 where b.rn = 1
+		</sql-query>
+		<condition column="orgFullId" name="orgFullId" symbol="=" alias="b" append="false"/>
+		<condition column="code" name="code" type="java.lang.String" symbol="like" alias="b">
+			(b.name like :code or b.code like :code)
+		</condition>
+		<condition column="full_id" name="fullId" type="java.lang.String" symbol="half_like" alias="b"/>
+		<condition column="org_name" name="orgName" type="java.lang.String" symbol="like" alias="b"/>
+	</query>
+	
+	<query name="queryDataManageResourceByOrgFullId" label="查询数据管理权限数据">
+		<sql-query>
+			select t.id,
+			       t.resource_key,
+			       t.resource_value,
+			       t.full_id,
+			       t.full_name,
+			       t.data_kind_id,
+			       d.name,
+			       p.code,
+			       p.name           as manage_name,
+			       p.sequence,
+			       d.id             as detail_id
+			  from sa_opdatamanagedetailresource t,
+			       sa_opdatamanagedetail         d,
+			       sa_opdatamanagetype           p
+			 where t.data_managedetal_id in
+			       (select b.data_managedetal_id
+			          from (select t.data_managedetal_id,
+			                       rank() over(partition by p.code order by o.full_id desc) rn
+			                  from sa_opdatamanagement t,
+			                       sa_opdatamanagetype p,
+			                       sa_oporg            o
+			                 where t.data_manage_id = p.id
+			                   and o.id = t.manager_id
+			                   and o.status = 1
+			                   and :orgFullId like concat(o.full_id, '%')) b
+			         where b.rn = 1)
+			   and t.data_managedetal_id = d.id
+			   and d.data_manage_id = p.id
+		</sql-query>
+		<condition column="orgFullId" name="orgFullId" symbol="=" alias="t" append="false"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="d"/>
+		<condition column="code" name="code" type="java.lang.String" symbol="like" alias="p"/>
+		<condition column="resource_value" name="resourceValue" type="java.lang.String" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="queryDataManagementByDetailId" label="查询数据管理权限授权情况">
+		<sql-query>
+			select t.id,
+			       p.code,
+			       p.name      as manage_name,
+			       p.full_name,
+			       o.name      as org_name,
+			       o.full_name as org_full_name,
+			       o.full_id,
+			       o.full_sequence
+			  from sa_opdatamanagement t, sa_opdatamanagetype p, sa_oporg o
+			 where t.data_manage_id = p.id
+			   and o.id = t.manager_id
+			   and o.status = 1
+			   and t.data_managedetal_id = :dataManagedetalId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="o">
+			(o.name like :keyword or o.full_name like :keyword)
+		</condition>
+	</query>
+	
+	<!-- 查询功能取消
+	<query name="queryPersonAsDataManagement" label="查询具有数据权限的用户">
+		<sql-query>
+			select p.name,
+			       p.full_name,
+			       o.name          as org_name,
+			       o.full_name     as org_full_name,
+			       p.full_sequence
+			  from sa_oporg p, sa_opperson s, sa_oporg o, sa_opdatamanagement a
+			 where p.full_id like concat(o.full_id, '%')
+			   and p.person_id = s.id
+			   and o.id = a.manager_id
+			   and p.status = 1
+			   and o.status = 1
+			   and a.data_managedetal_id = :dataManagedetalId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="p">
+			(p.name like :keyword or p.full_name like :keyword)
+		</condition>
+	</query>
+	
+	<query name="querySinglePersonAsDataManagement" label="查询具有数据权限的用户">
+		<sql-query>
+			select distinct p.name,
+			                p.dept_name     as org_name,
+			                p.full_name     as org_full_name,
+			                p.full_sequence
+			  from sa_oporg p, sa_opperson s, sa_oporg o, sa_opdatamanagement a
+			 where p.full_id like concat(o.full_id, '%')
+			   and p.person_id = s.id
+			   and o.id = a.manager_id
+			   and p.status = 1
+			   and o.status = 1
+			   and a.data_managedetal_id = :dataManagedetalId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="p"/>
+	</query>
+	-->
+</query-mappings>

@@ -1,0 +1,37 @@
+* {
+	margin: 0px;
+	padding: 0px;
+	font-size: 12px;
+	font-family: "微软雅黑", "宋体", Arial, sans-serif;
+}
+
+body {
+	padding: 5px;
+}
+
+* {
+   background-color:#ffffff !important;
+}
+.hg-form .hg-form-cols .col-gray-bg,.gray-bg {
+    background-color: #ffffff !important;
+}
+
+.container-fluid, .mainPanel {
+    padding: 5px;
+    height: auto;
+    width: 100%;
+}
+i.fa{
+	display: none;
+}
+.ui-text-label,.ui-textarea-label,
+.job-task-execution .list-row-bg-b .ui-text-label,.job-task-execution .list-row-bg-a .ui-text-label,
+.job-task-execution .list-row-bg-b .ui-textarea-label,.job-task-execution .list-row-bg-a .ui-textarea-label{
+	background-color: #ffffff !important; 
+	color:#333333 !important; 
+	padding:0;
+	line-height:normal;
+}
+.required{
+	color:#333333 !important; 
+}

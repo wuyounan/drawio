@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>流程图DEMO</title>
+		<!--[if lt IE 9]>
+<?import namespace="v" implementation="#default#VML" ?>
+<![endif]-->
+		<link rel="stylesheet" type="text/css" href="css/FlowChart.css" />
+		<script type="text/javascript" src="js/jquery-1.11.0.js"></script>
+		<script type="text/javascript" src="js/jquery.json-2.4.min.js"></script>
+		<script type="text/javascript" src="js/html2canvas.js"></script>
+		<script type="text/javascript" src="js/GooFunc.js"></script>
+		<script type="text/javascript" src="js/canvas2image.js"></script>
+		<script type="text/javascript" src="canvg/canvg.js"></script>
+		<script type="text/javascript" src="canvg/rgbcolor.js"></script>
+        <script type="text/javascript" src="canvg/StackBlur.js"></script>
+		<script type="text/javascript" src="js/my01.js"></script>
+		<script type="text/javascript" src="js/my02.js"></script>
+		<!--<link rel="stylesheet" type="text/css" href="css/default.css"/>-->
+		<!--统一浏览器样式-->
+		<script type="text/javascript" src="js/FlowChart.js"></script>
+
+	</head>
+
+	<body>
+		<a href="javascript:void(0);" onclick="aaa()">流程图</a>
+		<div id="goolflow"></div>
+		<script type="text/javascript">
+			var property = {
+				width: 1200,
+				height: 600,
+				toolBtns: ["start round", "end round", "task", "node", "chat", "state", "plug", "join", "fork", "recombination"],
+				haveHead: true,
+				headBtns: ["new", "open", "save", "undo", "redo", "reload"], //如果haveHead=true，则定义HEAD区的按钮
+				haveTool: true,
+				haveGroup: true,
+				useOperStack: true
+			};
+			var remark = {
+				cursor: "选择指针",
+				direct: "结点连线",
+				start: "入口结点",
+				"end": "结束结点",
+				"task": "任务结点",
+				node: "自动结点",
+				chat: "决策结点",
+				state: "状态结点",
+				plug: "附加插件",
+				fork: "分支结点",
+				"join": "联合结点",
+				recombination: "复合结点",
+				group: "组织划分框编辑开关"
+			};
+			var transformscale=1;
+			var goolflow;
+			$(document).ready(function() {
+				goolflow = $.createFlowChart($("#goolflow"), property);
+				goolflow.setNodeRemarks(remark);
+				goolflow.loadData(jsondata);
+				goolflow.onBtnSaveClick = function() {
+					console.log($.toJSON(goolflow.exportData()))
+				}
+				goolflow.onBtnNewClick = function() {
+				    //left: 180px; top: -70px; transform: scale(1.88425); transform-origin: 1872.19% 261.172% 0px;
+					//$('div.FlowChart_work_inner').zoomTo({targetsize:1, duration:600,root:$('div.FlowChart_work_inner')});
+					transformscale=transformscale-0.2;
+					if(transformscale<0.1){
+						transformscale=0.1;
+					}
+					//setTransform($('div.FlowChart_work_inner'),transformscale);
+					$('div.FlowChart_work_inner').css({transform:'scale('+transformscale+')'});
+				};
+				goolflow.onBtnOpenClick = function() {
+					transformscale=transformscale+0.2;
+					if(transformscale>2){
+						transformscale=2;
+					}
+					//setTransform($('div.FlowChart_work_inner'),transformscale);
+					$('div.FlowChart_work_inner').css({transform:'scale('+transformscale+')'});
+				};
+				goolflow.onFreshClick = function() {
+					/*html2canvas($("div.FlowChart_work_inner"), {
+						height:9000,
+						onrendered: function (canvas) {
+							var url = canvas.toDataURL();
+							//以下代码为下载此图片功能
+							var triggerDownload = $("<a>").attr("href", url).attr("download", "异常信息.png").appendTo("body");
+							triggerDownload[0].click();
+							triggerDownload.remove();
+						}
+					});
+					$('#myCanvas01').show();
+					var svgHtml = $("div.FlowChart_work_inner").html();
+					canvg('myCanvas01',svgHtml.trim());
+					var imgSrc = document.getElementById('myCanvas01').toDataURL("image/png");
+					var triggerDownload = $("<a>").attr("href", imgSrc).attr("download", "异常信息.png").appendTo("body");
+					triggerDownload[0].click();
+					triggerDownload.remove();
+					return;
+					/*$('#all').html2canvas({},function(imgData,w,h){
+						//以下代码为下载此图片功能
+							var triggerDownload = $("<a>").attr("href", url).attr("download", "异常信息.png").appendTo("body");
+							triggerDownload[0].click();
+							triggerDownload.remove();
+					});
+					$('#myCanvas01').show();
+					var svgHtml = $("#draw_goolflow")[0].outerHTML;
+					canvg('myCanvas01',svgHtml.trim());
+					alert(svgHtml);return;
+					var imgSrc = document.getElementById('myCanvas01').toDataURL("image/png");
+					var triggerDownload = $("<a>").attr("href", imgSrc).attr("download", "异常信息.png").appendTo("body");
+					triggerDownload[0].click();
+					triggerDownload.remove();
+					return;*/
+					$("div.FlowChart_work_inner").focus();
+					html2canvas($("div.FlowChart_work_inner"), {
+						allowTaint:false,
+						onrendered: function (canvas) {
+							var c=document.createElement('canvas');
+							canvg(c,$("#draw_goolflow")[0].outerHTML);
+							canvas.getContext("2d").drawImage(c,0,0);
+							//以下代码为下载此图片功能
+							/*var url = canvas.toDataURL('image/png');
+							var triggerDownload = $("<a>").attr("href", url).attr("download", "异常信息.png").appendTo("body");
+							triggerDownload[0].click();
+							triggerDownload.remove();*/
+							//document.body.appendChild(canvas);
+							return Canvas2Image.saveAsPNG(canvas);  // 这将会提示用户保存PNG图片
+						}
+					});
+					return false;
+				};
+			});
+			function aaa(){
+				goolflow.clearData();
+				goolflow.loadData(jsondataDetail);
+			}
+			function getVendorPrefix() {
+				var body, i, style, transition, vendor;
+				body = document.body || document.documentElement;
+				style = body.style;
+				transition = "transition";
+				vendor = ["Moz", "Webkit", "Khtml", "O", "ms"];
+				transition = transition.charAt(0).toUpperCase() + transition.substr(1);
+				i = 0;
+				while (i < vendor.length) {
+					if (typeof style[vendor[i] + transition] === "string") {
+					  return vendor[i];
+					}
+					i++;
+				}
+				return false;
+			}
+			function setTransform(elem,value){
+				var vendorPrefix=getVendorPrefix();
+				if(vendorPrefix==false){
+					
+				}else{
+					$(elem).css("-"+vendorPrefix+"-transform",'scale('+value+')');
+				}
+			}
+		</script>
+	</body>
+
+</html>

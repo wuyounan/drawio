@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>文档控件示例</title>
+	<meta content="IE=7" http-equiv="X-UA-Compatible" />
+	<!--设置缓存-->
+	<meta http-equiv="cache-control" content="no-cache,must-revalidate" />
+	<meta http-equiv="pragram" content="no-cache" />
+	<meta http-equiv="expires" content="0" />
+    <script type="text/javascript" src='../lib/jquery/jquery.min.js'></script>
+    <script type="text/javascript" src='../javaScript/WEB_APP.js'></script>
+    <script type="text/javascript" src='../javaScript/common.js'></script>
+    <script type="text/javascript">
+        var defaultSignPerson = '', type = "", bizId = "", procUnitId = "", TANGER_OCX_OBJ;
+        $(document).ready(function () {
+            type = Public.getQueryStringByName("fileType") || 'word';
+            bizId = Public.getQueryStringByName("bizId") || '';
+            procUnitId = Public.getQueryStringByName("procUnitId") || 'Apply';
+
+            TANGER_OCX_OBJ=document.all("TANGER_OCX_OBJ");
+        });
+
+        function loadit() {
+            TANGER_OCX_OBJ.FileSave = false; //停用原 保存
+            //初始化菜单功能
+            TANGER_OCX_OBJ.AddFileMenuItem('保存服务器(S)', false, true, 1);
+            TANGER_OCX_OBJ.AddFileMenuItem('');
+            //当环节为发文拟稿、拟稿人清稿时可以修改保存正文
+            TANGER_OCX_OBJ.AddCustomMenuItem('接受所有修订', false, true, 4);
+            TANGER_OCX_OBJ.AddCustomMenuItem('');
+            //当环节为发文岗位清样时进行套红
+            TANGER_OCX_OBJ.AddCustomMenuItem('套红(R)', false, true, 1);
+
+            if (bizId.length > 0) {
+                Public.ajax('webOfficeAction!queryAttachments.ajax', {
+                    bizId: bizId,
+                    attmentCode: 'postAttach'
+                }, function (data) {
+                    if (data && data.length > 0) {
+                        var attmentId = data[0].id;
+                        TANGER_OCX_OBJ.OpenFromURL(web_app.name
+								+ "/attachmentDownFile.ajax?id=" + attmentId,
+								false);
+                    } else {
+                        TANGER_OCX_OBJ.CreateNew("Word.Document");
+                    }
+                });
+
+            } else {
+                TANGER_OCX_OBJ.CreateNew("Word.Document");
+            }
+        }
+
+        function saveDocToServer() {//保存文档到服务器
+            var urlname = "ywid_rdn.doc";
+            var title = "";
+
+            // 先保存文件,再保存数据库数据,以防止文件保存失败却有保存了数据库数据
+
+            //TANGER_OCX_OBJ.SaveToLocal("D:/uploadPath/" + urlname, true, false);
+            var ret = TANGER_OCX_OBJ.saveToURL("http://localhost:6888/intellsoft/webOffice/saveAttachments.jsp",//提交到的url地址
+            		"upLoadFile",//文件域的id，类似<input type=file name=upLoadFile 中的name
+            		"fileType=Word.Document",          //与控件一起提交的参数如："p1=a&p2=b&p3=c"
+            		"54321.doc",    //上传文件的名称，类似<input type=file 的value
+            		0    //与控件一起提交的表单id，也可以是form的序列号，这里应该是0.
+            		);
+            	
+            //TANGER_OCX_OBJ.SaveToURL("http://localhost:8080/intellsoft/webOffice/saveAttachments.jsp", "upLoadFile", "urlname=" + urlname, urlname, 0);
+
+            if (ret.trim() === "1") {
+            } else {
+                alert("文件保存失败，请检查！")
+            }
+
+            //alert("文件保存成功！")
+            if (window.opener && window.opener.reloaddoc) {
+                window.opener.reloaddoc();
+            }
+        }
+
+        function closeit() {
+            if (window.opener && window.opener.reloaddoc) {
+                window.opener.reloaddocs();
+            }
+        }
+
+        function changetitle() {
+        }
+
+        //套红
+        function taohong() {
+            Public.ajax('webOfficeAction!queryAttachments.ajax', {
+                bizId: '809910718F0D4329BA5A18DF5604B649',
+                attmentCode: 'fileTemplate'
+            }, function (data) {
+                if (data && data.length > 0) {
+                    var attmentId = data[0].id;
+                    try {
+                        //选择对象当前文档的所有内容
+                        var curSel = TANGER_OCX_OBJ.ActiveDocument.Application.Selection;
+                        TANGER_OCX_SetMarkModify(false);
+                        curSel.WholeStory();
+                        curSel.Cut();
+                        //插入模板
+                        TANGER_OCX_OBJ.AddTemplateFromURL(web_app.name
+														+ "/attachmentDownFile.ajax?id="
+														+ attmentId);
+                        var BookMarkName = "zhengwen";
+                        if (!TANGER_OCX_OBJ.ActiveDocument.BookMarks
+												.Exists(BookMarkName)) {
+                            alert("Word 模板中不存在名称为：\"" + BookMarkName + "\"的书签！");
+                            return;
+                        }
+                        var bkmkObj = TANGER_OCX_OBJ.ActiveDocument.BookMarks(BookMarkName);
+                        var saverange = bkmkObj.Range
+                        saverange.Paste();
+                        TANGER_OCX_OBJ.ActiveDocument.Bookmarks.Add(BookMarkName, saverange);
+                        TANGER_OCX_SetMarkModify(true);
+                    } catch (err) {
+                        alert("错误：" + err.number + ":" + err.description);
+                    }
+                }
+            });
+        }
+
+        //设置用户名
+        function TANGER_OCX_SetDocUser() {
+            with (TANGER_OCX_OBJ.ActiveDocument.Application) {
+                UserName = 'zhangzr';
+            }
+        }
+        //进入或退出强制痕迹保留状态
+        function TANGER_OCX_SetMarkModify(boolvalue) {
+            TANGER_OCX_SetReviewMode(boolvalue);
+            TANGER_OCX_EnableReviewBar(!boolvalue);
+        }
+        //允许或禁止显示修订工具栏和工具菜单
+        function TANGER_OCX_EnableReviewBar(boolvalue) {
+            TANGER_OCX_OBJ.ActiveDocument.CommandBars("Reviewing").Enabled = boolvalue;
+            TANGER_OCX_OBJ.ActiveDocument.CommandBars("Track Changes").Enabled = boolvalue;
+            TANGER_OCX_OBJ.IsShowToolMenu = boolvalue; //关闭或打开工具菜单
+        }
+        //打开或者关闭修订模式
+        function TANGER_OCX_SetReviewMode(boolvalue) {
+            TANGER_OCX_OBJ.ActiveDocument.TrackRevisions = boolvalue;
+        }
+        //接受所有修订
+        function TANGER_OCX_AcceptAllRevisions() {
+            TANGER_OCX_OBJ.ActiveDocument.AcceptAllRevisions();
+        }
+        //显示/不显示修订文字
+        function TANGER_OCX_ShowRevisions(boolvalue) {
+            TANGER_OCX_OBJ.ActiveDocument.ShowRevisions = boolvalue;
+        }
+    </script>
+</head>
+<body style='height: 900px' onload="loadit();">
+    <object id="TANGER_OCX_OBJ" classid="clsid:C9BC4DFF-4248-4a3c-8A49-63A7D317F404"
+        codebase="OfficeControl.cab#version=5,0,2,4" width="100%" height="100%">
+        <param name="BorderStyle" value="1" />
+        <param name="TitleBar" value="false" />
+        <param name="ToolBars" value="true" />
+        <param name="TitlebarColor" value="42768" />
+        <param name="TitlebarTextColor" value="0" />
+        <param name="Statusbar" value="true" />
+        <param name="Caption" value="欢迎使用！" />
+        <param name="IsShowToolMenu" value="true" />
+        <param name="IsShowToolMenu" value="0" />
+        <param name="MakerCaption" value="成都国科海博计算机系统有限公司" />
+        <param name="MakerKey" value="0809865001DA14AED6EB4E2814F0D4CEE60A9122" />
+        <param name="ProductCaption" value="国科海博OA系统" />
+        <param name="ProductKey" value="530679AEAE10ED777E8F030340E973CA20099DCB" />
+        <param name="CustomMenuCaption" value="其他处理(O)" />
+    </object>
+</body>
+</html>
+<script language="JScript" for="TANGER_OCX_OBJ" event="OnCustomMenuCmd(menuIndex,menuCaption,menuID)">
+	
+switch(menuID)
+{
+	case 1:
+		taohong();
+	break;
+	case 4:
+		TANGER_OCX_AcceptAllRevisions();
+	break;
+}
+
+</script>
+<script language="JScript" for="TANGER_OCX_OBJ" event="OnCustomFileMenuCmd(menuIndex,menuCaption,menuID)">
+	
+switch(menuID)
+{
+	case 1:
+		saveDocToServer();//保存文档到服务器
+	break;
+}
+
+</script>
+<script language="JScript" for="TANGER_OCX_OBJ" event="OnDocumentOpened(TANGER_OCX_str,TANGER_OCX_obj)">
+	
+	//非拟稿环节均需记录痕迹
+	if(procUnitId == 'Apply'){
+		TANGER_OCX_SetMarkModify(false);
+	}else{
+		TANGER_OCX_SetDocUser();
+		TANGER_OCX_SetMarkModify(true);
+		TANGER_OCX_ShowRevisions(true);		
+	}
+
+</script>

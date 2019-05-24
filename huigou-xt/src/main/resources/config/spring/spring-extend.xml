@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       
+	<bean id="messageSenderManager" class="com.huigou.uasp.bpm.engine.MessageSenderManagerImpl">
+		<property name="messageSenders">
+			<list>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="processEventSupport" class="com.huigou.uasp.bpm.event.ProcessEventSupport">
+		<property name="listeners">
+			<list>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="tmspmConifg" class="com.huigou.context.TmspmConifg">
+		<property name="useTspm" value="false" />
+		<property name="enableTspm" value="false" />
+		<property name="doHideSuperAdministrator" value="false" />
+	</bean>
+	
+	<bean id="loadExpressClasses" class="com.huigou.express.LoadExpressClasses">
+		<!-- 多个包"package.a,package.b"并对每个包都会递归搜索 -->
+		<constructor-arg value="com.huigou" />
+		<!-- 指定扫描包中含有特定注解标记的bean,支持多个注解 -->
+		<constructor-arg>
+			<list>
+				<value>com.huigou.uasp.annotation.Expression</value>
+			</list>
+		</constructor-arg>
+	</bean>
+</beans>

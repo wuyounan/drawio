@@ -1,0 +1,47 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<bean id="uuidGenerator"
+		class="org.activiti.engine.impl.persistence.StrongUuidGenerator">
+	</bean>
+
+
+	<bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+		<property name="dataSource" ref="dataSource" />
+		<property name="transactionManager" ref="transactionManager" />
+		<property name="databaseSchemaUpdate" value="false" />
+		<!-- 
+		<property name="idBlockSize" value="20" />		-->
+		<property name="idGenerator" ref="uuidGenerator" />
+		
+		<property name="jobExecutorActivate" value="false" />
+
+		<property name="dbHistoryUsed" value="false" />
+		<property name="dbIdentityUsed" value="false" />
+
+		<property name="jpaEntityManagerFactory" ref="entityManagerFactory"></property>
+		<property name="jpaHandleTransaction" value="true"></property>
+		<property name="jpaCloseEntityManager" value="true"></property>
+	</bean>
+
+	<bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+		<property name="processEngineConfiguration" ref="processEngineConfiguration" />
+	</bean>
+
+	<bean id="flowRepositoryService" factory-bean="processEngine"
+		factory-method="getRepositoryService" />
+	<bean id="flowFormService" factory-bean="processEngine"
+		factory-method="getFormService" />
+	<bean id="flowRuntimeService" factory-bean="processEngine"
+		factory-method="getRuntimeService" />
+	<bean id="flowTaskService" factory-bean="processEngine"
+		factory-method="getTaskService" />
+	<bean id="flowHistoryService" factory-bean="processEngine"
+		factory-method="getHistoryService" />
+	<bean id="flowManagementService" factory-bean="processEngine"
+		factory-method="getManagementService" />
+</beans>

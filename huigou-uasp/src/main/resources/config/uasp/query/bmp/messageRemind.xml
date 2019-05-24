@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="messageRemind" label="系统消息提醒配置表" table="SA_MESSAGE_REMIND">
+		<sql-query>
+			select t.id,
+		       t.folder_id,
+		       t.code,
+		       t.name,
+		       t.status,
+		       t.sequence,
+		       t.version,
+		       t.remind_title,
+		       t.remind_url,
+		       t.execute_func,
+		       t.replace_kind,
+		       t.open_kind
+		  from sa_message_remind t
+		 where 1 = 1
+		</sql-query>
+		<sql name="queryRemindByPersonId">
+			select m.*
+			  from sa_message_remind m
+			 where m.id in (select pp.resource_id
+			                  from SA_OPOrg            p,
+			                       SA_OPOrg            o,
+			                       SA_OPAuthorize      a,
+			                       SA_OPRole           r,
+			                       SA_OPRolePermission rp,
+			                       SA_OPPermission     pp
+			                 where p.person_id = :personId
+			                   and p.full_id like concat(o.full_id,'%')
+			                   and o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and rp.permission_id = pp.id
+			                   and pp.node_kind_id = 'remind'
+			                   and p.status = 1
+			                   and o.status = 1
+			                   and r.status = 1
+			                   and pp.status = 1)
+			   and m.status = 1
+			 order by m.sequence asc
+		</sql>
+		<condition column="FOLDER_ID" name="folderId" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="REMIND_TITLE" name="remindTitle" type="java.lang.String" symbol="like" alias="t"/>
+	</query>
+
+</query-mappings>

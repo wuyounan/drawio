@@ -1,0 +1,76 @@
+*{margin:0px;padding:0px;}
+body{
+	color:#444444;
+	font-size:13px;
+	font-family:Arial, Helvetica, sans-serif;
+	
+}
+.overflow-x{
+	overflow-x: hidden; 
+	overflow-y: auto; 
+}
+div.gallery{
+	/* CSS3 Box Shadow */
+	-moz-box-shadow:0 0 3px #AAAAAA;
+	-webkit-box-shadow:0 0 3px #AAAAAA;
+	box-shadow:0 0 3px #AAAAAA;
+	
+	/* CSS3 Rounded Corners */
+	
+	-moz-border-radius-bottomleft:4px;
+	-webkit-border-bottom-left-radius:4px;
+	border-bottom-left-radius:4px;
+	
+	-moz-border-radius-bottomright:4px;
+	-webkit-border-bottom-right-radius:4px;
+	border-bottom-right-radius:4px;border:0;
+	height: 100%; text-align: center; overflow:hidden;
+	background:url(img/portal_bg.jpg) no-repeat left bottom;
+	background-attachment: fixed;
+	width:100%;
+}
+div.notesPanel{position:relative;overflow:hidden;}
+#menu_bottom{height:36px; line-height:36px;padding-left:20px; text-align:left;}
+#menu_bottom a{width:32px;height:32px;display:inline-block;outline:none;text-decoration:none;margin-right:20px;}
+#menu_bottom a.newnote{background:url(img/computer.png) no-repeat center left;}
+#menu_bottom a.newnote:hover{background:url(img/computer_on.png) no-repeat center left;}
+#menu_bottom a.listview{background:url(img/folder.png) no-repeat center left;}
+#menu_bottom a.listview:hover{background:url(img/open_alt.png) no-repeat center left;}
+div.note{width:150px; height:150px; position:absolute; margin-top:0; 
+	padding:5px; overflow:hidden; cursor:move;line-height:22px; color:#39f;
+	-moz-box-shadow:2px 2px 0 #DDDDDD;
+	-webkit-box-shadow:2px 2px 0 #DDDDDD;
+	 box-shadow:2px 2px 0 #DDDDDD;
+}
+div.note div.content{margin:2px;height:120px;overflow:hidden;text-align:left; color:#666}
+div.note div.date{margin:2px;text-align:right; color:#666}
+
+.yellow{background:#FDFB8C url(img/yellow.gif) no-repeat top right;border:1px solid #DEDC65;}
+.blue{background:#A6E3FC url(img/blue.gif) no-repeat top right;border:1px solid #75C5E7;}
+.green{background:#A5F88B url(img/green.gif) no-repeat top right;border:1px solid #98E775;}
+.red{background:#ffcccc url(img/red.gif) no-repeat top right;border:1px solid #ff6666;}
+
+
+#showmsg{text-align:center;color:#ff0000;line-height:20px;height:20px;overflow:hidden;}
+#add_dialog .posttable td{line-height:24px; padding:2px;text-align:right;}
+#showColor{display:inline-block;width:120px;height:24px;list-style-type: none; margin: 0; padding: 0;}
+#showColor li{float:left; width:20px; height:20px; margin-left:6px; cursor:pointer;background-image:none;}
+#showColor li.cur{border:1px solid #369}
+
+.input{border:1px solid #ccc; padding:2px}
+.inputarea{border:1px solid #ccc; padding:2px;width:95%; height:100px;overflow:auto;}
+
+.op-state-delete{
+	position:absolute;
+	bottom:5px;
+	display:inline-block;
+	width:128px;
+	height:128px;
+	z-index:0;
+	display:none;
+	right:10px;
+	background:url(img/del.png) no-repeat bottom center;
+}
+.op-state-delete-hover{
+	background:url(img/delhove.png) no-repeat bottom center;
+}

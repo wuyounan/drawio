@@ -1,0 +1,222 @@
+@media (max-width: 419px) {
+	html,body {
+		font-size: 12px;
+	}
+}
+
+body {
+	color: #344644;
+	background-color: #fff;
+	background-size: 220px 220px;
+}
+
+a {
+	color: #3498db;
+	outline: none!important;
+}
+
+a:hover,a:focus {
+	color: #3498db;
+}
+
+.container {
+	margin: 0;
+	width: 100%;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+@media (max-width: 767px) {
+	.container {
+		padding-left: 5px;
+		padding-right: 5px;
+	}
+}
+
+.row {
+	margin-left: -8px;
+	margin-right: -8px;
+}
+
+@media (max-width: 767px) {
+	.row {
+		margin-left: -5px;
+		margin-right: -5px;
+	}
+}
+
+.col-xs-6,.col-xs-12 {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+@media (max-width: 767px) {
+	.col-xs-6,.col-xs-12 {
+		padding-left: 5px;
+		padding-right: 5px;
+	}
+}
+
+label {
+	font-weight: 400;
+	font-size: 0.875em;
+}
+
+.text {
+	border-radius: 3px;
+	background-clip: padding-box;
+	border-color: #e7ebee;
+	box-shadow: none;
+	font-size: 16px;
+}
+
+.text:focus {
+	border-color: rgba(52,151,219,0.6);
+	outline: 0;
+	box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(52,152,219,0.6);
+}
+
+.input-group>.text,.input-group>.input-group-addon {
+	line-height: 1;
+}
+
+.input-group-addon {
+	background: transparent;
+	border-color: #e7ebee;
+}
+
+.checkbox-nice {
+	position: relative;
+	padding-left: 15px;
+	line-height:20px;
+}
+
+#login-page{
+	background-color:#e7ebee;
+}
+
+#login-page .login-head{
+	height:80px;
+	background-color:#fff;
+}
+#login-page .login-head>img{
+	margin:10px 0 0 150px;
+}
+
+#login-page .login-main{
+	background-color:#008cd3;
+}
+
+#login-left{
+	float:right;
+    width: 418px;
+    height: 420px;
+    background: url(../images/loginLeft.jpg) no-repeat center center;
+    margin-top:60px;
+}
+
+#login-box {
+	width:380px;
+ 	margin: 60px auto 20px;
+	overflow: hidden;
+	border-radius: 3px 3px 0 0;
+	background-clip: padding-box;
+}
+
+#login-box-inner {
+	background: #fff;
+	border-radius: 0 0 3px 3px;
+	background-clip: padding-box;
+	border: 1px solid #e1e1e1;
+	border-bottom-width: 5px;
+	padding: 40px 25px;
+}
+
+#login-box-inner .input-group-addon>i.fa{
+	font-size:26px;
+	color:#9C9C9C;
+}
+
+#login-logo {
+	/*#34495e*/
+	background-color:#3498db;
+	color: #fff;
+	display: block;
+	font-size: 2em;
+	font-weight: 400;
+	padding: 35px 0;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+#login-logo>i {
+	font-size:40px;
+	color:#fff;
+}
+
+#login-box .input-group {
+	margin-bottom: 10px;
+}
+
+#login-box .input-group input {
+	font-weight: 300;
+}
+
+#login-box .input-group .input-group-addon {
+	padding-left: 0;
+	padding-right: 0;
+	min-width: 50px;
+}
+
+#login-box #remember-me-wrapper {
+	padding: 10px 0;
+}
+
+#login-box button.btn {
+	font-weight: 600;
+	padding-bottom: 10px;
+	padding-top: 10px;
+	text-transform: uppercase;
+	margin-top: 8px;
+	font-size:22px;
+}
+
+#login-box-inner .input-group>.text,#login-box-inner .input-group>.input-group-addon {
+	height: 46px;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+#login-box-inner .input-group>.text{
+	line-height:normal;
+	line-height:40px\9;
+	border-top-left-radius: 0; 
+	border-bottom-left-radius: 0;
+	vertical-align: middle;  
+}
+
+#login-box-inner .input-group>.input-group-addon {
+	height: 44px;
+}
+
+#login-box-footer {
+	text-align: center;
+	font-size: 0.875em;
+	margin-top: 10px;
+	color:#fff;
+}
+
+@media only screen and (max-width: 767px) {
+	#login-box {
+		margin-top: 20%;
+		width:99%;
+	}
+	#login-page .login-main{
+		background-color:#e7ebee;
+	}
+	#login-box-footer{
+		color: #344644 !important;
+	}
+}
+.ui-float-top-button{ 
+	display: none !important;
+}

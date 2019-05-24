@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- freeMarker 配置-->
+	<bean id="freeMarkerConfigurer"
+		class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+		<property name="templateLoaderPath" value="/template" />
+		<property name="freemarkerSettings">
+			<props>
+				<prop key="template_update_delay">0</prop>
+				<prop key="default_encoding">UTF-8</prop>
+				<prop key="locale">zh_CN</prop>
+			</props>
+		</property>
+	</bean>
+	<bean class="com.huigou.freemarker.FreemarkerUtil">
+	    <property name="freeMarkerConfigurer" ref="freeMarkerConfigurer"/>
+	</bean>
+	<!-- 查询配置文件读取 -->
+	<bean id="queryXmlManager" class="com.huigou.uasp.bmp.common.query.QueryXmlManager" />
+	<!-- 快捷树查询配置 -->
+	<bean id="treeViewManager" class="com.huigou.uasp.bmp.common.treeview.TreeViewManager" />
+	<bean id="treeViewApplication" class="com.huigou.uasp.bmp.common.treeview.application.impl.TreeViewApplicationImpl" >
+		<property name="jdbcDao" ref="jdbcDao" />
+		<property name="permissionBuilder" ref="queryPermissionBuilder" />
+	</bean>
+	<!--快捷查询控件配置 -->
+	<bean id="easySearchManager" class="com.huigou.uasp.bmp.common.easysearch.EasySearchManager" />
+	<bean id="easySearchApplication" class="com.huigou.uasp.bmp.common.easysearch.application.impl.EasySearchApplicationImpl" >
+		<property name="sqlQuery" ref="sqlQuery" />
+		<property name="permissionBuilder" ref="queryPermissionBuilder" />
+	</bean>
+	<!--properties 配置文件读取 -->
+	<bean id="propertiesReader" class="com.huigou.properties.PropertiesManager" />
+	<!--启动插件配置 -->
+	<bean id="plugInManager" class="com.huigou.uasp.bmp.plugin.PlugInManager">
+		<property name="plugIns">
+			<list>
+				<ref bean="sysDictionaryPlugIn" />
+				<ref bean="parameterPlugIn" />
+				<ref bean="tmspmPlugIn" />
+				<ref bean="threeMemberPermissionPlugIn" />
+				<ref bean="applicationSystemPlugIn" />
+				<ref bean="i18npropertiesPlugIn" />
+			</list>
+		</property>
+	</bean>
+	<!-- 表达式执行的工具类 -->
+	<bean id="expressUtil" class="com.huigou.express.ExpressUtil">
+		<property name="beanNames">
+			<list>
+				<ref bean="commonFun" />
+				<ref bean="codeGenerator" />
+				<ref bean="orgFun" />
+				<ref bean="processFun" />
+			</list>
+		</property>
+	</bean>
+	
+
+</beans>

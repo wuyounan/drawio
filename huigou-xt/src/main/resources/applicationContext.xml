@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/util 
+    http://www.springframework.org/schema/util/spring-util-3.1.xsd
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+    http://www.springframework.org/schema/task
+ 	http://www.springframework.org/schema/task/spring-task.xsd">
+ 	 
+	<context:property-placeholder location="classpath:application.properties" />
+	<!-- 如果proxy-target-class 属性值被设置为true，那么基于类的代理将起作用（这时需要cglib库） -->
+	<aop:config proxy-target-class="true"></aop:config>
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- 设定Spring 在哪些包中查找annotation -->
+	<import resource="classpath:config/spring/spring-component-scan.xml" />
+	
+	<task:annotation-driven executor="annotationExecutor" />
+	<!-- 支持 @Async 注解 -->
+	<task:executor id="annotationExecutor" pool-size="2000"/>
+	
+	<import resource="classpath:config/spring/spring-cxf.xml" />
+	<import resource="classpath:activiti-context.xml" />
+	<import resource="classpath:config/spring/spring-dataSource.xml" />
+	<import resource="classpath:config/spring/spring-log-dataSource.xml" />
+	<import resource="classpath:config/spring/spring-resource.xml" />
+	<import resource="classpath:config/spring/spring-resource-basenames.xml" />
+	<import resource="classpath:config/spring/spring-data.xml" />
+	<import resource="classpath:config/spring/spring-system.xml" />
+	<import resource="classpath:config/spring/spring-ehcache.xml" />
+	<import resource="classpath:config/spring/spring-redis.xml" />
+	<import resource="classpath:config/spring/spring-system-cache.xml" />
+	<import resource="classpath:config/spring/spring-shiro-cache.xml" />
+	<import resource="classpath:config/spring/spring-cache.xml" />
+	<import resource="classpath:config/spring/spring-shiro.xml" />
+	<import resource="classpath:config/spring/spring-jpa.xml" />
+	<!-- jpa 包扫描路径 -->
+	<import resource="classpath:config/spring/spring-jpa-repositories.xml" />
+	<import resource="classpath:config/spring/spring-mongodb.xml" />
+	<import resource="classpath:config/spring/spring-log.xml" />	
+	<!-- 项目扩展 beans 配置 -->
+	<import resource="classpath:config/spring/spring-extend.xml" />
+</beans>

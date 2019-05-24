@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="businessProcess" label="流程定义" table="bpm_business_process">
+		<sql-query>
+			select t.*,
+			       (select count(0)
+			          from bpm_business_process t1
+			         where t1.parent_Id = t.id) as count
+			  from bpm_business_process t
+			 where 1 = 1
+		</sql-query>
+
+ 		<condition column="CODE" name="code" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="NAME" name="name" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="parent_Id" name="parentId" type="java.lang.String" symbol="=" alias="t"/>
+		<condition column="full_Id" name="fullId" type="java.lang.String" symbol="half_like" alias="t"/>
+		<condition column="user_code" name="userCode" type="java.lang.String" symbol="like" alias="t"/>
+		<condition column="is_Electronization" name="isElectronization" type="java.lang.Integer" symbol="=" alias="t"/>
+		<condition column="is_Final" name="isFinal" type="java.lang.Integer" symbol="=" alias="t"/>
+		<condition column="owner_Id" name="ownerId" type="java.lang.String" symbol="=" alias="t"/>
+		<sql name="queryBusinessProcess">
+			select t.*,
+		       (select count(0)
+		          from bpm_business_process t1
+		         where t1.parent_id = t.id) as has_children
+		  from bpm_business_process t
+		 where t.parent_id = ?
+		 order by t.sequence asc
+		</sql>
+		<sql name="queryMoveBusinessProcess">
+			select t.*,
+		       (select count(0)
+		          from bpm_business_process t1
+		         where t1.parent_id = t.id
+		           and t1.is_final = 0
+		           and t1.id not in (%s)) as has_children
+		  from bpm_business_process t
+		 where t.parent_id = :parentId
+		   and t.is_final = 0
+		   and t.id not in (%s)
+		 order by t.sequence asc
+		</sql>
+		<sql name="queryFlowChartProcessByFullId">
+			select t.* from bpm_business_process t where t.full_id like ? and t.is_flow_chart =1
+		</sql>
+	</query>
+
+</query-mappings>

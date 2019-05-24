@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="codeBuildRule" label="单据编码规则">
+		<sql-query>
+			 select t.* from sa_codebuildrule t where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="commonTree" label="通用树">
+		<sql-query>
+			select t.id, t.kind_id, t.code, t.name, t.node_kind_id, t.parent_id,t.full_id,
+			       (select count(*) from SA_CommonTree i where i.parent_id = t.id) has_children,
+			       'Folder' as node_Url, t.sequence
+			  from SA_CommonTree t
+		 where 1 = 1
+		</sql-query>
+		<condition column="kind_id" name="kindId" symbol="=" alias="t"/>
+		<condition column="parent_id" name="parentId" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="sysDictionary" label="数据字典">
+		<sql-query>
+			 select t.* from sa_dictionary t where 1 = 1
+		</sql-query>
+		<sql name="queryAllEnabled">
+			select o.code, d.name, d.type_id, d.value
+			  from sa_dictionary o, sa_dictionarydetail d
+			 where o.id = d.dictionary_id
+			   and o.status = 1
+			   and d.status = 1
+			 order by o.code, d.sequence
+		</sql>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="kind_id" name="kindId" symbol="=" alias="t"/>
+		<condition column="status" name="status" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="sysDictionaryDetails" label="数据字典明细">
+		<sql-query>
+			select t.* from SA_DictionaryDetail t where t.dictionary_id = :parentId
+		</sql-query>
+		<sql name="queryDetailsByCode">
+			select d.*
+			  from SA_Dictionary m, SA_DictionaryDetail d
+			 where m.id = d.dictionary_id
+			   and m.status = 1
+			   and d.status = 1
+			   and m.code = :code
+			 order by d.sequence
+		</sql>
+		<condition column="dictionary_id" name="parentId" symbol="=" alias="t" append="false"/>
+	</query>
+	
+	<query name="sysParameter" label="系统参数">
+		<sql-query>
+			select t.* from SA_Parameter t where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="personQueryScheme" label="个人查询方案">
+		<sql name="query">
+			select *
+			  from SA_PersonQueryScheme
+			 where person_id = :personId
+			   and kind_id = :kindId
+			 order by sequence
+		</sql>
+	</query>
+	
+	<query name="approvalRejectedReason" label="审批驳回理由">
+		<sql-query>
+			select t.*,f.name as folder_name from sa_approval_rejected_reason t,sa_commontree f  where t.folder_id=f.id
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="content" name="content" symbol="like" alias="t"/>
+		<condition column="rejected_reason_kind" name="rejectedReasonKind" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="i18nproperties" label="国际化资源维护">
+		<sql-query>
+			select t.*,f.name as folder_name from sa_i18nproperties t,sa_commontree f  where t.folder_id=f.id
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="value1" name="name" symbol="like" alias="t"/>
+		<condition column="resource_kind" name="resourceKind" symbol="=" alias="t"/>
+		<sql name="insertSql">
+			insert into sa_i18nproperties (id, code, value1, folder_id,resource_kind) values (:id, :code, :value1, :folderId,:resourceKind)
+		</sql>
+		<sql name="updataSql">
+			update sa_i18nproperties
+			   set id            = :id,
+			       code          = :code,
+			       value1        = :value1,
+			       folder_id     = :folderId,
+			       resource_kind = :resourceKind
+			 where code = :code
+		</sql>
+		<sql name="queryTempData">
+			select t.* from tmp_sa_i18nproperties t where t.batch_number=?
+		</sql>
+		<sql name="deleteTempData">
+			delete from tmp_sa_i18nproperties t where t.batch_number=?
+		</sql>
+		<sql name="updataByCode">
+			update sa_i18nproperties
+			   set value1 = :value1,
+			       value2 = :value2,
+			       value3 = :value3,
+			       value4 = :value4,
+			       value5 = :value5
+			 where code = :code
+		</sql>
+	</query>
+	
+	<query name="saOrgFun" label="组织机构函数记录维护">
+		<sql-query>
+			select t.* from  sa_orgfun t where 1=1
+		</sql-query>
+		<condition column="parent_id" name="parentId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<sql name ="treeQuery">
+			select t.*,(select count(*) from sa_orgfun i where i.parent_id = t.id) has_children
+			  from sa_orgfun t
+			 where t.parent_id = ?
+			 order by t.sequence asc
+		</sql>
+	</query>
+</query-mappings>

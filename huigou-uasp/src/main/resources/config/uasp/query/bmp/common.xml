@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="common" label="通用sql">
+		<sql name="findDuplicateEntitiesByCode">
+			select o from %s o where id != :id and upper(code) = :code
+		</sql>
+	    <sql name="findDuplicateEntitiesByName">
+			select o from %s o where id != :id and upper(name) = :name
+		</sql>
+		<sql name="findDuplicateEntitiesByCodeAndName">
+			select o from %s o where id != :id and (upper(code) = :code or upper(name) = :name)
+		</sql>
+		<sql name="findDuplicateEntitiesByParentIdAndName">
+			select o from %s o where id != :id and parentId = :parentId and upper(name) = :name
+		</sql>
+		<sql name="findDuplicateEntitiesByParentIdAndCodeAndName">
+			select o from %s o where id != :id and parentId = :parentId and (upper(code) = :code or upper(name) = :name)
+		</sql>
+		<sql name="findDuplicateEntitiesByParentIdAndGlobalCodeAndName">
+			select o from %s o where id != :id and (upper(code) = :code or (parentId = :parentId and upper(name) = :name))
+		</sql>
+		<sql name="findDuplicateEntitiesByFolderIdAndName">
+			select o from %s o where id != :id and folderId = :folderId and upper(name) = :name
+		</sql>
+		<sql name="findDuplicateEntitiesByFolderIdAndCodeAndName">
+			select o from %s o where id != :id and folderId = :folderId and (upper(code) = :code or upper(name) = :name)
+		</sql>
+		<sql name="findDuplicateEntitiesByFolderIdAndGlobalCodeAndName">
+			select o from %s o where id != :id and (upper(code) = :code or (folderId = :folderId and upper(name) = :name))
+		</sql>
+		<sql name="countByParentId">
+		  select count(*) from %s where %s = :parentId
+		</sql>
+		<sql name="getMaxSequenceByParentId">
+		  select max(sequence) from %s where %s = :parentId
+		</sql>
+		<sql name="updateFullName">
+		  update %s 
+            set full_Name = concat(:newFullName, substr(full_Name,
+                length(:oldFullName) + 1,
+                length(full_Name))),
+                version = version_seq.nextval
+          where full_id like :fullId
+		</sql>
+		<sql name="updateFullIdAndName">
+		   update %s
+			   set full_id = concat(:parentNewFullId,
+			                         substr(full_Id,
+			                                length(:parentOldFullId) + 1,
+			                                length(full_Id))),
+			       full_Name = concat(:parentNewFullName,
+			                           substr(full_Name, length(:parentOldFullName) + 1,
+			                           length(full_Name))),
+			       version = version_seq.nextval
+			 where full_Id like :likeFullId
+		</sql>
+		<sql name="moveSqlByFolderId">
+			update %s set folder_Id = :folderId, version = version_seq.nextval where id in :ids
+		</sql>
+		<sql name="moveSqlByParentId">
+			update %s set %s = :parentId, version = version_seq.nextval where id in :ids
+		</sql>	
+		<sql name="updateStatusSql">
+			update %s set status = :status, version = version_seq.nextval where id = :id
+		</sql>
+		<sql name="updateStatusesSql">
+			update %s set status = :status, version = version_seq.nextval where id in :ids
+		</sql>
+		<sql name="updateSequenceSql">
+			update %s set sequence = :sequence, version = version_seq.nextval where id = :id
+		</sql>
+		<sql name="countByBillCodeSql">
+		  select count(0) from %s where bill_code = ?
+		</sql>
+	</query>
+	
+	<query name="personScreen" label="用户快捷功能设置">
+		<sql name="queryByPersonId">
+		select c.id as function_Id, c.code, c.name, c.url, c.icon, c.sequence, a.id
+		  from sa_pdscreen a, sa_pdscreenfunction b, sa_opfunction c
+		 where a.id = b.screen_id
+		   and b.function_id = c.id
+		   and a.person_id = ?
+		 order by c.sequence asc
+		</sql>
+	</query>
+</query-mappings>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+
+	<query name="flexFieldDefinition" label="弹性域">
+		<sql-query>
+			 select *
+			  from sa_flexfielddefinition t
+			 where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="field_name" name="fieldName" symbol="like" alias="t"/>
+		<condition column="description" name="description" symbol="like" alias="t"/>
+		<sql name="checkDuplicate">
+			select o
+			  from FlexFieldDefinition o
+			 where id != :id
+			   and o.folderId = :folderId
+			   and upper(o.fieldName) = :fieldName
+		</sql>
+	</query>
+	
+	<query name="flexFieldBizGroup" label="弹性域组">
+		<sql-query>
+			 select *
+			  from SA_FlexFieldBizGroup t
+			 where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="biz_code" name="bizCode" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="flexFieldBizGroupField" label="弹性域组">
+		<sql-query>
+			 select t.*,
+			       d.field_name,
+			       d.description,
+			       d.field_type,
+			       d.field_length,
+			       d.field_precision,
+			       d.default_value,
+			       d.min_value,
+			       d.max_value,
+			       d.control_type,
+			       d.data_source_kind_id,
+			       d.data_source
+			  from SA_FlexFieldBizGroupField t, SA_FlexFieldDefinition d
+			 where t.flexfielddefinition_id = d.id
+			    and t.flexFieldBizGroup_Id = :parentId
+		</sql-query>
+		<condition column="flexFieldBizGroup_Id" name="parentId" symbol="=" alias="t" append="false"/>
+		<sql name="queryByFlexFieldBizGroupId">
+			select t.*,
+		       d.field_name,
+		       d.description,
+		       d.field_type,
+		       d.field_length,
+		       d.field_precision,
+		       d.default_value,
+		       d.min_value,
+		       d.max_value,
+		       d.control_type,
+		       d.data_source_kind_id,
+		       d.data_source
+		  from SA_FlexFieldBizGroupField t, SA_FlexFieldDefinition d
+		 where t.flexfielddefinition_id = d.id
+		   and t.flexFieldBizGroup_Id = ?
+		   order by t.sequence asc
+		</sql>
+		<sql name="queryVisibleFields">
+		 select d.field_name, d.description, d.field_type,t.control_width
+		  from sa_flexfieldbizgroupfield t, sa_flexfielddefinition d
+		 where t.flexfielddefinition_id = d.id
+		   and t.flexfieldbizgroup_id = ?
+		   and t.visible = 1
+		 order by t.sequence asc
+		</sql>
+	</query>
+	
+	
+</query-mappings>

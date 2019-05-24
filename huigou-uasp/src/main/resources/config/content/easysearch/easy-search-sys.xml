@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<easy-search-mappings>
+	<easy-search name="flexFieldDefine" desc="扩展属性定义" folderKindId="5" folderIdName="parent_id">
+		<sql>
+			select t.id define_id, t.folder_id parent_id, t.field_name field_ename,
+			       t.description field_cname, t.field_type, t.read_only, t.visible
+			  from sa_flexfielddefinition t
+			 where 1 = 1
+		</sql>
+		<field name="defineId" code="defineId" type='hidden' />
+		<field name="字段英文名称" code="fieldEname" width="120" />
+		<field name="字段中文名称" code="fieldCname" width="100" />
+		<field name="是否只读" code="readOnly" width="60" />
+		<field name="是否显示" code="visible" width="60" />
+		<orderby>field_Ename</orderby> 
+	</easy-search>
+	
+	<easy-search name="bizFieldSysGroup" desc="业务字段分组" folderKindId="6" folderIdName="folder_id">
+        <sql>
+           select t.id, t.code, t.biz_code, t.name, t.visible, t.sequence, t.folder_id
+			  from sa_flexfieldbizgroup t
+			 where t.status = 1
+			   and not exists (select 0
+			          from sa_bizclassificationdetail d
+			         where d.biz_property_id = t.id)
+
+        </sql>
+        <field name="id" code="id" type='hidden'/>
+        <field name="业务编码" code="bizCode" width="150"/>
+        <field name="名称" code="name" width="150"/>
+        <field name="是否显示" code="visible" width="60"/>
+        <orderby>sequence</orderby>
+    </easy-search>
+
+	<easy-search name="roleKind" desc="角色类别" folderKindId="4"
+		folderIdName="parent_id">
+		<sql>
+			select id, code, name, parent_id
+			  from SA_CommonTree t
+			 where kind_id = 4
+			 order by t.sequence asc
+		</sql>
+		<field name="id" code="id" type='hidden' />
+		<field name="编码" code="code" width="120" />
+		<field name="名称" code="name" width="200" />
+	</easy-search>
+
+	<easy-search name="bizManagementType" desc="业务管理权限">
+		<sql>
+			select t.id, t.code, t.name, t.kind_id,
+			       t.manage_org_kind_id, t.manage_org_kind_name
+			  from sa_opbizmanagementtype t
+			 where 1 = 1
+			 order by t.sequence asc
+		</sql>
+		<field name="id" code="id" type='hidden' />
+		<field name="kind_id" code="kindId" type='hidden' />
+		<field name="编码" code="code" width="120" />
+		<field name="名称" code="name" width="200" />
+	</easy-search>
+<!-- 
+	<easy-search name="permissionField" desc="权限字段选择"
+		folderKindId="16" folderIdName="parent_id">
+		<sql>
+			select t.field_id, t.field_name, t.field_code, t.field_type,
+			       t.field_authority field_permission, t.parent_id
+			  from sa_oppermissionfield t
+			 where t.status = 1
+			 order by t.field_code asc
+		</sql>
+		<field name="fieldId" code="fieldId" type='hidden' />
+		<field name="fieldType" code="fieldType" type='hidden' />
+		<field name="fieldPermission" code="fieldPermission" type='hidden' />
+		<field name="编码" code="fieldCode" width="150" />
+		<field name="名称" code="fieldName" width="120" />
+		<field name="类别" code="fieldTypeTextView" width="60" type='dictionary' />
+		<field name="默认权限" code="fieldAuthorityTextView" width="80" type='dictionary' />
+	</easy-search>
+ -->
+	<easy-search name="importTemplate" desc="导入模板"
+		folderKindId="10" folderIdName="folder_id" >
+		<sql>
+			select s.id, s.code, s.name, s.table_name, s.folder_id
+			  from SA_ExcelImportTemplate s
+			 where s.status = 1
+			 order by s.id asc
+		</sql>
+		<field name="id" code="id" type='hidden' />
+		<field name="编码" code="code" width="100" />
+		<field name="名称" code="name" width="180" />
+		<field name="表名称" code="tableName" width="80" />
+	</easy-search>
+	<easy-search name="orgSelect" desc="组织机构选择">
+		<sql>
+			select t.id, t.full_id, t.name, t.full_name, t.org_kind_id,
+			       t.full_name as cascadeField, t.org_id, t.person_id, t.org_name,
+			       t.center_id, t.center_name, t.dept_id, t.dept_name, t.position_id,
+			       t.position_name, t.full_sequence
+			  from sa_oporg t
+			 where instr(full_org_kind_id, 'prj') = 0
+		</sql>
+		<field name="id" code="id" type='hidden' />
+		<field name="fullId" code="fullId" type='hidden' />
+		<field name="org_id" code="orgId" type='hidden' />
+		<field name="person_id" code="personId" type='hidden' />
+		<field name="org_name" code="orgName" type='hidden' />
+		<field name="center_id" code="centerId" type='hidden' />
+		<field name="center_name" code="centerName" type='hidden' />
+		<field name="dept_id" code="deptId" type='hidden' />
+		<field name="dept_name" code="deptName" type='hidden' />
+		<field name="position_id" code="positionId" type='hidden' />
+		<field name="position_name" code="positionName" type='hidden' />
+		<field name="orgKindId" code="orgKindId" type='hidden' />
+		<field name="名称" code="name" width="120" />
+		<field name="路径" code="fullName" width="300" />
+		<orderby>full_sequence</orderby>
+		<condition column="org_kind_id" name="orgKindId" symbol="in" alias="t"/>
+        <condition column="status" name="status" symbol="in" alias="t"/>
+		<condition column="is_virtual" name="isVirtual" symbol="in" alias="t"/>
+		<condition column="dept_level" name="deptLevel" symbol="=" alias="t"/>
+		<condition column="full_id" name="orgFullId" symbol="like" alias="t"/>	
+	</easy-search>
+
+	<easy-search name="orgSelectProxy" desc="代理人选择">
+		<sql>
+			SELECT t.id, t.full_id, t.name, t.full_name, t.org_kind_id,
+			       t.full_name as cascadeField, t.org_id, t.org_name, t.center_id,
+			       t.center_name, t.dept_id, t.dept_name, t.position_id, t.position_name
+			  FROM sa_oporg t
+			 where instr(full_org_kind_id, 'prj') = 0
+			 order by t.sequence asc
+		</sql>
+		<field name="id" code="id" type='hidden' />
+		<field name="fullId" code="fullId" type='hidden' />
+		<field name="org_id" code="orgId" type='hidden' />
+		<field name="org_name" code="orgName" type='hidden' />
+		<field name="center_id" code="centerId" type='hidden' />
+		<field name="center_name" code="centerName" type='hidden' />
+		<field name="dept_id" code="deptId" type='hidden' />
+		<field name="dept_name" code="deptName" type='hidden' />
+		<field name="position_id" code="positionId" type='hidden' />
+		<field name="position_name" code="positionName" type='hidden' />
+		<field name="orgKindId" code="orgKindId" type='hidden' />
+		<field name="路径" code="fullName" width="250" />
+		<field name="名称" code="name" width="120" />
+		<field name="姓名" code="personMemberName" width="80" />
+		<condition column="org_kind_id" name="orgKindId" symbol="in" alias="t"/>
+        <condition column="status" name="status" symbol="in" alias="t"/>
+		<condition column="is_virtual" name="isVirtual" symbol="in" alias="t"/>
+		<condition column="dept_level" name="deptLevel" symbol="=" alias="t"/>
+		<condition column="full_id" name="orgFullId" symbol="like" alias="t"/>
+	</easy-search>
+
+	<easy-search name="bizTaskQuery" desc="根据业务ID查询任务">
+		<sql>
+			select t.id_ as task_id, t.owner_person_member_name_ as person_name,
+			       t.owner_full_name_ as full_name, i.start_time_ as start_time,
+			       i.end_time_ as end_time
+			  from act_hi_taskinst_extension t, act_hi_taskinst i
+			 where t.id_ = i.id_
+			   and t.business_key_ = :bizId
+		</sql>
+		<orderby>task_id desc</orderby>
+		<field name="taskId" code="taskId" type='hidden' />
+		<field name="路径" code="fullName" width="250" />
+		<field name="姓名" code="personName" width="80" />
+		<field name="发送时间" code="startTime" width="130" type="datetime" autoCondition="false" />
+		<field name="处理时间" code="endTime" width="130" type="datetime" autoCondition="false" />
+	</easy-search>
+
+	<easy-search name="funOperation" desc="资源操作">
+		<sql>
+			select t.id, t.code, t.name, t.sequence from SA_OPOperation t where resource_kind_id = 'FUN'
+		</sql>
+		<orderby>sequence</orderby>
+		<field name="id" code="id" type='hidden' />
+		<field name="编码" code="code" width="250" />
+		<field name="名称" code="name" width="80" />
+	</easy-search>
+	
+	<easy-search name="machine" desc="选择机器">
+		<sql>
+		    select t.id, t.code, t.name, t.ip, t.mac, t.security_grade as securityGrade
+			  from SA_Machine t 
+			where t.status = 1 and t.id not in (select p.machine_id from sa_personloginlimit p where p.person_id = :personId)
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="mac" code="mac" type='hidden'/>
+		<field name="机器名称" code="name"  width="100"/>
+		<field name="机器编码" code="code"  width="100"/>
+		<field name="IP" code="ip"  width="200"/>
+    </easy-search>
+    
+    <easy-search name="messageRemind" desc="消息提醒">
+		<sql>
+			select t.id, t.code, t.name, t.sequence from sa_message_remind t where t.status = 1
+		</sql>
+		<orderby>sequence</orderby>
+		<field name="id" code="id" type='hidden' />
+		<field name="编码" code="code" width="150" />
+		<field name="名称" code="name" width="180" />
+	</easy-search>
+	
+	<easy-search name="queryPermission" desc="权限资源查询">
+		<sql>
+			select t.id,t.code,t.name,t.sequence from sa_oppermission t where t.status=1 and t.parent_id=:parentId
+		</sql>
+		<orderby>sequence</orderby>
+		<field name="id" code="id" type='hidden' />
+		<field name="编码" code="code" width="150" />
+		<field name="名称" code="name" width="180" />
+	</easy-search>
+	
+	<easy-search name="chooseOPTenant" desc="租户选择" folderKindId="35" folderIdName="folder_id">
+        <sql>
+           select * from SA_OPTenant t where t.org_id is not null
+        </sql>
+        <field name="id" code="id" type='hidden'/>
+        <field name="编码" code="code" width="150"/>
+        <field name="名称" code="name" width="250"/>
+        <permissions>
+       	 	<permission column="root_full_id"  symbol="like" alias="t" kind="fullId"/> 
+        </permissions>
+        <orderby>code</orderby>
+    </easy-search>
+    
+    <easy-search name="approvalRejectedReason" desc="驳回理由选择" folderKindId="50" folderIdName="folder_id">
+		<sql>
+			select t.*,f.name as folder_name from sa_approval_rejected_reason t,sa_commontree f  where t.folder_id=f.id
+		</sql>
+		<field name="common.field.kind" code="folderName" width="120" />
+		<field name="common.field.rejectedReason" code="content" width="300" />
+		<condition column="rejected_reason_kind" name="rejectedReasonKind" symbol="=" alias="t"/>
+		<orderby>sequence</orderby> 
+	</easy-search>
+	
+	<easy-search name="saOrgFun" desc="系统函数">
+		<sql>
+			select t.code, t.name, t.sequence
+			  from sa_orgfun t
+			 where t.status = 1
+			   and t.is_last = 1
+		</sql>
+		<field name="函数" code="code" width="250"/>
+        <field name="名称" code="name" width="200"/>
+		<orderby>sequence</orderby> 
+	</easy-search>
+	
+	<easy-search name="opDataKind" desc="数据权限取值类型">
+		<sql>
+			select t.* from sa_opdatakind t where 1=1
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="编码" code="code" width="150"/>
+        <field name="名称" code="name" width="200"/>
+		<orderby>sequence</orderby>
+	</easy-search>
+	
+	<easy-search name="dataManageType" desc="管理权限类别" folderKindId="org">
+		<sql>
+			select t.* from sa_opdatamanagetype t where t.status=1 and t.node_kind_id='2'
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="nodeKindId" code="nodeKindId" type='hidden'/>
+		<field name="fullId" code="fullId" type='hidden'/>
+		<field name="编码" code="code" width="150"/>
+        <field name="名称" code="name" width="200"/>
+		<orderby>sequence</orderby> 
+	</easy-search>
+	
+	<easy-search name="dataManageTypeKind" desc="管理权限类别">
+		<sql>
+			select t.id, k.code, k.name, k.data_kind, k.sequence
+			  from sa_opdatamanagetypekind t, sa_opdatakind k
+			 where t.data_kind_id = k.id
+			   and t.data_manage_id = :dataManageId
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="编码" code="code" width="150"/>
+        <field name="名称" code="name" width="200"/>
+		<orderby>sequence</orderby> 
+	</easy-search>
+	
+	<easy-search name="dataManagDetail" desc="管理权限数据" folderKindId="org">
+		<sql>
+			select t.id,
+			       t.name,
+			       t.data_manage_id,
+			       t.remark,
+			       m.code,
+			       m.name as manage_name,
+			       m.sequence,
+			       m.full_id
+			  from sa_opdatamanagedetail t, sa_opdatamanagetype m
+			 where t.data_manage_id = m.id
+			   and m.status = 1
+		</sql>
+		<field name="id" code="id" type='hidden'/>
+		<field name="dataManageId" code="dataManageId" type='hidden'/>
+		<field name="名称" code="name" width="200"/>
+		<field name="权限编码" code="code" width="150"/>
+        <field name="权限类型" code="manageName" width="200"/>
+		<orderby>sequence</orderby> 
+	</easy-search>
+	
+</easy-search-mappings>

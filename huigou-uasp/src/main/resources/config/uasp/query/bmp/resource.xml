@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="sysFunction" label="系统功能">
+		<sql-query>
+			select id, parent_id, code, name, full_name, node_kind_id, key_code, url,
+			       icon, remark, depth, status, sequence, version, description,
+			       operation_map_id, full_id,
+			       (select count(*) from SA_OPfunction i where i.parent_id = t.id) has_children
+			  from SA_OPfunction t
+			 where 1 = 1
+		</sql-query>
+		<condition column="parent_id" name="parentId" symbol="=" alias="t" />
+		<condition column="code" name="code" symbol="like" alias="t" />
+		<condition column="name" name="name" symbol="like" alias="t" />
+		<condition column="id" name="excludeIds" symbol="in" alias="t" >
+			t.id not in :excludeIds
+		</condition>
+	</query>
+</query-mappings>
