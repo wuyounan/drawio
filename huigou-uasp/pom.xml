@@ -231,8 +231,8 @@
 
 		<!-- 规则引擎 -->
 		<dependency>
-			<groupId>com.taobao.util</groupId>
-			<artifactId>taobao-express</artifactId>
+			<groupId>com.alibaba</groupId>
+			<artifactId>QLExpress</artifactId>
 		</dependency>
 		<!-- 表达式语言 -->
 		<dependency>

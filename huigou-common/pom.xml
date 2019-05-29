@@ -77,8 +77,8 @@
 			<artifactId>spring-tx</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.taobao.util</groupId>
-			<artifactId>taobao-express</artifactId>
+			<groupId>com.alibaba</groupId>
+			<artifactId>QLExpress</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.oracle</groupId>

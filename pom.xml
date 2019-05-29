@@ -64,7 +64,7 @@
         <huigou.easysearch.version>1.0.0</huigou.easysearch.version>
         <huigou.treeview.version>1.0.0</huigou.treeview.version>
         <netpay.version>1.0.0</netpay.version>
-        <taobao-express.version>3.0.5</taobao-express.version>
+        <ql-express.version>3.2.0</ql-express.version>
         <umspay-api.version>2.0.2</umspay-api.version>
         <test.version>1.0.0</test.version>
         <javabase64.version>1.3.1</javabase64.version>
@@ -958,9 +958,9 @@
 
             <!-- taobao -->
             <dependency>
-                <groupId>com.taobao.util</groupId>
-                <artifactId>taobao-express</artifactId>
-                <version>${taobao-express.version}</version>
+                <groupId>com.alibaba</groupId>
+                <artifactId>QLExpress</artifactId>
+                <version>${ql-express.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -1978,9 +1978,9 @@
     </dependencyManagement>
     <distributionManagement>
         <repository>
-            <id>huigou.dev</id>
-            <name>Internal huigou</name>
-            <url>http://192.168.2.200:8081/nexus/content/repositories/huigou/</url>
+            <id>topsunit</id>
+            <name>topsunit</name>
+            <url>http://nexus.cdcloud.topsunit.com:18080/repository/huigou-repostitory/</url>
         </repository>
     </distributionManagement>
     <build>
