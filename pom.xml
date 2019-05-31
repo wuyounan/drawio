@@ -1356,7 +1356,7 @@
                 </exclusions>
             </dependency>
 
-            <!-- javassist -->
+            <!-- javassist
             <dependency>
                 <groupId>javassist</groupId>
                 <artifactId>javassist</artifactId>
@@ -1367,7 +1367,7 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
+            </dependency> -->
 
             <!-- jpush -->
             <dependency>

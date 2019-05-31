@@ -240,10 +240,10 @@
 			<artifactId>ognl</artifactId>
 		</dependency>
 		<!-- 分析、编辑和创建Java字节码 -->
-		<dependency>
+		<!--<dependency>
 			<groupId>javassist</groupId>
 			<artifactId>javassist</artifactId>
-		</dependency>
+		</dependency>-->
 		<!-- 生成PDF报表 -->
 		<dependency>
 			<groupId>com.lowagie</groupId>
@@ -380,17 +380,4 @@
 		</plugins>
 	</build>
 
-	<distributionManagement>
-		<repository>
-			<id>huigou.release</id>
-			<name>Internal Releases</name>
-			<url>http://192.168.2.200:8081/nexus/content/repositories/huigou/</url>
-		</repository>
-
-		<snapshotRepository>
-			<id>huigou.dev</id>
-			<name>Internal Snapshots</name>
-			<url>http://192.168.2.200:8081/nexus/content/repositories/snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
 </project>
