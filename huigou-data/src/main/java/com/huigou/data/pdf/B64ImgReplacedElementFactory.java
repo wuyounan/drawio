@@ -1,7 +1,7 @@
 package com.huigou.data.pdf;
 
-import java.io.IOException;
-
+import com.itextpdf.text.BadElementException;
+import com.itextpdf.text.Image;
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 import org.xhtmlrenderer.extend.FSImage;
@@ -14,8 +14,8 @@ import org.xhtmlrenderer.pdf.ITextImageElement;
 import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.simple.extend.FormSubmissionListener;
 
-import com.lowagie.text.BadElementException;
-import com.lowagie.text.Image;
+
+import java.io.IOException;
 
 /**
  * 解决iText+freemark导出pdf不支持base64

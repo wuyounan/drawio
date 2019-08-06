@@ -1,28 +1,21 @@
 package com.huigou.data.pdf;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-import java.util.Map;
-
+import com.huigou.data.exception.ExportExcelException;
+import com.huigou.exception.ApplicationException;
+import com.huigou.freemarker.FreemarkerUtil;
+import com.huigou.util.FileHelper;
+import com.huigou.util.LogHome;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.BaseFont;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.springframework.core.io.ClassPathResource;
 import org.xhtmlrenderer.pdf.ITextFontResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import com.huigou.data.exception.ExportExcelException;
-import com.huigou.exception.ApplicationException;
-import com.huigou.freemarker.FreemarkerUtil;
-import com.huigou.util.FileHelper;
-import com.huigou.util.LogHome;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.BaseFont;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.util.Map;
 
 /**
  * 根据HTML生成PDF文件

@@ -6,7 +6,7 @@
 
     <groupId>com.huigou</groupId>
     <artifactId>root</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <packaging>pom</packaging>
 
@@ -36,8 +36,8 @@
         <commons-net.version>1.4.1</commons-net.version>
         <commons-io.version>2.4</commons-io.version>
         <commons-beanutils.version>1.8.0</commons-beanutils.version>
-        <itext.version>2.1.0</itext.version>
-        <core-renderer.version>R8</core-renderer.version>
+        <itext.version>4.2.2</itext.version>
+        <core-renderer.version>9.1.18</core-renderer.version>
         <javax.ws.rs.version>2.0.1</javax.ws.rs.version>
         <cxf.version>3.1.7</cxf.version>
         <ehcache.version>2.10.1</ehcache.version>
@@ -159,7 +159,7 @@
         <!-- test -->
         <junit.version>4.9</junit.version>
         <spring-data-mongodb.version>1.9.3.RELEASE</spring-data-mongodb.version>
-        <huigou.uasp.version>1.0.0</huigou.uasp.version>
+        <huigou.uasp.version>1.1.0</huigou.uasp.version>
     </properties>
 
     <dependencyManagement>
@@ -172,7 +172,7 @@
             <dependency>
                 <groupId>com.huigou</groupId>
                 <artifactId>huigou-ueditor</artifactId>
-                <version>${huigou.uasp.version}</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.huigou</groupId>
@@ -202,7 +202,7 @@
             <dependency>
                 <groupId>com.huigou</groupId>
                 <artifactId>gongtou-oa</artifactId>
-                <version>${huigou.uasp.version}</version>
+                <version>1.0.0</version>
             </dependency>
             <dependency>
                 <groupId>guava</groupId>
@@ -1160,14 +1160,13 @@
             </dependency>
             <dependency>
                 <groupId>org.xhtmlrenderer</groupId>
-                <artifactId>core-renderer</artifactId>
+                <artifactId>flying-saucer-core</artifactId>
                 <version>${core-renderer.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.xhtmlrenderer</groupId>
+                <artifactId>flying-saucer-pdf-itext5</artifactId>
+                <version>${core-renderer.version}</version>
             </dependency>
 
             <!-- cxf -->
@@ -1980,7 +1979,7 @@
         <repository>
             <id>topsunit</id>
             <name>topsunit</name>
-            <url>http://nexus.cdcloud.topsunit.com:18080/repository/huigou-repostitory/</url>
+            <url>http://nexus.local.topsunit.com/repository/huigou-repostitory/</url>
         </repository>
     </distributionManagement>
     <build>

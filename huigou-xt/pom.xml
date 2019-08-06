@@ -4,11 +4,11 @@
 	<parent>
 		<groupId>com.huigou</groupId>
 		<artifactId>root</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 	</parent>
 	<artifactId>huigou-xt</artifactId>
-	<name>统一应用支出平台</name>
-	<description>>统一应用支出平台</description>
+	<name>统一应用支撑平台</name>
+	<description>>统一应用支撑平台</description>
 	<packaging>war</packaging>
 	<build>
 		<finalName>huigou-xt</finalName>

@@ -6,8 +6,7 @@
 	<parent>
 		<groupId>com.huigou</groupId>
 		<artifactId>root</artifactId>
-		<version>1.0.0</version>
-
+		<version>1.1.0</version>
 	</parent>
 	<artifactId>huigou-data</artifactId>
 	<name>huigou-data</name>
@@ -69,7 +68,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.xhtmlrenderer</groupId>
-			<artifactId>core-renderer</artifactId>
+			<artifactId>flying-saucer-pdf-itext5</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.xhtmlrenderer</groupId>
+			<artifactId>flying-saucer-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

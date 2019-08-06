@@ -1,6 +1,7 @@
 package com.huigou.uasp.bmp.opm.impl;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,6 @@ import com.huigou.uasp.bmp.opm.application.OrgApplication;
 import com.huigou.uasp.bmp.opm.domain.model.org.Org;
 import com.huigou.uasp.bmp.opm.domain.model.org.Person;
 import com.huigou.util.Md5Builder;
-import com.lowagie.text.pdf.codec.Base64;
 
 public class AuthenticationApplicationImpl extends BaseApplication implements AuthenticationApplication {
 
@@ -154,7 +154,7 @@ public class AuthenticationApplicationImpl extends BaseApplication implements Au
 
     @Override
     public Map<String, Object> login(String loginName, String password) {
-        String decodedPassword = new String(Base64.decode(password));
+        String decodedPassword = new String(Base64.getDecoder().decode(password));
 
         try {
             /*
