@@ -1,11 +1,6 @@
 package com.huigou.uasp.client;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -22,6 +17,7 @@ import org.activiti.engine.ActivitiException;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -452,31 +448,23 @@ public class CommonController extends ControllerBase {
      */
     protected String outputFile(File file, String type) throws Exception {
         HttpServletResponse res = this.getResponse();
-        ServletOutputStream out = null;
         res.setContentType(ContentTypeHelper.getContentType(type));
         res.setCharacterEncoding("utf-8");
         res.setHeader("Content-Disposition", "inline;fileName=" + System.currentTimeMillis() + "." + type + "");
-        BufferedInputStream bis = null;
-        BufferedOutputStream bos = null;
+        InputStream is = null;
+        ServletOutputStream out = null;
         try {
+            is = outputFileInterceptor != null
+                    ? outputFileInterceptor.intercept(new FileInputStream(file), type, this)
+                    : new FileInputStream(file);
             out = res.getOutputStream();
-            bis = new BufferedInputStream(new FileInputStream(file));
-            if (outputFileInterceptor != null) {
-                bis = new BufferedInputStream(outputFileInterceptor.intercept(bis, type, this));
-            }
-            bos = new BufferedOutputStream(out);
-            byte[] buff = new byte[2048];
-            int bytesRead;
-            while (-1 != (bytesRead = bis.read(buff, 0, buff.length))) {
-                bos.write(buff, 0, bytesRead);
-            }
+            IOUtils.copy(is, out);
             res.flushBuffer();
         } catch (final Exception e) {
             throw new ApplicationException(e);
         } finally {
-            if (bis != null) bis.close();
-            if (bos != null) bos.close();
-            if (out != null) out.close();
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(out);
         }
         return null;
     }
