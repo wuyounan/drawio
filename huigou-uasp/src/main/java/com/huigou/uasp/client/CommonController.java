@@ -24,6 +24,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
 import com.huigou.cache.SystemCache;
@@ -76,6 +77,8 @@ public class CommonController extends ControllerBase {
     protected final static String BIZ_CODE_KEY_NAME = "bizCode";
 
     protected final static String DATA_KEY_NAME = Constants.DATA;
+    @Autowired(required = false)
+    private OutputFileInterceptor outputFileInterceptor;
 
     protected enum Status {
         SUCCESS, SUCCESS_TIPS, ERROR, ERROR_DIALOG;
@@ -206,8 +209,7 @@ public class CommonController extends ControllerBase {
      * 跳转到页面,无需配置struts的result
      *
      * @param page
-     * @param obj
-     *            Map SDO POJO
+     * @param obj  Map SDO POJO
      * @return String
      */
     @SuppressWarnings("unchecked")
@@ -446,6 +448,7 @@ public class CommonController extends ControllerBase {
      *
      * @return String
      * @author
+     * @see OutputFileInterceptor
      */
     protected String outputFile(File file, String type) throws Exception {
         HttpServletResponse res = this.getResponse();
@@ -458,6 +461,9 @@ public class CommonController extends ControllerBase {
         try {
             out = res.getOutputStream();
             bis = new BufferedInputStream(new FileInputStream(file));
+            if (outputFileInterceptor != null) {
+                bis = new BufferedInputStream(outputFileInterceptor.intercept(bis, type, this));
+            }
             bos = new BufferedOutputStream(out);
             byte[] buff = new byte[2048];
             int bytesRead;
@@ -485,7 +491,7 @@ public class CommonController extends ControllerBase {
      */
     protected String outputPDF(String template, Map<String, Object> variables) {
         String imgHttpUrl = this.getRequest().getScheme() + "://" + this.getRequest().getServerName() + ":" + this.getRequest().getServerPort()
-                            + SystemCache.getContextPath();
+                + SystemCache.getContextPath();
         variables.put("imgHttpUrl", imgHttpUrl);
         String path = PDFCreater.createByFreemarker(template, variables);
         File file = new File(FileHelper.getTmpdir(), path);
@@ -503,18 +509,15 @@ public class CommonController extends ControllerBase {
 
     /**
      * Freemarker模板生成PDF显示在网页上(包含审批流程)
-     * 
-     * @param template
-     *            Freemarker 模板
-     * @param bizId
-     *            业务单据ID
-     * @param variables
-     *            参数
+     *
+     * @param template  Freemarker 模板
+     * @param bizId     业务单据ID
+     * @param variables 参数
      * @return
      */
     public String outputAndProcUnitHandlerPDF(String template, String bizId, Map<String, Object> variables) {
         ProcUnitHandlerApplication application = SpringBeanFactory.getBean(this.getServletContext(), "procUnitHandlerApplication",
-                                                                           ProcUnitHandlerApplication.class);
+                ProcUnitHandlerApplication.class);
         if (application != null && bizId != null) {
             List<Map<String, Object>> group = application.groupProcUnitHandlers(bizId, "Approve", "", "", "-1");
             Map<String, Object> a = new HashMap<String, Object>(2);
@@ -535,7 +538,7 @@ public class CommonController extends ControllerBase {
      */
     protected String outputWord(String template, Map<String, Object> variables) {
         String imgHttpUrl = this.getRequest().getScheme() + "://" + this.getRequest().getServerName() + ":" + this.getRequest().getServerPort()
-                            + SystemCache.getContextPath();
+                + SystemCache.getContextPath();
         variables.put("imgHttpUrl", imgHttpUrl);
         String path = PDFCreater.createWord(template, variables);
         File file = new File(FileHelper.getTmpdir(), path);
