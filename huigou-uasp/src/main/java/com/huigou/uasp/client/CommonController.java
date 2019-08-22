@@ -451,20 +451,16 @@ public class CommonController extends ControllerBase {
         res.setContentType(ContentTypeHelper.getContentType(type));
         res.setCharacterEncoding("utf-8");
         res.setHeader("Content-Disposition", "inline;fileName=" + System.currentTimeMillis() + "." + type + "");
-        InputStream is = null;
-        ServletOutputStream out = null;
-        try {
-            is = outputFileInterceptor != null
-                    ? outputFileInterceptor.intercept(new FileInputStream(file), type, this)
-                    : new FileInputStream(file);
-            out = res.getOutputStream();
+
+        try (FileInputStream fis = new FileInputStream(file);
+             InputStream is = outputFileInterceptor != null
+                     ? outputFileInterceptor.intercept(fis, type, this)
+                     : fis;
+             ServletOutputStream out = res.getOutputStream();
+        ) {
             IOUtils.copy(is, out);
-            res.flushBuffer();
-        } catch (final Exception e) {
+        } catch (Exception e) {
             throw new ApplicationException(e);
-        } finally {
-            IOUtils.closeQuietly(is);
-            IOUtils.closeQuietly(out);
         }
         return null;
     }
