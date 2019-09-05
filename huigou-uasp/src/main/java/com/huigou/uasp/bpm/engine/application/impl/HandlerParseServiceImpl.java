@@ -110,6 +110,7 @@ public class HandlerParseServiceImpl implements HandlerParseService {
         }
     }
 
+    @Override
     public void buildSegmentationHandler(HandlerKind handlerKind, Long bizSegementationId, String handlerId, List<OrgUnit> orgUnits) {
         ThreadLocalUtil.putVariable(CURRENT_BIZ_SEGEMENTATION_ID, bizSegementationId);
         try {

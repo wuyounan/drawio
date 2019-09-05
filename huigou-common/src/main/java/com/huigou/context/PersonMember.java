@@ -64,8 +64,11 @@ public class PersonMember extends OrgNode implements Serializable {
      * @return
      */
     public OrgNode getPosition() {
-        for (Object parent = this; parent != null; parent = ((OrgNode) parent).getParent())
-            if ("pos".equals(((OrgNode) parent).getType())) return (OrgNode) parent;
+        for (Object parent = this; parent != null; parent = ((OrgNode) parent).getParent()) {
+            if ("pos".equals(((OrgNode) parent).getType())) {
+                return (OrgNode) parent;
+            }
+        }
         return null;
     }
 
@@ -75,8 +78,11 @@ public class PersonMember extends OrgNode implements Serializable {
      * @return
      */
     public OrgNode getDept() {
-        for (Object parent = this; parent != null; parent = ((OrgNode) parent).getParent())
-            if ("dpt".equals(((OrgNode) parent).getType())) return (OrgNode) parent;
+        for (Object parent = this; parent != null; parent = ((OrgNode) parent).getParent()) {
+            if ("dpt".equals(((OrgNode) parent).getType())) {
+                return (OrgNode) parent;
+            }
+        }
         return null;
     }
 
@@ -86,8 +92,11 @@ public class PersonMember extends OrgNode implements Serializable {
      * @return
      */
     public OrgNode getOrgn() {
-        for (Object parent = this; parent != null; parent = ((OrgNode) parent).getParent())
-            if ("ogn".equals(((OrgNode) parent).getType())) return (OrgNode) parent;
+        for (Object parent = this; parent != null; parent = ((OrgNode) parent).getParent()) {
+            if ("ogn".equals(((OrgNode) parent).getType())) {
+                return (OrgNode) parent;
+            }
+        }
         return null;
     }
 
@@ -107,6 +116,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.personId = personId;
     }
     
+    @Override
     public String getOrgId() {
         return orgId;
     }
@@ -115,6 +125,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.orgId = orgId;
     }
     
+    @Override
     public String getOrgCode() {
         return orgCode;
     }
@@ -123,6 +134,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.orgCode = orgCode;
     }
 
+    @Override
     public String getOrgName() {
         return orgName;
     }
@@ -131,6 +143,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.orgName = orgName;
     }
 
+    @Override
     public String getDeptId() {
         return deptId;
     }
@@ -139,6 +152,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.deptId = deptId;
     }
 
+    @Override
     public String getDeptCode() {
         return deptCode;
     }
@@ -147,6 +161,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.deptCode = deptCode;
     }
 
+    @Override
     public String getDeptName() {
         return deptName;
     }
@@ -155,6 +170,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.deptName = deptName;
     }
 
+    @Override
     public String getPositionId() {
         return positionId;
     }
@@ -163,6 +179,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.positionId = positionId;
     }
 
+    @Override
     public String getPositionCode() {
         return positionCode;
     }
@@ -171,6 +188,7 @@ public class PersonMember extends OrgNode implements Serializable {
         this.positionCode = positionCode;
     }
 
+    @Override
     public String getPositionName() {
         return positionName;
     }

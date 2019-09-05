@@ -186,6 +186,7 @@ public class OrgUnit implements Serializable {
         return this.getAttributeValue(PERSON_MEMBER_NAME_FIELD_NAME);
     }
 
+    @Override
     public String toString() {
         return "(" + this.fullId + "," + this.fullName + ")@OrgUnit";
     }

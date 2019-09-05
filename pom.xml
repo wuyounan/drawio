@@ -6,8 +6,7 @@
 
     <groupId>com.huigou</groupId>
     <artifactId>root</artifactId>
-    <version>1.1.1</version>
-
+    <version>1.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -152,14 +151,14 @@
         <tomcat.version>8.5.20</tomcat.version>
         <shiro.version>1.2.5</shiro.version>
         <jedis.version>2.9.0</jedis.version>
-        <shiro-redis.version>2.4.2-RELEASE</shiro-redis.version>
+        <shiro-redis.version>2.8.24</shiro-redis.version>
         <shiro-ehcache.version>1.4.0</shiro-ehcache.version>
         <shiro-cas.version>1.2.4</shiro-cas.version>
         <cas-client-core.version>3.2.1</cas-client-core.version>
         <!-- test -->
         <junit.version>4.9</junit.version>
         <spring-data-mongodb.version>1.9.3.RELEASE</spring-data-mongodb.version>
-        <huigou.uasp.version>1.1.1</huigou.uasp.version>
+        <huigou.uasp.version>1.1.2-SNAPSHOT</huigou.uasp.version>
     </properties>
 
     <dependencyManagement>

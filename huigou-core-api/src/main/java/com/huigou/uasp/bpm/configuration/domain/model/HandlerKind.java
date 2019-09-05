@@ -2,24 +2,48 @@ package com.huigou.uasp.bpm.configuration.domain.model;
 
 /**
  * 处理人类型
- * 
+ *
  * @author gongmm
  */
 public enum HandlerKind {
+    /**
+     * 管理权限
+     */
     MANAGE_AUTHORITY("ManageAuthority", " 管理权限"),
+    /**
+     * 岗位
+     */
     POS("Pos", "岗位"),
+    /**
+     * 人员成员
+     */
     PSM("Psm", "人员成员"),
+    /**
+     * 部门
+     */
     DEPT("Dept", "部门"),
+    /**
+     * 管理人员函数
+     */
     MANAGER_FUN("ManagerFun", "管理人员函数"),
+    /**
+     * 基础段
+     */
     SEGMENTATION("Segmentation", "基础段"),
+    /**
+     * 手工选择
+     */
     MANUAL_SELECTION("ManualSelection", "手工选择"),
+    /**
+     * 范围选择
+     */
     SCOPE_SELECTION("ScopeSelection", "范围选择");
 
     private final String id;
 
     private final String displayName;
 
-    private HandlerKind(String id, String displayName) {
+    HandlerKind(String id, String displayName) {
         this.id = id;
         this.displayName = displayName;
     }
