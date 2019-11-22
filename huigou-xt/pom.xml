@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.huigou</groupId>
 		<artifactId>root</artifactId>
-		<version>1.1.2</version>
+		<version>1.1.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>huigou-xt</artifactId>
 	<name>统一应用支撑平台</name>
