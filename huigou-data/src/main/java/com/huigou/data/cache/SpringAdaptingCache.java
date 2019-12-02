@@ -1,6 +1,7 @@
 package com.huigou.data.cache;
 
 import java.io.Serializable;
+import java.util.concurrent.Callable;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
@@ -11,7 +12,7 @@ import com.huigou.util.Md5Builder;
 
 /**
  * Spring 缓存适配系统已有缓存体系
- * 
+ *
  * @author xx
  */
 public class SpringAdaptingCache implements Cache {
@@ -58,6 +59,11 @@ public class SpringAdaptingCache implements Cache {
     public <T> T get(Object key, Class<T> type) {
         String cacheKey = this.getCacheKey(key);
         return iCache.get(cacheKey, type);
+    }
+
+    @Override
+    public <T> T get(Object key, Callable<T> callable) {
+        throw new UnsupportedOperationException("");
     }
 
     @Override

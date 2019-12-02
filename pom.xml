@@ -6,7 +6,7 @@
 
     <groupId>com.huigou</groupId>
     <artifactId>root</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -56,7 +56,7 @@
         <json-lib.version>2.4</json-lib.version>
         <xom.version>1.2.5</xom.version>
 
-        <spring.version>4.2.5.RELEASE</spring.version>
+        <spring.version>4.3.9.RELEASE</spring.version>
         <oracle.driver.version>11.2.0.1.0</oracle.driver.version>
         <sqlserver.driver.version>1.0</sqlserver.driver.version>
         <huigou.query.version>1.0.0</huigou.query.version>
@@ -158,7 +158,7 @@
         <!-- test -->
         <junit.version>4.9</junit.version>
         <spring-data-mongodb.version>1.9.3.RELEASE</spring-data-mongodb.version>
-        <huigou.uasp.version>1.1.2-SNAPSHOT</huigou.uasp.version>
+        <huigou.uasp.version>1.1.3-SNAPSHOT</huigou.uasp.version>
     </properties>
 
     <dependencyManagement>
@@ -1430,7 +1430,7 @@
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>jstl</artifactId>
-                <version>1.1.2</version>
+                <version>1.1.3-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -1741,7 +1741,7 @@
             <dependency>
                 <groupId>taglibs</groupId>
                 <artifactId>standard</artifactId>
-                <version>1.1.2</version>
+                <version>1.1.3-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
