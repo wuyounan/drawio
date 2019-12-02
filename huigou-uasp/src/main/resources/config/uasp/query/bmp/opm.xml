@@ -82,7 +82,7 @@
 		</sql>
 		<sql name="updateOrgChildrenFullOrgKindId">
 			update SA_OPOrg
-			   set full_OrgKind_Id = concat(:parentNewFullOrgKindId,
+			   set full_org_kind_Id = concat(:parentNewFullOrgKindId,
 			                        substr(full_Org_Kind_Id,
 			                               length(:parentOldOrgKindId) + 1,
 			                               length(full_Org_Kind_Id))),
