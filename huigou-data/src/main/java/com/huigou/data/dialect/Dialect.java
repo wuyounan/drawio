@@ -280,7 +280,7 @@ public enum Dialect {
      * @return String
      */
     public static String getTotalSql(String sql) {
-        return "select count(0) from (" + sql + ")";
+        return "select count(0) from (" + sql + ") __t__";
     }
 
     /**

@@ -5,16 +5,28 @@
             http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="logDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
-		destroy-method="close">
-		<property name="driverClass" value="oracle.jdbc.driver.OracleDriver" />
-		<property name="jdbcUrl" value="${log.db.url}" />
-		<property name="user" value="${log.db.user}" />
+	<bean id="logDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="url" value="${log.db.url}" />
+		<property name="username" value="${log.db.user}" />
 		<property name="password" value="${log.db.password}" />
-		<property name="maxPoolSize" value="200" />
-		<property name="minPoolSize" value="3" />
-		<property name="initialPoolSize" value="1" />
-		<property name="maxIdleTime" value="20" />
+		<property name="filters" value="stat"/>
+
+		<property name="maxActive" value="20"/>
+		<property name="initialSize" value="1"/>
+		<property name="maxWait" value="60000"/>
+		<property name="minIdle" value="1"/>
+
+		<property name="timeBetweenEvictionRunsMillis" value="60000"/>
+		<property name="minEvictableIdleTimeMillis" value="300000"/>
+
+		<property name="testWhileIdle" value="true"/>
+		<property name="testOnBorrow" value="false"/>
+		<property name="testOnReturn" value="false"/>
+
+		<property name="poolPreparedStatements" value="true"/>
+		<property name="maxOpenPreparedStatements" value="20"/>
+
+		<property name="asyncInit" value="true"/>
 	</bean>
 
 	<bean id="logEntityManagerFactory"

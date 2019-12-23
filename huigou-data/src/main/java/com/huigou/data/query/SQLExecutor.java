@@ -35,10 +35,10 @@ import com.huigou.util.Util;
 
 /**
  * SQL执行对象
- * 
+ *
  * @author xx
- * @date 2017-1-26 上午09:39:34
  * @version V1.0
+ * @date 2017-1-26 上午09:39:34
  */
 
 public class SQLExecutor extends SQLModel {
@@ -79,6 +79,13 @@ public class SQLExecutor extends SQLModel {
      * IN 参数名称
      */
     private List<String> conditionIn;
+
+    /**
+     * NOT IN 参数名称
+     *
+     * @since 1.1.3
+     */
+    private List<String> conditionNotIn = new ArrayList<>(1);
 
     /**
      * LIKE 参数名称
@@ -129,6 +136,12 @@ public class SQLExecutor extends SQLModel {
         }
     }
 
+    public void addConditionNotIn(String name) {
+        if(name != null) {
+            conditionNotIn.add(name);
+        }
+    }
+
     public void addConditionHalfLike(String name) {
         if (name != null) {
             conditionHalfLike.add(name);
@@ -153,7 +166,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 得到参数数组
-     * 
+     *
      * @param map
      * @return
      * @throws ApplicationException
@@ -177,7 +190,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 得到Map参数
-     * 
+     *
      * @param map
      * @return
      * @throws ApplicationException
@@ -202,7 +215,8 @@ public class SQLExecutor extends SQLModel {
                     obj = ClassHelper.convert(obj, String.class);
                     obj = obj + "%";
                 }
-                if (isIn(name)) {// 是in查询默认添加()
+                // 是in查询默认添加()
+                if (isIn(name) || isNotIn(name)) {
                     StringBuffer inSql = new StringBuffer("(");
                     String[] vals = obj.toString().split(",");
                     int vi = vals.length;
@@ -231,7 +245,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 判断是否是LIKE查询
-     * 
+     *
      * @param name
      * @return
      */
@@ -244,7 +258,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 判断是否是HALF LIKE查询
-     * 
+     *
      * @param name
      * @return
      */
@@ -257,7 +271,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 判断是否是in查询
-     * 
+     *
      * @param name
      * @return
      */
@@ -266,6 +280,13 @@ public class SQLExecutor extends SQLModel {
             return ListUtil.contains(conditionIn, name);
         }
         return false;
+    }
+
+    /**
+     * @since 1.1.3
+     */
+    private boolean isNotIn(String name) {
+        return conditionNotIn.contains(name);
     }
 
     /**
@@ -284,7 +305,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 判断 param中是否有值
-     * 
+     *
      * @param name
      * @return
      */
@@ -298,7 +319,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 处理条件表达式
-     * 
+     *
      * @param symbol
      * @param name
      */
@@ -313,11 +334,14 @@ public class SQLExecutor extends SQLModel {
         if (symbol.equalsIgnoreCase("IN")) {
             this.addConditionIn(name);
         }
+        if ("not in".equalsIgnoreCase(symbol)) {
+            this.addConditionNotIn(name);
+        }
     }
 
     /**
      * 解析条件sql
-     * 
+     *
      * @param condition
      */
     public void buildSqlCondition(ConditionModel condition) {
@@ -335,7 +359,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 解析条件 高级自定义查询
-     * 
+     *
      * @param dataFilterGroup
      */
     public void buildSqlDataFilterGroup(DataFilterGroup dataFilterGroup) {
@@ -350,7 +374,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 递归解析高级自定义查询分组
-     * 
+     *
      * @param group
      * @return
      */
@@ -390,7 +414,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 解析高级自定义查询条件
-     * 
+     *
      * @param rule
      * @return
      */
@@ -427,7 +451,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 解析权限控制sql
-     * 
+     *
      * @param group
      */
     public void buildSqlPermissions(PermissionGroup group) {
@@ -450,7 +474,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 按数据管理权限编码重新构建权限组
-     * 
+     *
      * @param group
      */
     private void buildPermissionGroups(PermissionGroup group) {
@@ -492,7 +516,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 解析数据管理权限分组
-     * 
+     *
      * @param group
      * @return
      */
@@ -515,7 +539,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 按权限组组合条件SQL
-     * 
+     *
      * @param group
      * @return
      */
@@ -549,7 +573,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 按具体权限栏目组合SQL
-     * 
+     *
      * @param models
      * @param resourceGroup
      * @return
@@ -575,31 +599,31 @@ public class SQLExecutor extends SQLModel {
                 permission.setName(permissionKind.toString());
             }
             switch (permissionKind) {
-            case PERSON_ID:
-            case PSM_ID:
-            case DEPT_ID:
-            case ORGAN_ID:
-                if (permission.isAppendCondition()) {
-                    conditions.add(permission.formatCondition());
-                }
-                try {
-                    // 从当前登录用户中获取对应参数
-                    this.putParam(permission.getName(), ClassHelper.getProperty(this.getOperator(), permissionKind.getPropertyName()));
-                } catch (Exception e) {
-                    throw new ResourceLoadException(String.format("权限解析[%s]取值错误:%s", permission.getName(), e.getMessage()));
-                }
-                break;
-            case FULL_ID:
-                conditions.add(this.parseFullIdManageType(permission, permissionLenght));
-                break;
-            case DEFINE:
-                conditions.add(this.parseDefineFunction(permission));
-                break;
-            case DATA:
-                conditions.add(this.parseDataManagement(permission, resourceGroup));
-                break;
-            default:
-                throw new ResourceLoadException(String.format("[%s]错误的数据权限类型", permission.getName()));
+                case PERSON_ID:
+                case PSM_ID:
+                case DEPT_ID:
+                case ORGAN_ID:
+                    if (permission.isAppendCondition()) {
+                        conditions.add(permission.formatCondition());
+                    }
+                    try {
+                        // 从当前登录用户中获取对应参数
+                        this.putParam(permission.getName(), ClassHelper.getProperty(this.getOperator(), permissionKind.getPropertyName()));
+                    } catch (Exception e) {
+                        throw new ResourceLoadException(String.format("权限解析[%s]取值错误:%s", permission.getName(), e.getMessage()));
+                    }
+                    break;
+                case FULL_ID:
+                    conditions.add(this.parseFullIdManageType(permission, permissionLenght));
+                    break;
+                case DEFINE:
+                    conditions.add(this.parseDefineFunction(permission));
+                    break;
+                case DATA:
+                    conditions.add(this.parseDataManagement(permission, resourceGroup));
+                    break;
+                default:
+                    throw new ResourceLoadException(String.format("[%s]错误的数据权限类型", permission.getName()));
             }
             this.formatSymbol(permission.getSymbol(), permission.getParamName());
             this.putParamTypes(permission.getType(), permission.getParamName());
@@ -609,7 +633,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 解析通过业务管理权限组合fullId的查询SQL
-     * 
+     *
      * @param permission
      * @param conditions
      * @param conditionLenght
@@ -655,7 +679,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 解析自定义函数 组合SQL
-     * 
+     *
      * @param permission
      * @param conditions
      * @param conditionLenght
@@ -722,7 +746,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 执行表达式并进行类型转换
-     * 
+     *
      * @param expr
      * @return
      */
@@ -754,7 +778,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 数据管理权限解析
-     * 
+     *
      * @param permission
      * @param conditions
      * @param permissionLenght
@@ -809,7 +833,7 @@ public class SQLExecutor extends SQLModel {
 
     /**
      * 使用OR组合条件
-     * 
+     *
      * @param conditions
      * @return
      */
