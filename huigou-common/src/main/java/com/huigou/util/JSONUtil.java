@@ -28,7 +28,7 @@ import com.huigou.annotation.JsonIgnore;
 
 /**
  * json 转换工具
- * 
+ *
  * @author xx
  */
 @SuppressWarnings("serial")
@@ -74,7 +74,7 @@ public class JSONUtil {
 
     /**
      * 对象转换为JSON字符串
-     * 
+     *
      * @param obj
      * @return
      */
@@ -91,7 +91,7 @@ public class JSONUtil {
 
     /**
      * 列表转换为JSON字符串
-     * 
+     *
      * @param collection
      * @return
      */
@@ -108,7 +108,7 @@ public class JSONUtil {
 
     /**
      * 将json转成特定的cls的对象
-     * 
+     *
      * @param jsonString
      * @param cls
      * @return
@@ -126,7 +126,7 @@ public class JSONUtil {
 
     /**
      * json字符串转成map的
-     * 
+     *
      * @param jsonString
      * @return
      */
@@ -145,7 +145,7 @@ public class JSONUtil {
 
     /**
      * 转换为带对象的MAP
-     * 
+     *
      * @param jsonString
      * @param clazz
      * @return
@@ -153,13 +153,13 @@ public class JSONUtil {
      */
     public static <T> Map<String, T> toMap(String jsonString, Class<T> clazz) {
         if (StringUtil.isBlank(jsonString)) {
-            return new HashMap<String, T>();
+            return new HashMap<>(16);
         }
         try {
-            Map<String, Map<String, Object>> map = objectMapper.readValue(jsonString, new TypeReference<Map<String, T>>() {
+            Map<String, Map<String, T>> map = objectMapper.readValue(jsonString, new TypeReference<Map<String, Map<String, T>>>() {
             });
             Map<String, T> result = new HashMap<String, T>();
-            for (Entry<String, Map<String, Object>> entry : map.entrySet()) {
+            for (Entry<String, Map<String, T>> entry : map.entrySet()) {
                 result.put(entry.getKey(), map2pojo(entry.getValue(), clazz));
             }
             return result;
@@ -175,7 +175,7 @@ public class JSONUtil {
 
     /**
      * 转换为对象
-     * 
+     *
      * @param jsonString
      * @param clazz
      * @return
@@ -195,16 +195,16 @@ public class JSONUtil {
 
     /**
      * json字符串转成list中有map的
-     * 
+     *
      * @param jsonString
      * @return
      */
     public static List<Map<String, Object>> toListMap(String jsonString) {
         if (StringUtil.isBlank(jsonString)) {
-            return new ArrayList<Map<String, Object>>();
+            return new ArrayList<>();
         }
         try {
-            List<Map<String, Object>> list = objectMapper.readValue(jsonString, new TypeReference<List<Object>>() {
+            List<Map<String, Object>> list = objectMapper.readValue(jsonString, new TypeReference<List<Map<String, Object>>>() {
             });
             return list;
         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class JSONUtil {
 
     /**
      * JSON字符串转化为list
-     * 
+     *
      * @param jsonString
      * @param clazz
      * @return
@@ -234,7 +234,7 @@ public class JSONUtil {
 
     /**
      * JSON字符串转化为list
-     * 
+     *
      * @param jsonString
      * @return
      */
