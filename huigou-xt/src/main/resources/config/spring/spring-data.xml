@@ -22,11 +22,6 @@
 		<property name="queryXmlManager" ref="queryXmlManager" />
 	</bean>
 
-	<bean id="mapperScannerConfigurer" class="com.topsunit.query.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.huigou.**.mapper"/>
-		<property name="sqlExecutorBeanName" value="sqlExecutorDao" />
-	</bean>
-	
 	<bean id="generalRepository" class="com.huigou.data.repository.GeneralRepository">
 	</bean>
 	
