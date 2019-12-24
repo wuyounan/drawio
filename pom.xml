@@ -23,7 +23,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.codehaus.jackson.version>1.9.12</org.codehaus.jackson.version>
+        <jackson.version>2.10.1</jackson.version>
         <activiti.version>5.21.0</activiti.version>
         <asm.version>5.0.4</asm.version>
         <aspectj.version>1.9.2</aspectj.version>
@@ -48,7 +48,7 @@
         <httpcomponents.version>4.5</httpcomponents.version>
         <httpcore.version>4.4.6</httpcore.version>
         <oro.version>2.0.7</oro.version>
-        <java-uuid-generator.version>3.1.0</java-uuid-generator.version>
+        <java-uuid-generator.version>3.2.0</java-uuid-generator.version>
         <javassist.version>3.11.0.GA</javassist.version>
         <jpush.version>3.1.1</jpush.version>
         <json.version>20140107</json.version>
@@ -1430,7 +1430,7 @@
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>jstl</artifactId>
-                <version>1.1.3-SNAPSHOT</version>
+                <version>1.2</version>
                 <exclusions>
                     <exclusion>
                         <groupId>*</groupId>
@@ -1807,33 +1807,15 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-jaxrs</artifactId>
-                <version>${org.codehaus.jackson.version}</version>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-core-asl</artifactId>
-                <version>${org.codehaus.jackson.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
-                <version>${org.codehaus.jackson.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
             <!-- Docx4j -->
             <dependency>
                 <groupId>org.docx4j</groupId>

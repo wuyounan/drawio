@@ -238,7 +238,9 @@ public class MessageRemindApplicationImpl extends BaseApplication implements Mes
         List<Object> list = new java.util.ArrayList<Object>();
         QueryDescriptor queryDescriptor = this.sqlExecutorDao.getQuery("config/uasp/query/bmp/messageRemind.xml", "messageRemind");
         String sql = queryDescriptor.getSqlByName("queryRemindByPersonId");
-        List<MessageRemind> reminds = this.sqlExecutorDao.queryToList(sql, MessageRemind.class, personId);
+        Map<String, Object> params = new HashMap<>(1);
+        params.put("personId", personId);
+        List<MessageRemind> reminds = this.sqlExecutorDao.queryToListByMapParam(sql, MessageRemind.class, params);
         for (MessageRemind messageRemind : reminds) {
             Object obj = parseRemindFun(messageRemind);
             if (obj != null) {

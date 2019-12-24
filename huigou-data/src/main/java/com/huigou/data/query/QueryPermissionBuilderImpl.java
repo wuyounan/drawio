@@ -194,13 +194,13 @@ public class QueryPermissionBuilderImpl implements QueryPermissionBuilder {
             return sqlModel;
         }
         StringBuffer sb = new StringBuffer();
-        sb.append("select * from (").append(sql).append(")");
+        sb.append("select * from (").append(sql).append(") t_t_ ");
         sb.append(" where 1=1 ");
         List<OrgUnit> list = findSubordinations(operator.getUserId(), operator.getPersonMemberFullIds(), manageType);
         if (StringUtil.hasField(sql, "full_id")) {
             if (null != list && list.size() > 0) {
                 int length = list.size();
-                Map<String, Object> map = new HashMap<String, Object>(length);
+                Map<String, Object> map = new HashMap<>(length);
                 sb.append(" and (");
                 for (int i = 0; i < length; i++) {
                     OrgUnit ou = list.get(i);

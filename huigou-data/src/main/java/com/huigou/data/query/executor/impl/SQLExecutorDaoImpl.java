@@ -42,10 +42,12 @@ public class SQLExecutorDaoImpl extends JDBCDaoImpl implements SQLExecutorDao {
         this.queryXmlManager = queryXmlManager;
     }
 
+    @Override
     public SQLBuilder getSqlBuilder() {
         return sqlBuilder;
     }
 
+    @Override
     public SQLQuery getSqlQuery() {
         return sqlQuery;
     }
@@ -54,6 +56,7 @@ public class SQLExecutorDaoImpl extends JDBCDaoImpl implements SQLExecutorDao {
         return queryXmlManager.loadConfigFile(modelFilePath);
     }
 
+    @Override
     public QueryDescriptor getQuery(String queryFilePath, String queryName) {
         QueryXmlModel model = getQueryXmlModel(queryFilePath);
         QueryDescriptor queryDescriptor = new QueryDescriptor(model.getQuery(queryName));

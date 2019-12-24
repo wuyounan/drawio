@@ -26,7 +26,7 @@ public interface ProcUnitHandlerRepository extends JpaRepository<ProcUnitHandler
 	List<ProcUnitHandler> findAllNextProcUnitHandlers(@Param("bizId") String bizId, @Param("groupId") Integer groupId);
 
 	@Query(name = "procUnitHandler.findNextGroupProcUnitHandlers", value = "select t  from ProcUnitHandler t where t.bizId = :bizId\n"
-			+ "   and t.procUnitId = :procUnitId\n" + "   and status = 0\n" + "   and nvl(result, 0) != 4\n" + "   and cooperationModelId != 'cc'\n"
+			+ "   and t.procUnitId = :procUnitId\n" + "   and status = 0\n" + "   and coalesce(result, 0) != 4\n" + "   and cooperationModelId != 'cc'\n"
 			+ "   and groupId = (select min(o.groupId)\n" + "                    from ProcUnitHandler o\n" + "                   where o.bizId = :bizId\n"
 			+ "                     and cooperationModelId != 'cc'\n" + "                     and o.procUnitId = :procUnitId\n"
 			+ "                     and o.status = 0\n" + "                     and o.groupId > :groupId)")
@@ -82,16 +82,16 @@ public interface ProcUnitHandlerRepository extends JpaRepository<ProcUnitHandler
 	@Query(name = "procUnitHandler.getMaxGrouId", value = "select max(groupId) from ProcUnitHandler o where o.bizId = :bizId and o.procUnitId = :procUnitId and cooperationModelId = 'chief'")
 	Integer getMaxGrouId(@Param("bizId") String bizId, @Param("procUnitId") String procUnitId);
 
-	@Query(name = "procUnitHandler.getExecutionTimes", value = "select nvl(max(executionTimes), 0) from ProcUnitHandler o where o.bizId = :bizId and o.procUnitId = :procUnitId and cooperationModelId = 'chief'")
+	@Query(name = "procUnitHandler.getExecutionTimes", value = "select coalesce(max(executionTimes), 0) from ProcUnitHandler o where o.bizId = :bizId and o.procUnitId = :procUnitId and cooperationModelId = 'chief'")
 	Integer getExecutionTimes(@Param("bizId") String bizId, @Param("procUnitId") String procUnitId);
 
-	@Query(name = "procUnitHandler.getMaxSequence", value = "select nvl(max(sequence), 0) from ProcUnitHandler o where o.bizId = :bizId and o.procUnitId = :procUnitId and cooperationModelId = 'chief'")
+	@Query(name = "procUnitHandler.getMaxSequence", value = "select coalesce(max(sequence), 0) from ProcUnitHandler o where o.bizId = :bizId and o.procUnitId = :procUnitId and cooperationModelId = 'chief'")
 	Integer getMaxSequence(@Param("bizId") String bizId, @Param("procUnitId") String procUnitId);
 
 	/**
 	 * 删除回收后继处理人
 	 */
 	@Modifying
-	@Query(name = "procUnitHandler.deleteWithdrawSucceedingHandlers", nativeQuery = true, value = "delete from wf_procunithandler t where t.id in (select i.proc_unit_handler_id_ from act_hi_taskinst_extension i  where i.business_key_ = :bizId and i.previous_id_ = :taskId)")
+	@Query(name = "procUnitHandler.deleteWithdrawSucceedingHandlers", value = "delete from ProcUnitHandler t where t.id in (select i.procUnitHandlerId from HistoricTaskInstExtension i  where i.businessKey = :bizId and i.previousId = :taskId)")
 	void deleteWithdrawSucceedingHandlers(@Param("bizId") String bizId, @Param("taskId") String taskId);
 }

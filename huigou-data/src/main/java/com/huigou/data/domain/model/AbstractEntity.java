@@ -7,11 +7,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -28,11 +24,11 @@ import com.huigou.util.StringUtil;
  * 抽象类体实
  * <p>
  * 所有实体的基类，主要包括实体标识ID和版本属性。
- * 
+ *
  * @author gongmm
  */
 @MappedSuperclass
-@EntityListeners({ VersionListener.class })
+@EntityListeners({VersionListener.class})
 public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
 
     private static final long serialVersionUID = 352956443971788977L;
@@ -50,6 +46,7 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
     /**
      * 实体版本号
      */
+    @GeneratedValue(strategy = GenerationType.TABLE)
     private Long version;
 
     @Transient
@@ -115,14 +112,13 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
 
     /**
      * 删除明细
-     * 
-     * @param ids
-     *            明细ID
+     *
+     * @param ids 明细ID
      */
     public void removeDetails(List<String> ids) {
         Assert.notEmpty(ids, "参数ids不能为空。");
         for (String id : ids) {
-            for (Iterator<? extends AbstractEntity> iter = this.getDetails().iterator(); iter.hasNext();) {
+            for (Iterator<? extends AbstractEntity> iter = this.getDetails().iterator(); iter.hasNext(); ) {
                 if (id.equals(iter.next().getId())) {
                     iter.remove();
                 }
@@ -131,7 +127,7 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
     }
 
     public void removeDetails(List<? extends AbstractEntity> entities, List<String> ids) {
-        for (Iterator<? extends AbstractEntity> iter = entities.iterator(); iter.hasNext();) {
+        for (Iterator<? extends AbstractEntity> iter = entities.iterator(); iter.hasNext(); ) {
             if (ids.contains(iter.next().getId())) {
                 iter.remove();
             }
@@ -223,7 +219,7 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
             for (String name : otherEntity.getUpdateFields_()) {
                 if (propertyNames.contains(name)) {
                     field = ClassHelper.getField(otherEntity, name);
-                    if (field != null) {                        
+                    if (field != null) {
                         // value = ClassHelper.getProperty(otherEntity, name); // 返回为String
                         value = ClassHelper.getFieldValue(otherEntity, name);
                         if (field.getType().isEnum() && value == null) {

@@ -12,7 +12,7 @@
                    t.APPLICANT_DEPT_NAME_ as dept_name
               from act_hi_procinst p, act_hi_procinst_extension t, wf_procdef c
              where p.id_ = t.proc_inst_id_
-               and p.proc_def_id_ like c.proc_id || ':%'
+               and p.proc_def_id_ like concat(c.proc_id,':%')
                and c.node_kind_id = 'proc'
                and t.status_id_ = 'executing'
                and not exists
@@ -44,7 +44,7 @@
                    t.APPLICANT_DEPT_NAME_ as dept_Name
               from act_hi_procinst p, act_hi_procinst_extension t, wf_procdef c
              where p.id_ = t.proc_inst_id_
-               and p.proc_def_id_ like c.proc_id || ':%'
+               and p.proc_def_id_ like concat(c.proc_id,':%')
                and c.node_kind_id = 'proc'
                and t.status_id_ = 'completed'
                and not exists

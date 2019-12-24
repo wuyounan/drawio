@@ -150,20 +150,18 @@
 			       te.start_time_ start_time, te.end_time_ end_time,
 			       round(te.duration_ / (60 * 60 * 1000), 2) duration,
 			       te.status_id_ status_id, te.status_name_ status_name,
-			       te.executor_ogn_name_ || '.' || executor_dept_name_ || '.' ||
-			       te.executor_person_member_name_ executor_full_name,
+			       concat(te.executor_ogn_name_,concat('.',concat(executor_dept_name_,concat('.',te.executor_person_member_name_)))) executor_full_name,
 			       te.proc_unit_handler_id_, uh.approval_rule_handler_id,
 			       uh.approval_rule_id, uh.group_id
-			  from act_hi_taskinst_extension te,
-			       wf_procunithandler uh
+			  from act_hi_taskinst_extension te
+			   left join wf_procunithandler uh on te.proc_unit_handler_id_ = uh.id
 			 where te.proc_inst_id_ = :procInstId
-			   and te.proc_unit_handler_id_ = uh.id(+)
 			 order by te.id_	
 		</sql>
 		<sql name="queryBackTasksByBizCode">
 			select te.id_ id,  te.task_def_key_ task_def_key, te.name_ name, p.sub_proc_unit_name,
-			       te.executor_dept_name_ || '.' || te.executor_person_member_name_ executor_full_name,
-			       te.status_name_ status_name, nvl(p.group_id, 0) group_id, pd.sequence process_definition_group_id,
+				   concat(te.executor_dept_name_,concat('.',te.executor_person_member_name_)) executor_full_name,
+			       te.status_name_ status_name, (case when p.group_id is null then 0 else p.group_id end) group_id, pd.sequence process_definition_group_id,
 			       te.proc_unit_handler_id_ proc_unit_handler_id
 			  from act_hi_taskinst_extension te
 			  left join wf_procdef pd
@@ -176,7 +174,7 @@
 			 where te.business_code_ = ?
 			   and te.status_id_ in ('completed')
 			   and te.kind_id_ in ('task')
-			   and nvl(te.cooperation_model_id_, 'chief') = 'chief'
+			   and (case when te.cooperation_model_id_ is null then 'chief' else te.cooperation_model_id_ end)='chief'
 			 order by te.version_
 		</sql>
 		<sql name="queryApplicantByProcInstId">
