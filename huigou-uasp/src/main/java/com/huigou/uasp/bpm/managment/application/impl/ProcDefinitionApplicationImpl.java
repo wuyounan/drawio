@@ -6,12 +6,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.huigou.util.ClassHelper;
+import com.huigou.util.Constants;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -32,6 +38,8 @@ import com.huigou.uasp.bpm.engine.domain.model.ProcUnit;
 import com.huigou.uasp.bpm.managment.application.ProcDefinitionApplication;
 import com.huigou.uasp.bpm.managment.domain.model.ProcDefinition;
 import com.huigou.uasp.bpm.managment.repository.ProcDefinitionRespository;
+
+import javax.persistence.criteria.Predicate;
 
 @Service("procDefinitionApplication")
 public class ProcDefinitionApplicationImpl extends BaseApplication implements ProcDefinitionApplication {
@@ -58,7 +66,7 @@ public class ProcDefinitionApplicationImpl extends BaseApplication implements Pr
         Assert.notNull(procDefinition, MessageSourceContext.getMessage(MessageConstants.PARAMETER_NOT_NULL_FORMAT, "procDefinition"));
         ProcDefinition dbProcDefinition = this.loadProcDefinition(procDefinition.getId());
         Assert.notNull(dbProcDefinition,
-                       MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, procDefinition.getId(), procDefinition.getClass().getName()));
+                MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, procDefinition.getId(), procDefinition.getClass().getName()));
 
         String oldName = dbProcDefinition.getName();
         dbProcDefinition.fromEntity(procDefinition);
@@ -109,12 +117,52 @@ public class ProcDefinitionApplicationImpl extends BaseApplication implements Pr
         QueryDescriptor queryDescriptor = this.sqlExecutorDao.getQuery(QUERY_XML_FILE_PATH, "procDefinition");
         QueryModel queryModel = this.sqlExecutorDao.getQueryModel(queryDescriptor, queryRequest);
         if (!includeProcUnit) {
-            queryModel.addCriteria(" and nvl(node_kind_id, 'folder') in (:nodeKindId1, :nodeKindId2)");
+            queryModel.addCriteria(" and ((case when node_kind_id is null then 'folder' else node_kind_id end) in (:nodeKindId1, :nodeKindId2))");
             queryModel.putParam("nodeKindId1", "folder");
             queryModel.putParam("nodeKindId2", "proc");
         }
         queryModel.putDictionary("mergeHandlerKind", MergeHandlerKind.getMap());
         return this.sqlExecutorDao.executeQuery(queryModel);
+    }
+
+
+    @Override
+    public Map<String, Object> findProcDefinitions(boolean includeProcUnit, ParentAndCodeAndNameQueryRequest queryRequest) {
+        Specification<ProcDefinition> spec = (root, query, cb) -> {
+            ArrayList<Predicate> predicates = new ArrayList<>(10);
+            if (queryRequest.getParentId() != null) {
+                predicates.add(cb.equal(root.get("parentId"), queryRequest.getParentId()));
+            }
+            if (queryRequest.getCode() != null) {
+                predicates.add(cb.like(root.get("code"), String.join("", "%", queryRequest.getCode(), "%")));
+            }
+            if (queryRequest.getName() != null) {
+                predicates.add(cb.like(root.get("name"), String.join("", "%", queryRequest.getCode(), "%")));
+            }
+            if (!includeProcUnit) {
+                predicates.add(cb.coalesce(root.get("nodeKindId"), "folder").in("folder", "proc"));
+            }
+            return cb.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+        PageRequest pageRequest = null;
+        if (queryRequest.getPageModel() != null) {
+            pageRequest = new PageRequest(queryRequest.getPageModel().getPageIndex() - 1, queryRequest.getPageModel().getPageSize());
+        }
+        Page<ProcDefinition> page = procDefinitionRespository.findAll(spec, pageRequest);
+        List<Map<String, Object>> rows = page.getContent()
+                .stream()
+                .map(def -> {
+                    Map<String, Object> map = ClassHelper.beanToMap(def);
+                    map.put("hasChildren", procDefinitionRespository.countByParentId(def.getId()));
+                    map.put("mergeHandlerKindTextView", MergeHandlerKind.fromId(def.getMergeHandlerKind()).getDisplayName());
+                    return map;
+                })
+                .collect(Collectors.toList());
+        Map<String, Object> result = new HashMap<>(3);
+        result.put(Constants.ROWS, rows);
+        result.put("Total", page.getTotalElements());
+        result.put("page", page.getNumber() + 1);
+        return result;
     }
 
     @Override
@@ -152,7 +200,7 @@ public class ProcDefinitionApplicationImpl extends BaseApplication implements Pr
         Assert.notNull(parent, MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, parentId, "流程定义"));
 
         ProcessDefinition lastVersionProcessDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionKey(parent.getProcId())
-                                                                          .latestVersion().singleResult();
+                .latestVersion().singleResult();
         Assert.notNull(lastVersionProcessDefinition, MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, parent.getProcId(), "流程模板"));
 
         List<ProcUnit> userTaskActivities = this.workflowService.getUserTaskActivitiesByProcessDefinitionId(lastVersionProcessDefinition.getId());

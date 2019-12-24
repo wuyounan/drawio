@@ -90,7 +90,7 @@ public class TMAuthorizeApplicationImpl extends BaseApplication implements TMAut
 
         for (TMAuthorize item : tmAuthorizes) {
             // 验证是否管理所有系统
-            authorize = this.tmAuthorizeRepository.findOneTMAuthorize(item.getManagerId(), item.getSubordinationId(), ALL_SYSTEM_ID);
+            authorize = this.tmAuthorizeRepository.findFirstByManagerIdAndSubordinationIdAndSystemId(item.getManagerId(), item.getSubordinationId(), ALL_SYSTEM_ID);
             if (authorize != null && !item.getSystemId().equals(authorize.getSystemId())) {
                 org = this.orgApplication.loadOrg(authorize.getManagerId());
                 ApplicationSystem applicationSystem = applicationSystemApplication.loadApplicationSystem(authorize.getSystemId());
@@ -117,7 +117,7 @@ public class TMAuthorizeApplicationImpl extends BaseApplication implements TMAut
                 throw new ApplicationException(message);
             }
 
-            authorize = this.tmAuthorizeRepository.findByManagerIdNotRole(item.getManagerId(), item.getRoleKindId());
+            authorize = this.tmAuthorizeRepository.findFirstByManagerIdAndRoleKindIdNot(item.getManagerId(), item.getRoleKindId());
             if (authorize != null) {
                 Org personOrg = this.orgApplication.loadOrg(authorize.getManagerId());
                 roleName = RoleKind.fromId(authorize.getRoleKindId()).getDisplayName();
@@ -178,7 +178,7 @@ public class TMAuthorizeApplicationImpl extends BaseApplication implements TMAut
             // throw new ApplicationException("您没有权限操作此功能。");
         } else {
             // 管理所有组织的授权
-            tmAuthorize = this.tmAuthorizeRepository.findBySubordinationIdAndManagerId(operator.getPersonMemberId(), ALL_ORG_ID);
+            tmAuthorize = this.tmAuthorizeRepository.findFirstBySubordinationIdAndManagerIdNot(operator.getPersonMemberId(), ALL_ORG_ID);
         }
         if (operator.getRoleKind() == RoleKind.SUPER_ADMINISTRATOR || tmAuthorize != null || !tmspmConifg.isEnableTspm()) {
             OrgQueryModel orgQueryModel = new OrgQueryModel(sdo);

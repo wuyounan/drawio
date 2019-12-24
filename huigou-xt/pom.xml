@@ -449,6 +449,11 @@
                     <artifactId>mysql-connector-java</artifactId>
                     <version>8.0.17</version>
                 </dependency>
+                <dependency>
+                    <groupId>com.huigou</groupId>
+                    <artifactId>huigou-demo</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
             <build>
                 <finalName>huigou-xt</finalName>

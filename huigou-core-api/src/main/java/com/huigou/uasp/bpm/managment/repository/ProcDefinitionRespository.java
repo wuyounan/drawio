@@ -3,12 +3,13 @@ package com.huigou.uasp.bpm.managment.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.huigou.uasp.bpm.managment.domain.model.ProcDefinition;
 
-public interface ProcDefinitionRespository extends JpaRepository<ProcDefinition, String> {
+public interface ProcDefinitionRespository extends JpaRepository<ProcDefinition, String>, JpaSpecificationExecutor<ProcDefinition> {
     ProcDefinition findByProcIdAndCode(String procId, String code);
 
     long countByParentId(String parentId);

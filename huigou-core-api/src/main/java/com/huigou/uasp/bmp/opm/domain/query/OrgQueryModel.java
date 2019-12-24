@@ -189,7 +189,7 @@ public class OrgQueryModel extends QueryModel {
         }
 
         if (!getShowVirtualOrg()) {
-            condition.append(" and nvl(o.is_Virtual, 0) = :isVirtual");
+            condition.append(" and (case when o.is_Virtual is null then 0 else o.is_Virtual end) = :isVirtual");
             this.putParam("isVirtual", 0);
         }
 
@@ -244,7 +244,7 @@ public class OrgQueryModel extends QueryModel {
         }
 
         // 状态条件
-        List<Integer> statuses = new ArrayList<Integer>();
+        List<Integer> statuses = new ArrayList<>();
         Integer status = this.inputParams.getInteger(CommonDomainConstants.STATUS_FIELD_NAME);
         if (status != null) {
             statuses.add(status);

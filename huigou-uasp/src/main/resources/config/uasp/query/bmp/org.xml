@@ -126,8 +126,8 @@
 			       o.status, o.full_Sequence, p.sex, p.certificate_no, p.status as personStatus,
 			       o.full_Org_Kind_Id, p.main_Org_Id, o.is_Virtual, o.sequence,
 			       o.version
-			  from SA_OPOrg o, SA_OPPerson p
-			 where o.person_id = p.id(+)
+			  from SA_OPOrg o left join SA_OPPerson p on o.person_id = p.id
+			 where 1=1
 		</sql>
 		<sql name="queryOrgExcludePos">
 			select o.id, o.type_id, o.code, o.name, o.long_Name, o.parent_Id, o.full_Id,
@@ -137,14 +137,13 @@
 			       o.status, o.full_Sequence, p.sex, p.certificate_no, p.status as personStatus,
 			       o.full_Org_Kind_Id, p.main_Org_Id, o.is_Virtual, o.sequence,
 			       o.version
-			  from V_SA_OPOrg_Exclude_Pos o, SA_OPPerson p
-			 where o.person_id = p.id(+)
+			  from V_SA_OPOrg_Exclude_Pos o left join SA_OPPerson p on  o.person_id = p.id
+			 where 1=1
 		</sql>
 		<sql name="queryCount">
 			select count(o.id)
-			  from SA_OPOrg o, SA_OPPerson p
-			 where o.person_id = p.id(+)
-			    and o.parent_id = :parentId
+			  from SA_OPOrg o left join SA_OPPerson p on o.person_id = p.id
+			 where  o.parent_id = :parentId
 		</sql>
 	</query>
 	

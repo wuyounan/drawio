@@ -69,7 +69,7 @@ import org.springframework.util.Assert;
 @Transactional()
 abstract public class GeneralRepositorySuper {
 
-    abstract protected EntityManager getEntityManager();
+    abstract public EntityManager getEntityManager();
 
     private static final String ID_MUST_NOT_BE_NULL = "ID不能为空。";
 

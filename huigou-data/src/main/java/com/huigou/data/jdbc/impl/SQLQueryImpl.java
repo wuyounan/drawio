@@ -163,7 +163,7 @@ public class SQLQueryImpl implements SQLQuery {
         if (!StringUtil.isBlank(queryModel.getManageType())) {
             sb.append(sql);
         } else {
-            sb.append("select * from (").append(sql).append(") __t__");
+            sb.append("select * from (").append(sql).append(") t_");
             sb.append(" where 1=1 ");
         }
         sb.append(queryModel.parseSortFields());
