@@ -22,5 +22,8 @@ public interface EasySearchLoadInterface {
     String DIALECT_XML_PATH = String.join("/", XML_BASE_DIRECTORY, "%s", "easy-search-%s.xml");
 
 
+    /**
+     * 加载配置文件
+     */
     EasySearchMappingModel loadConfigFile(String path) throws ResourceLoadException;
 }

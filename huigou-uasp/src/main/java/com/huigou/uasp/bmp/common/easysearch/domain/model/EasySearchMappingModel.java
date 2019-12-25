@@ -81,6 +81,7 @@ public class EasySearchMappingModel implements Serializable, ConfigFileVersion {
     public QuerySchemeModel getQuerySchemeModel(String name) {
         return querySchemes.stream()
                 .map(queryScheme -> queryScheme.get(name))
+                .filter(Objects::nonNull)
                 .findFirst()
                 .get();
     }

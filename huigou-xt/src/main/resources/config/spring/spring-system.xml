@@ -24,7 +24,9 @@
         <property name="sqlDialect" value="${sqlDialect}"/>
     </bean>
     <!-- 快捷树查询配置 -->
-    <bean id="treeViewManager" class="com.huigou.uasp.bmp.common.treeview.TreeViewManager"/>
+    <bean id="treeViewManager" class="com.huigou.uasp.bmp.common.treeview.TreeViewManager">
+        <property name="sqlDialect" value="${sqlDialect}"/>
+    </bean>
     <bean id="treeViewApplication" class="com.huigou.uasp.bmp.common.treeview.application.impl.TreeViewApplicationImpl">
         <property name="jdbcDao" ref="jdbcDao"/>
         <property name="permissionBuilder" ref="queryPermissionBuilder"/>

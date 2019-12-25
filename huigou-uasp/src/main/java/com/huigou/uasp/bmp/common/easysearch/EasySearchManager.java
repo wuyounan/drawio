@@ -41,9 +41,6 @@ public class EasySearchManager extends ResourceLoadManager<EasySearchMappingMode
         this.sqlDialect = sqlDialect;
     }
 
-    /**
-     * 加载配置文件
-     */
     @Override
     public EasySearchMappingModel loadConfigFile(String type) throws NotFoundException {
         List<String> paths = new ArrayList<>(2);

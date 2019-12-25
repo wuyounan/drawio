@@ -1,10 +1,8 @@
 package com.huigou.uasp.bmp.common.treeview.domain.model;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.huigou.data.query.XMLParseUtil;
 import com.huigou.data.query.parser.model.ConditionModel;
@@ -28,17 +26,26 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
 
     private static final long serialVersionUID = 173704882069216812L;
 
-    private Map<String, TreeModel> trees;// 包含查询配置文件
+    /**
+     * 包含查询配置文件
+     */
+    private final List<Map<String, TreeModel>> trees;
 
     private Long version;
 
     private List<String> configFilePaths;
 
     public TreeViewMappingModel(TreeMappings mapping) {
-        trees = new HashMap<>(mapping.getTreeArray().length);
-        for (Tree tree : mapping.getTreeArray()) {
-            trees.put(tree.getName(), parseTreeModel(tree));
-        }
+        this(Arrays.asList(mapping));
+    }
+
+    /**
+     * @since 1.1.3
+     */
+    public TreeViewMappingModel(List<TreeMappings> mappings) {
+        trees = mappings.stream()
+                .map(mapping -> Arrays.stream(mapping.getTreeArray()).collect(Collectors.toMap(Tree::getName, this::parseTreeModel)))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -63,7 +70,8 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
         model.setDefaultCondition(dataModel.getDefaultCondition());
         model.setOrderby(dataModel.getOrderby());
         model.setOrder(dataModel.getOrder());
-        for (Condition condition : dataModel.getConditionArray()) {// 根据查询条件定义组合查询语句
+        for (Condition condition : dataModel.getConditionArray()) {
+            // 根据查询条件定义组合查询语句
             ConditionModel conditionModel = ConditionModel.newInstance(condition);
             conditionModel.setFormula(XMLParseUtil.getNodeTextValue(condition));
             model.addConditions(conditionModel);
@@ -72,7 +80,11 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
     }
 
     public TreeModel getTreeModel(String name) {
-        return trees.get(name);
+        return trees.stream()
+                .map(queryScheme -> queryScheme.get(name))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .get();
     }
 
     @Override
@@ -89,6 +101,14 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
         return configFilePaths.get(0);
     }
 
+    /**
+     * @deprecated 已被 {@link #setConfigFilePaths(List)} 替代。
+     */
+    @Deprecated
+    public void setConfigFilePath(String configFilePath) {
+        this.configFilePaths = Collections.singletonList(configFilePath);
+    }
+
     public void setConfigFilePaths(List<String> configFilePaths) {
         this.configFilePaths = configFilePaths;
     }
@@ -97,9 +117,4 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
     public List<String> getFilePaths() {
         return configFilePaths;
     }
-
-    public void setConfigFilePath(String configFilePath) {
-        this.configFilePaths = Collections.singletonList(configFilePath);
-    }
-
 }
