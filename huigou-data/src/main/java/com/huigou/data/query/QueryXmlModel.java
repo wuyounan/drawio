@@ -59,10 +59,26 @@ public class QueryXmlModel implements Serializable, ConfigFileVersion {
         return querys.get(0);
     }
 
+    /**
+     * @deprecated 已被 {@link #getDeclaredQueries(String)} 替代。
+     */
+    @Deprecated
     public Query getQuery(String name) {
         return querys.stream().map(query -> query.get(name))
                 .filter(Objects::nonNull)
                 .findFirst().get();
+    }
+
+    /**
+     * 获取所有同名的query。
+     *
+     * @param name queryName
+     * @since 1.1.3
+     */
+    public List<Query> getDeclaredQueries(String name) {
+        return querys.stream().map(query -> query.get(name))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public void setVersion(Long version) {

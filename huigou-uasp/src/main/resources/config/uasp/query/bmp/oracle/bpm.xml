@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+    <query name="approvalRule" label="审批规则">
+        <sql name="updateChildrenFullName">
+            update WF_ApprovalRule
+            set full_name = concat(:newFullName, substr(full_name, length(:oldFullName) + 1, length(full_name))),
+            full_id = concat(:newFullId, substr(full_Id, length(:oldFullId) + 1, length(full_Id))),
+            version = version_seq.Nextval
+            where full_Id like :fullId
+        </sql>
+    </query>
+</query-mappings>

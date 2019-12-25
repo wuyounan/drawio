@@ -9,10 +9,8 @@ import com.huigou.util.ResourceLoadManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xmlbeans.XmlException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,13 +26,20 @@ import java.util.stream.Collectors;
  *
  * @author xx
  */
-public class QueryXmlManager extends ResourceLoadManager<QueryXmlModel> implements QueryXmlLoadInterface, InitializingBean {
+public class QueryXmlManager extends ResourceLoadManager<QueryXmlModel> implements QueryXmlLoadInterface {
 
     /**
      * SQL 方言。
+     *
+     * @since 1.1.3
      */
     private String sqlDialect;
 
+    /**
+     * 设置SQL方言。
+     *
+     * @since 1.1.3
+     */
     public void setSqlDialect(String sqlDialect) {
         this.sqlDialect = sqlDialect;
     }
@@ -90,10 +95,5 @@ public class QueryXmlManager extends ResourceLoadManager<QueryXmlModel> implemen
         Path filePath = Paths.get(path);
         Path dialectXmlPath = filePath.getParent().resolve(sqlDialect).resolve(filePath.getFileName());
         return dialectXmlPath.toString();
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        Assert.hasText(sqlDialect, "sql方言不能为空");
     }
 }

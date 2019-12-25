@@ -82,6 +82,7 @@ public class Opdatamanagement extends AbstractEntity {
         this.creator = creator;
     }
 
+    @Override
     public void checkConstraints() {
         Assert.hasText(dataManageId, "管理权限类别ID不能为空!");
         Assert.hasText(dataManagedetalId, "管理权限数据取值定义ID不能为空!");

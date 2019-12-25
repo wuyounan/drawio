@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationContext;
 
 /**
  * spring 环境包装类
- * 
+ *
  * @author xx
  */
 public class ApplicationContextWrapper {
@@ -43,7 +43,7 @@ public class ApplicationContextWrapper {
 
     /**
      * 根据服务器上下文获取 Spring 管理的bean
-     * 
+     *
      * @param name
      * @param type
      * @return
@@ -53,5 +53,15 @@ public class ApplicationContextWrapper {
             return null;
         }
         return getInstance().getApplicationContext().getBean(name, type);
+    }
+
+    /**
+     * @since 1.1.3
+     */
+    public static <T> T getBean(Class<T> type) {
+        if (getInstance().getApplicationContext() == null) {
+            return null;
+        }
+        return getInstance().getApplicationContext().getBean(type);
     }
 }

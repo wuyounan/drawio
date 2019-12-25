@@ -189,6 +189,7 @@ public class OpdatamanagebusinessField extends AbstractEntity {
         this.sequence = sequence;
     }
 
+    @Override
     public void checkConstraints() {
         Assert.hasText(datamanagebusinessId, "datamanagebusinessId不能为空!");
         Assert.hasText(dataKindCode, "dataKindCode不能为空!");

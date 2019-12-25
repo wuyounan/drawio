@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+    <query name="org" label="组织机构">
+        <sql name="updateChildrenStatus">
+            update SA_OPOrg o
+            set o.status = :newStatus, o.version = (select next_sequence('version_seq'))
+            where o.status in (:oldStatus)
+            and o.full_Id like :fullId
+            and (o.org_Kind_Id != 'psm' or
+            (select p.status from SA_OPPerson p where p.id = o.person_Id) >= :newStatus)
+        </sql>
+        <sql name="updateSubordinatePsmStatus">
+            update SA_OPOrg o
+            set o.status = :newStatus, o.version = (select next_sequence('version_seq'))
+            where o.org_Kind_Id = 'psm'
+            and o.status in (:oldStatus)
+            and (select p.status from SA_OPOrg p where p.id = o.parent_Id) >= :newStatus
+            and exists (select 1
+            from SA_OPPerson person, SA_OPOrg org
+            where person.status = :newStatus
+            and org.org_Kind_Id = 'psm'
+            and org.status in (:oldStatus)
+            and org.full_Id like :fullId
+            and person.main_Org_Id = org.parent_Id
+            and person.id = org.person_Id
+            and o.person_Id = person.id
+            and o.parent_Id != person.main_Org_Id)
+        </sql>
+        <sql name="updateMainOrgPersonStatus">
+            update SA_OPPerson p
+            set p.status = :newStatus, p.version = (select next_sequence('version_seq'))
+            where (p.Status in (:oldStatus))
+            and exists (select 1
+            from SA_OPOrg o
+            where (o.org_Kind_Id = 'psm')
+            and (p.main_Org_Id = o.parent_Id)
+            and (p.id = o.person_Id)
+            and (o.status in (:oldStatus))
+            and (o.full_Id like :fullId))
+        </sql>
+        <sql name="updateOrgChildrenFullCodeAndName">
+            update SA_OPOrg
+            set full_Code = concat(:parentNewFullCode,
+            substr(full_Code,
+            length(:parentOldFullCode) + 1,
+            length(full_Code))),
+            full_Name = concat(:parentNewFullName,
+            substr(full_Name,
+            length(:parentOldFullName) + 1,
+            length(full_Name))), version = (select next_sequence('version_seq'))
+            where full_Id like :likeFullId
+        </sql>
+        <sql name="updateRedundantData">
+            update SA_OPOrg t
+            set t.org_Id = :orgId, t.org_Code = :orgCode, t.org_Name = :orgName,
+            t.dept_Id = :deptId, t.dept_Code = :deptCode, t.dept_Name = :deptName,
+            t.position_Id = :positionId, t.position_Code = :positionCode,
+            t.position_Name = :positionName, version = (select next_sequence('version_seq'))
+            where t.id = :id
+        </sql>
+        <sql name="updateOrgChildrenFullOrgKindId">
+            update SA_OPOrg
+            set full_OrgKind_Id = concat(:parentNewFullOrgKindId,
+            substr(full_Org_Kind_Id,
+            length(:parentOldOrgKindId) + 1,
+            length(full_Org_Kind_Id))),
+            version = (select next_sequence('version_seq'))
+            where full_Id like :likeFullId
+        </sql>
+        <sql name="updateOrgChildrenFullSequence">
+            update SA_OPOrg
+            set full_Sequence = concat(:parentNewSequence,
+            substr(full_Sequence,
+            length(:parentOldSequence) + 1,
+            length(full_Sequence))),
+            version = (select next_sequence('version_seq'))
+            where full_Id like :fullId
+        </sql>
+        <sql name="updateOrgSequence">
+            update SA_OPOrg
+            set full_sequence = :fullSequence, sequence = :sequence,
+            version = (select next_sequence('version_seq'))
+            where id = :id
+        </sql>
+    </query>
+</query-mappings>

@@ -42,6 +42,9 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import com.huigou.data.query.executor.SQLExecutorDao;
+import com.huigou.data.query.model.QueryDescriptor;
+import com.huigou.util.ApplicationContextWrapper;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -813,7 +816,9 @@ abstract public class GeneralRepositorySuper {
     }
 
     private long getNextId(String sequenceName) {
-        Query q = getEntityManager().createNativeQuery(String.format("SELECT %s.nextval from DUAL", sequenceName));
+        SQLExecutorDao sqlExecutor = ApplicationContextWrapper.getBean("sqlExecutorDao", SQLExecutorDao.class);
+        QueryDescriptor queryDescriptor = sqlExecutor.getQuery("config/uasp/query/bmp/common.xml", "common");
+        Query q = getEntityManager().createNativeQuery(String.format(queryDescriptor.getSqlByName("nextVersion"), sequenceName));
         BigDecimal result = (BigDecimal) q.getSingleResult();
         return result.longValue();
     }

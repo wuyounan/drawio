@@ -133,6 +133,7 @@ public class Opdatamanagedetailresource extends AbstractEntity {
         this.orgDataKind = orgDataKind;
     }
 
+    @Override
     public void checkConstraints() {
         Assert.hasText(dataManagedetalId, "dataManagedetalId不能为空!");
         Assert.hasText(dataKindId, "dataKindId不能为空!");
