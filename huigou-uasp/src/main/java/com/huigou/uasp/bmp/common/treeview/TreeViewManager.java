@@ -77,10 +77,10 @@ public class TreeViewManager extends ResourceLoadManager<TreeViewMappingModel> i
                 }
             }).collect(Collectors.toList());
 
-            TreeViewMappingModel mappingModel = new TreeViewMappingModel(mappings);
-            mappingModel.setVersions(maxLastModified(resources));
-            mappingModel.setConfigFilePaths(paths);
-            return mappingModel;
+            TreeViewMappingModel model = new TreeViewMappingModel(mappings);
+            model.setVersions(maxLastModified(resources));
+            model.setConfigFilePaths(paths);
+            return model;
         } catch (Exception e) {
             throw new ResourceLoadException(String.format("读取配置文件[%s]失败:%s", defaultPath, e.getMessage()));
         } finally {
