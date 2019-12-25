@@ -1,7 +1,9 @@
 package com.huigou.uasp.bmp.common.treeview.domain.model;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.huigou.data.query.XMLParseUtil;
@@ -15,12 +17,12 @@ import com.huigou.util.ConfigFileVersion;
 
 /**
  * 树查询配置模型
- * 
+ *
+ * @author
+ * @version V1.0
  * @ClassName: TreeViewMappingModel
  * @Description: TODO
- * @author
  * @date 2014-3-11 上午09:58:04
- * @version V1.0
  */
 public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
 
@@ -30,10 +32,10 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
 
     private Long version;
 
-    private String configFilePath;
+    private List<String> configFilePaths;
 
     public TreeViewMappingModel(TreeMappings mapping) {
-        trees = new HashMap<String, TreeModel>(mapping.getTreeArray().length);
+        trees = new HashMap<>(mapping.getTreeArray().length);
         for (Tree tree : mapping.getTreeArray()) {
             trees.put(tree.getName(), parseTreeModel(tree));
         }
@@ -41,7 +43,7 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
 
     /**
      * 解析树模型
-     * 
+     *
      * @param tree
      * @return
      */
@@ -82,12 +84,22 @@ public class TreeViewMappingModel implements Serializable, ConfigFileVersion {
         this.version = version;
     }
 
+    @Override
     public String getFilePath() {
-        return configFilePath;
+        return configFilePaths.get(0);
+    }
+
+    public void setConfigFilePaths(List<String> configFilePaths) {
+        this.configFilePaths = configFilePaths;
+    }
+
+    @Override
+    public List<String> getFilePaths() {
+        return configFilePaths;
     }
 
     public void setConfigFilePath(String configFilePath) {
-        this.configFilePath = configFilePath;
+        this.configFilePaths = Collections.singletonList(configFilePath);
     }
 
 }

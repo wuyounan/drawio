@@ -280,6 +280,7 @@ public enum Dialect {
      * @return String
      */
     public static String getTotalSql(String sql) {
+        // TODO 这里写表别名 t_ 会影响easysearch的分页查询
         return "select count(0) from (" + sql + ") t_";
     }
 

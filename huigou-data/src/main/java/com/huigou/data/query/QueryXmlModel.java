@@ -5,10 +5,7 @@ import com.huigou.uasp.bmp.query.QueryMappingsDocument.QueryMappings;
 import com.huigou.util.ConfigFileVersion;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +34,7 @@ public class QueryXmlModel implements Serializable, ConfigFileVersion {
      */
     private Long version;
 
-    private String configFilePath;
+    private List<String> configFilePaths;
 
     public QueryXmlModel(QueryMappings queryMappings, QueryMappings dialectQueryMappings) {
         if (queryMappings != null) {
@@ -93,11 +90,19 @@ public class QueryXmlModel implements Serializable, ConfigFileVersion {
 
     @Override
     public String getFilePath() {
-        return configFilePath;
+        return configFilePaths.get(0);
     }
 
     public void setConfigFilePath(String configFilePath) {
-        this.configFilePath = configFilePath;
+        this.configFilePaths = Collections.singletonList(configFilePath);
     }
 
+    @Override
+    public List<String> getFilePaths() {
+        return configFilePaths;
+    }
+
+    public void setConfigFilePaths(List<String> configFilePaths) {
+        this.configFilePaths = configFilePaths;
+    }
 }

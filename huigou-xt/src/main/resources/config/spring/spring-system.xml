@@ -30,7 +30,9 @@
         <property name="permissionBuilder" ref="queryPermissionBuilder"/>
     </bean>
     <!--快捷查询控件配置 -->
-    <bean id="easySearchManager" class="com.huigou.uasp.bmp.common.easysearch.EasySearchManager"/>
+    <bean id="easySearchManager" class="com.huigou.uasp.bmp.common.easysearch.EasySearchManager">
+        <property name="sqlDialect" value="${sqlDialect}"/>
+    </bean>
     <bean id="easySearchApplication"
           class="com.huigou.uasp.bmp.common.easysearch.application.impl.EasySearchApplicationImpl">
         <property name="sqlQuery" ref="sqlQuery"/>

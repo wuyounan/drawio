@@ -4,10 +4,23 @@ import com.huigou.exception.ResourceLoadException;
 import com.huigou.uasp.bmp.common.easysearch.domain.model.EasySearchMappingModel;
 
 public interface EasySearchLoadInterface {
+
+    /**
+     * @since 1.1.3
+     */
+    String XML_BASE_DIRECTORY = "config/content/easysearch";
     /**
      * 配置文件默认路径
      */
-    public final static String XML_PATH = "config/content/easysearch/easy-search-%s.xml";
+    String XML_PATH = String.join("/", XML_BASE_DIRECTORY, "easy-search-%s.xml");
 
-    public EasySearchMappingModel loadConfigFile(String path) throws ResourceLoadException;
+    /**
+     * 方言配置文件路径
+     *
+     * @since 1.1.3
+     */
+    String DIALECT_XML_PATH = String.join("/", XML_BASE_DIRECTORY, "%s", "easy-search-%s.xml");
+
+
+    EasySearchMappingModel loadConfigFile(String path) throws ResourceLoadException;
 }
