@@ -45,7 +45,7 @@
 	</bean>
 
 	<!-- 用于指定持久化实现厂商类 -->
-	<bean id="persistenceProvider" class="org.hibernate.ejb.HibernatePersistence" />
+	<bean id="persistenceProvider" class="org.hibernate.jpa.HibernatePersistenceProvider" />
 
 	<!-- 用于指定一些高级特性 -->
 	<bean id="jpaDialect" class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
