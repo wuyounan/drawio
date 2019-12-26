@@ -7,6 +7,7 @@ import com.huigou.uasp.bmp.query.QueryDocument.Query;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 查询模型描述符
@@ -69,7 +70,11 @@ public class QueryDescriptor {
         if (query == null) {
             throw new NotFoundException(String.format("实体%s中没有SQL(%s)的配置!", queries.get(0).getName(), sqlName));
         }
-        return XMLParseUtil.getNodeTextValue(query);
+        return Arrays.stream(query.getSqlArray()).filter(sql -> sql.getName().equals(sqlName))
+                .filter(Objects::nonNull)
+                .map(XMLParseUtil::getNodeTextValue)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(String.format("实体%s中没有SQL(%s)的配置!", queries.get(0).getName(), sqlName)));
     }
 
 }
