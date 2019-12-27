@@ -18,8 +18,7 @@ public class VersionListener {
     private Long getNextId() {
         SQLExecutorDao sqlExecutor = ApplicationContextWrapper.getBean("sqlExecutorDao", SQLExecutorDao.class);
         QueryDescriptor queryDescriptor = sqlExecutor.getQuery("config/uasp/query/bmp/common.xml", "common");
-        Long version = sqlExecutor.getSqlQuery().getJDBCDao().queryToLong(queryDescriptor.getSqlByName("nextVersion"));
-        return version;
+        return sqlExecutor.getSqlQuery().getJDBCDao().queryToLong(String.format(queryDescriptor.getSqlByName("nextSequence"), "version_seq"));
     }
 
     @PrePersist

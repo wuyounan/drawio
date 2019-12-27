@@ -783,7 +783,7 @@
 			  from Agent o left join o.client
 			 where o.client.id = :psmId
 			   and o.status = 1
-			   and sysdate between o.startDate and o.endDate
+			   and current_date between o.startDate and o.endDate
 		</sql>
 		<condition column="start_date" name="startDate" symbol="&gt;="  type="java.util.Date" alias="t"/>
 		<condition column="end_date" name="endDate" symbol="&lt;="  type="java.util.Date" alias="t"/>

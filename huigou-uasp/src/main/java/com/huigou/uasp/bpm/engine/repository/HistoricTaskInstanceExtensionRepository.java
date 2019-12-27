@@ -18,10 +18,10 @@ public interface HistoricTaskInstanceExtensionRepository extends JpaRepository<H
     
     List<HistoricTaskInstanceExtension> findByProcUnitHandlerIdOrderByVersion(String procUnitHandlerId);
     
-    @Query(name = "historicTaskInstExtension.findApplicantTask", value = "from HistoricTaskInstanceExtension o where o.businessKey = ?1 and o.taskDefinitionKey = 'Apply' and o.previousId is null")
+    @Query(name = "historicTaskInstExtension.findApplicantTask", value = "from HistoricTaskInstanceExtension o where o.businessKey = ?1 and o.taskDefinitionKey = 'Apply' and (o.previousId is null or o.previousId='')")
     HistoricTaskInstanceExtension findApplicantTask(String bizId);
 
-    @Query(name = "historicTaskInstExtension.findApplicantTaskByBizCode", value = "from HistoricTaskInstanceExtension o where o.businessCode = ?1 and o.taskDefinitionKey = 'Apply' and o.previousId is null")
+    @Query(name = "historicTaskInstExtension.findApplicantTaskByBizCode", value = "from HistoricTaskInstanceExtension o where o.businessCode = ?1 and o.taskDefinitionKey = 'Apply' and (o.previousId is null or o.previousId='')")
     HistoricTaskInstanceExtension findApplicantTaskByBizCode(String bizCode);
 
     List<HistoricTaskInstanceExtension> findByBusinessKeyAndTaskDefinitionKey(String bizId, String procUnitId);

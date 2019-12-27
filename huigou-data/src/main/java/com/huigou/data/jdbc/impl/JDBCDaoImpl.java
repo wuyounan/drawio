@@ -299,6 +299,7 @@ public class JDBCDaoImpl implements JDBCDao {
      * @return
      * @throws Exception
      */
+    @Override
     public Long getSequence(String name) {
         String sql = "select " + name + ".nextval from dual";
         SqlRowSet srs = (SqlRowSet) jdbcTemplate.query(sql, getResultSetExtractor());

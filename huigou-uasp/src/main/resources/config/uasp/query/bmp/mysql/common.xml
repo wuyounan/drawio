@@ -5,7 +5,7 @@
             select next_sequence('version_seq')
         </sql>
         <sql name="nextSequence">
-            SELECT next_sequence(%s)
+            SELECT next_sequence('%s')
         </sql>
         <sql name="updateFullName">
             update %s

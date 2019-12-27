@@ -19,6 +19,7 @@
         <module>huigou-uasp</module>
         <module>huigou-loader</module>
         <module>huigou-xt</module>
+        <module>huigou-demo</module>
     </modules>
 
     <properties>
