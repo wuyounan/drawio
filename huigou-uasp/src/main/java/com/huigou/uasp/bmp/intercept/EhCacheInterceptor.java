@@ -1,7 +1,9 @@
 package com.huigou.uasp.bmp.intercept;
 
+import java.io.IOException;
 import java.io.Serializable;
 
+import com.huigou.exception.ApplicationException;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.InitializingBean;
@@ -12,7 +14,7 @@ import com.huigou.util.ResourceLoadManager;
 
 /**
  * EhCache 缓存拦截器
- * 
+ *
  * @author xx
  */
 public class EhCacheInterceptor implements MethodInterceptor, InitializingBean {
@@ -42,7 +44,7 @@ public class EhCacheInterceptor implements MethodInterceptor, InitializingBean {
                 icache.put(cacheKey, (Serializable) result);
             } else {
                 ConfigFileVersion versions = (ConfigFileVersion) element;
-                Long lastModified = ResourceLoadManager.getLastModified(versions.getFilePath());
+                long lastModified = ResourceLoadManager.maxLastModified(versions.getFilePaths());
                 if (lastModified > versions.getVersion()) {
                     result = invocation.proceed();
                     icache.put(cacheKey, (Serializable) result);
@@ -54,13 +56,10 @@ public class EhCacheInterceptor implements MethodInterceptor, InitializingBean {
 
     /**
      * 返回具体的方法全路径名称 参数
-     * 
-     * @param targetName
-     *            全路径
-     * @param methodName
-     *            方法名称
-     * @param arguments
-     *            参数
+     *
+     * @param targetName 全路径
+     * @param methodName 方法名称
+     * @param arguments  参数
      * @return 完整方法名称
      */
     private String getCacheKey(String targetName, String methodName, Object[] arguments) {

@@ -159,10 +159,12 @@ public class Agent extends AbstractEntity {
         this.remark = remark;
     }
 
+    @Override
     public List<AgentProc> getDetails() {
         return details;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void setDetails(List<? extends AbstractEntity> details) {
         this.details = (List<AgentProc>) details;

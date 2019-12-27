@@ -59,7 +59,7 @@ public class SQLExecutorDaoImpl extends JDBCDaoImpl implements SQLExecutorDao {
     @Override
     public QueryDescriptor getQuery(String queryFilePath, String queryName) {
         QueryXmlModel model = getQueryXmlModel(queryFilePath);
-        QueryDescriptor queryDescriptor = new QueryDescriptor(model.getQuery(queryName));
+        QueryDescriptor queryDescriptor = new QueryDescriptor(model.getDeclaredQueries(queryName));
         return queryDescriptor;
     }
 
@@ -93,7 +93,7 @@ public class SQLExecutorDaoImpl extends JDBCDaoImpl implements SQLExecutorDao {
 
     @Override
     public QueryModel getQueryModel(QueryDescriptor queryDescriptor, QueryAbstractRequest queryRequest, String sqlName) throws EntityExecutorException {
-        SQLExecutor executor = sqlBuilder.buildSqlByName(queryDescriptor.getQuery(), sqlName, queryRequest);
+        SQLExecutor executor = sqlBuilder.buildSqlByName(queryDescriptor.getQuery(sqlName), sqlName, queryRequest);
         QueryModel queryModel = queryRequest.initQueryModel();
         queryModel.setQueryParams(executor.parseParamMap());
         queryModel.setSql(executor.getSql());

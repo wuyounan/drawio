@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+    <query name="common" label="通用sql">
+        <sql name="nextVersion">
+            select next_sequence('version_seq')
+        </sql>
+        <sql name="nextSequence">
+            SELECT next_sequence('%s')
+        </sql>
+        <sql name="updateFullName">
+            update %s
+            set full_Name = concat(:newFullName, substr(full_Name,
+            length(:oldFullName) + 1,
+            length(full_Name))),
+            version = (select next_sequence('version_seq'))
+            where full_id like :fullId
+        </sql>
+        <sql name="updateFullIdAndName">
+            update %s
+            set full_id = concat(:parentNewFullId,
+            substr(full_Id,
+            length(:parentOldFullId) + 1,
+            length(full_Id))),
+            full_Name = concat(:parentNewFullName,
+            substr(full_Name, length(:parentOldFullName) + 1,
+            length(full_Name))),
+            version = (select next_sequence('version_seq'))
+            where full_Id like :likeFullId
+        </sql>
+        <sql name="moveSqlByFolderId">
+            update %s set folder_Id = :folderId, version = (select next_sequence('version_seq')) where id in :ids
+        </sql>
+        <sql name="moveSqlByParentId">
+            update %s set %s = :parentId, version = (select next_sequence('version_seq')) where id in :ids
+        </sql>
+        <sql name="updateStatusSql">
+            update %s set status = :status, version = (select next_sequence('version_seq')) where id = :id
+        </sql>
+        <sql name="updateStatusesSql">
+            update %s set status = :status, version = (select next_sequence('version_seq')) where id in :ids
+        </sql>
+        <sql name="updateSequenceSql">
+            update %s set sequence = :sequence, version = (select next_sequence('version_seq')) where id = :id
+        </sql>
+    </query>
+</query-mappings>

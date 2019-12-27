@@ -28,7 +28,7 @@ import com.huigou.util.StringUtil;
 
 /**
  * 日志应用
- * 
+ *
  * @author
  */
 public class DBLogApplicationImpl implements LogApplication {
@@ -53,17 +53,15 @@ public class DBLogApplicationImpl implements LogApplication {
     public void savelog(BizLog bizLog, BizLogDetail bizLogDetail) {
         Assert.notNull(bizLog, "参数bizlog不能为空。");
         Assert.notNull(bizLogDetail, "参数bizlogDetail不能为空。");
-        // TODO 保存日志
-//        bizLog = this.dbBizLogRepository.save((DBBizLog) bizLog);
-//        bizLogDetail.setBizLogId(bizLog.getId());
-//        this.dbBizLogDetailRepository.save((DBBizLogDetail) bizLogDetail);
+        bizLog = this.dbBizLogRepository.save((DBBizLog) bizLog);
+        bizLogDetail.setBizLogId(bizLog.getId());
+        this.dbBizLogDetailRepository.save((DBBizLogDetail) bizLogDetail);
     }
 
     @Override
     public void savelog(BizLog bizLog) {
         Assert.notNull(bizLog, "参数bizlog不能为空。");
-        // TODO 保存日志
-      //  bizLog = this.dbBizLogRepository.save((DBBizLog) bizLog);
+        bizLog = this.dbBizLogRepository.save((DBBizLog) bizLog);
     }
 
     @Override

@@ -5,10 +5,7 @@ import com.huigou.uasp.bmp.query.QueryMappingsDocument.QueryMappings;
 import com.huigou.util.ConfigFileVersion;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -26,32 +23,27 @@ public class QueryXmlModel implements Serializable, ConfigFileVersion {
     /**
      * 实体对象
      */
-    private final Map<String, Query> querys;
-    /**
-     * @since 1.1.3
-     */
-    private final Map<String, Query> dialectQuerys;
+    private final List<Map<String, Query>> querys;
 
     /**
      * 版本
      */
     private Long version;
 
-    private String configFilePath;
+    private List<String> configFilePaths;
 
-    public QueryXmlModel(QueryMappings queryMappings, QueryMappings dialectQueryMappings) {
-        if (queryMappings != null) {
-            querys = Arrays.stream(queryMappings.getQueryArray())
-                    .collect(Collectors.toMap(Query::getName, query -> query));
-        } else {
-            querys = Collections.emptyMap();
-        }
-        if (dialectQueryMappings != null) {
-            dialectQuerys = Arrays.stream(dialectQueryMappings.getQueryArray())
-                    .collect(Collectors.toMap(Query::getName, query -> query));
-        } else {
-            dialectQuerys = Collections.emptyMap();
-        }
+    public QueryXmlModel(QueryMappings queryMapping) {
+        this(Collections.singletonList(queryMapping));
+    }
+
+    /**
+     * @since 1.1.3
+     */
+    public QueryXmlModel(List<QueryMappings> queryMappings) {
+        querys = queryMappings.stream()
+                .filter(Objects::nonNull)
+                .map(queryMapping -> Arrays.stream(queryMapping.getQueryArray()).collect(Collectors.toMap(Query::getName, query -> query)))
+                .collect(Collectors.toList());
     }
 
     public String getName() {
@@ -62,24 +54,31 @@ public class QueryXmlModel implements Serializable, ConfigFileVersion {
         this.name = name;
     }
 
+    @Deprecated
     public Map<String, Query> getQuerys() {
-        return querys;
+        return querys.get(0);
     }
 
     /**
-     * @since 1.1.3
+     * @deprecated 已被 {@link #getDeclaredQueries(String)} 替代。
      */
-    public Map<String, Query> getDialectQuerys() {
-        return dialectQuerys;
+    @Deprecated
+    public Query getQuery(String name) {
+        return querys.stream().map(query -> query.get(name))
+                .filter(Objects::nonNull)
+                .findFirst().get();
     }
 
-    public Query getQuery(String name) {
-        // 优先从方言中获取
-        Query query = dialectQuerys.get(name);
-        if (query == null) {
-            query = querys.get(name);
-        }
-        return query;
+    /**
+     * 获取所有同名的query。
+     *
+     * @param name queryName
+     * @since 1.1.3
+     */
+    public List<Query> getDeclaredQueries(String name) {
+        return querys.stream().map(query -> query.get(name))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public void setVersion(Long version) {
@@ -93,11 +92,23 @@ public class QueryXmlModel implements Serializable, ConfigFileVersion {
 
     @Override
     public String getFilePath() {
-        return configFilePath;
+        return configFilePaths.get(0);
     }
 
+    /**
+     * @deprecated 已被 {@link #setConfigFilePaths(List)} 替代。
+     */
+    @Deprecated
     public void setConfigFilePath(String configFilePath) {
-        this.configFilePath = configFilePath;
+        this.configFilePaths = Collections.singletonList(configFilePath);
     }
 
+    @Override
+    public List<String> getFilePaths() {
+        return configFilePaths;
+    }
+
+    public void setConfigFilePaths(List<String> configFilePaths) {
+        this.configFilePaths = configFilePaths;
+    }
 }

@@ -3,48 +3,81 @@ package com.huigou.data.query.model;
 import com.huigou.data.query.XMLParseUtil;
 import com.huigou.exception.NotFoundException;
 import com.huigou.uasp.bmp.query.QueryDocument.Query;
-import com.huigou.uasp.bmp.query.SqlDocument.Sql;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 查询模型描述符
- * 
+ *
  * @author xx
  */
 
 public class QueryDescriptor {
 
-    private Query query;
+    private List<Query> queries;
 
     public QueryDescriptor(Query query) {
-        this.query = query;
+        this.queries = Collections.singletonList(query);
+    }
+
+    /**
+     * @since 1.1.3
+     */
+    public QueryDescriptor(List<Query> queries) {
+        this.queries = queries;
+    }
+
+    /**
+     * 根据sqlName获取 Query对象。
+     *
+     * @param sqlName sql名称
+     * @return Query对象
+     * @since 1.1.3
+     */
+    public Query getQuery(String sqlName) {
+        return queries.stream()
+                .filter(query -> Arrays.stream(query.getSqlArray()).filter(sql -> sql.getName().equals(sqlName)).findFirst().isPresent())
+                .findFirst()
+                .get();
     }
 
     public Query getQuery() {
-        return query;
+        // 优先从方言xml中取
+        return queries.stream()
+                .filter(query -> StringUtils.isNotBlank(query.getSqlQuery()))
+                .findFirst().get();
     }
 
     public void setQuery(Query query) {
-        this.query = query;
+        this.queries = Collections.singletonList(query);
     }
 
     public String getName() {
-        return query.getName();
+        return getQuery().getName();
     }
 
     public String getLabel() {
-        return query.getLabel();
+        return getQuery().getLabel();
     }
 
     public String getSql() {
-        return query.getSqlQuery();
+        return getQuery().getSqlQuery();
     }
 
     public String getSqlByName(String sqlName) {
-        for (Sql sql : query.getSqlArray()) {
-            if (sql.getName().equals(sqlName)) {
-                return XMLParseUtil.getNodeTextValue(sql);
-            }
+        Query query = getQuery(sqlName);
+        if (query == null) {
+            throw new NotFoundException(String.format("实体%s中没有SQL(%s)的配置!", queries.get(0).getName(), sqlName));
         }
-        throw new NotFoundException(String.format("实体%s中没有SQL(%s)的配置!", query.getName(), sqlName));
+        return Arrays.stream(query.getSqlArray()).filter(sql -> sql.getName().equals(sqlName))
+                .filter(Objects::nonNull)
+                .map(XMLParseUtil::getNodeTextValue)
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(String.format("实体%s中没有SQL(%s)的配置!", queries.get(0).getName(), sqlName)));
     }
+
 }

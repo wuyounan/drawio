@@ -1,15 +1,7 @@
 package com.huigou.uasp.bmp.codingrule.application.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.shiro.SecurityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.huigou.data.domain.listener.VersionListener;
 import com.huigou.data.query.executor.SQLExecutorDao;
+import com.huigou.data.query.model.QueryDescriptor;
 import com.huigou.uasp.bmp.codingrule.application.MaxSerialApplication;
 import com.huigou.uasp.bmp.codingrule.domain.query.CodingRuleDetailDesc;
 import com.huigou.uasp.bmp.codingrule.repository.MaxSerialRepository;
@@ -17,6 +9,13 @@ import com.huigou.uasp.bmp.configuration.domain.query.IntermilCodeDesc;
 import com.huigou.uasp.bmp.configuration.domain.query.MaxSerialDesc;
 import com.huigou.util.CommonUtil;
 import com.huigou.util.StringUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("maxSerialApplication")
 public class MaxSerialApplicationImpl implements MaxSerialApplication {
@@ -198,7 +197,8 @@ public class MaxSerialApplicationImpl implements MaxSerialApplication {
 
             maxSerialId = CommonUtil.createGUID();
 
-            Long version = this.sqlExecutorDao.queryToLong(VersionListener.GET_NEXT_SEQ_SQL);
+            QueryDescriptor queryDescriptor = sqlExecutorDao.getQuery("config/uasp/query/bmp/common.xml", "common");
+            Long version = sqlExecutorDao.getSqlQuery().getJDBCDao().queryToLong(queryDescriptor.getSqlByName("nextVersion"));
 
             this.sqlExecutorDao.executeUpdate(sb.toString(), maxSerialId, codingRuleDetailDesc.getId(), sortItemValue, codingRuleDetailDesc.getInitialValue(),
                                               "", codingRuleDetailDesc.getInitialValue(), version);

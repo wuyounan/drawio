@@ -48,12 +48,12 @@ public class AgentApplicationImpl extends BaseApplication implements AgentApplic
     @Override
     public Agent loadValidAgent(String clientPsmId) {
         QueryDescriptor queryDescriptor = this.sqlExecutorDao.getQuery(QUERY_XML_FILE_PATH, "agent");
-        String sql = queryDescriptor.getSqlByName("loadValid");
-        Map<String, Object> params = new HashMap<String, Object>(1);
+        String jpql = queryDescriptor.getSqlByName("loadValid");
+        Map<String, Object> params = new HashMap<>(1);
         params.put("psmId", clientPsmId);
 
         @SuppressWarnings("unchecked")
-        List<Agent> agents = this.generalRepository.query(sql, params);
+        List<Agent> agents = this.generalRepository.query(jpql, params);
         if (agents.size() > 0) {
             return agents.get(0);
         }

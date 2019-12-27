@@ -7,6 +7,7 @@ import com.huigou.data.domain.query.QueryAbstractRequest;
 import com.huigou.data.query.QueryPermissionBuilder;
 import com.huigou.data.query.SQLExecutor;
 import com.huigou.data.query.XMLParseUtil;
+import com.huigou.data.query.model.QueryDescriptor;
 import com.huigou.data.query.parser.SQLBuilder;
 import com.huigou.data.query.parser.model.ConditionModel;
 import com.huigou.data.query.parser.model.DataFilterGroup;

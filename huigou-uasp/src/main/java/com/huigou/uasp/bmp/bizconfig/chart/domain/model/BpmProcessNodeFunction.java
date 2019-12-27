@@ -145,6 +145,7 @@ public class BpmProcessNodeFunction extends AbstractEntity {
         this.isFunction = isFunction;
     }
 
+    @Override
     public void checkConstraints() {
         Assert.hasText(viewId, "节点ID不能为空!");
         Assert.hasText(businessProcessId, "流程ID不能为空!");

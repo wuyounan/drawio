@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.huigou.data.query.executor.SQLExecutorDao;
+import com.huigou.util.*;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.persistence.entity.HistoricProcessInstanceEntity;
 import org.activiti.engine.task.Task;
@@ -49,11 +51,6 @@ import com.huigou.uasp.bpm.engine.repository.HistoricTaskInstanceExtensionReposi
 import com.huigou.uasp.bpm.engine.repository.HistoricTaskInstanceRelationRepository;
 import com.huigou.uasp.bpm.engine.repository.RuntimeTaskExtensionRepository;
 import com.huigou.uasp.bpm.managment.application.ProcDefinitionApplication;
-import com.huigou.util.ClassHelper;
-import com.huigou.util.CommonUtil;
-import com.huigou.util.Constants;
-import com.huigou.util.StringUtil;
-import com.huigou.util.Util;
 
 @Service("actApplication")
 public class ActApplicationImpl extends BaseApplication implements ActApplication {
@@ -160,7 +157,8 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
 
         HistoricTaskInstanceExtension historicTaskInstExtension = new HistoricTaskInstanceExtension(runtimeTaskExtension);
         // 增加版本号保存
-        Long version = this.sqlExecutorDao.getSequence("version_seq");
+        QueryDescriptor queryDescriptor = sqlExecutorDao.getQuery("config/uasp/query/bmp/common.xml", "common");
+        long version = sqlExecutorDao.getSqlQuery().getJDBCDao().queryToLong(String.format(queryDescriptor.getSqlByName("nextVersion")));
         runtimeTaskExtension.setVersion(version);
         runtimeTaskExtensionRepository.save(runtimeTaskExtension);
         historicTaskInstExtension.setVersion(version);
@@ -317,8 +315,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
     /**
      * 检查任务ID不能为空
      *
-     * @param taskId
-     *            任务ID
+     * @param taskId 任务ID
      */
     private void checkTaskIdNotNull(String taskId) {
         Util.check(!StringUtil.isBlank(taskId), "任务ID不能为空,请刷新页面后重试。");
@@ -475,7 +472,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
                 if (StringUtil.isNotBlank(currentItem.getProcUnitHandlerId()) && currentItem.getGroupId().equals(0)) {
                     iterator.remove();
                 } else if (currentItem.getProcessDefinitionGroupId() > currentProcUnitProcessDefinitionGroupId
-                           || (currentItem.getProcessDefinitionGroupId().equals(currentProcUnitProcessDefinitionGroupId) && currentItem.getGroupId() >= groupId)) {
+                        || (currentItem.getProcessDefinitionGroupId().equals(currentProcUnitProcessDefinitionGroupId) && currentItem.getGroupId() >= groupId)) {
                     iterator.remove();
                 }
             }
@@ -488,7 +485,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
             for (int j = i + 1; j < backTasks.size(); j++) {
                 nextItem = backTasks.get(j);
                 if (currentItem.getTaskDefKey().equals(nextItem.getTaskDefKey()) && currentItem.getGroupId().equals(nextItem.getGroupId())
-                    && currentItem.getExecutorFullName().equals(nextItem.getExecutorFullName())) {
+                        && currentItem.getExecutorFullName().equals(nextItem.getExecutorFullName())) {
                     removedBackTaskInfos.add(nextItem);
                 }
             }

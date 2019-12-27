@@ -1,10 +1,7 @@
 package com.huigou.properties;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import com.huigou.util.ConfigFileVersion;
 
@@ -21,7 +18,7 @@ public class PropertiesModel implements Serializable, ConfigFileVersion {
 
     private Long versions;
 
-    private String configFilePath;
+    private List<String> configFilePaths;
 
     public PropertiesModel(Properties props) {
         this.props = props;
@@ -37,12 +34,21 @@ public class PropertiesModel implements Serializable, ConfigFileVersion {
     }
 
     public void setConfigFilePath(String configFilePath) {
-        this.configFilePath = configFilePath;
+        this.configFilePaths = Collections.singletonList(configFilePath);
     }
 
     @Override
     public String getFilePath() {
-        return configFilePath;
+        return configFilePaths.get(0);
+    }
+
+    public void setConfigFilePaths(List<String> configFilePaths) {
+        this.configFilePaths = configFilePaths;
+    }
+
+    @Override
+    public List<String> getFilePaths() {
+        return configFilePaths;
     }
 
     public Properties getProps() {

@@ -46,7 +46,6 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
     /**
      * 实体版本号
      */
-    @GeneratedValue(strategy = GenerationType.TABLE)
     private Long version;
 
     @Transient
@@ -55,10 +54,12 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
     @Transient
     private List<? extends AbstractEntity> inputDetails_;
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public void setId(String id) {
         if ("".equals(id)) {
             id = null;
@@ -66,10 +67,12 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
         this.id = id;
     }
 
+    @Override
     public Long getVersion() {
         return this.version;
     }
 
+    @Override
     public void setVersion(Long version) {
         this.version = version;
     }
@@ -105,6 +108,7 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
         return id == null ? 0 : id.hashCode();
     }
 
+    @Override
     @JsonIgnore
     public boolean isNew() {
         return StringUtil.isBlank(this.id);
@@ -191,6 +195,7 @@ public abstract class AbstractEntity implements IdentifiedEntity, Serializable {
         return updateFields_;
     }
 
+    @Override
     public void setUpdateFields_(Collection<String> names) {
         if (names != null && names.size() > 0) {
             this.updateFields_ = names.toArray(new String[names.size()]);

@@ -15,33 +15,11 @@
  */
 package com.huigou.data.repository;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.COUNT_QUERY_STRING;
-import static org.springframework.data.jpa.repository.query.QueryUtils.DELETE_ALL_QUERY_STRING;
-import static org.springframework.data.jpa.repository.query.QueryUtils.applyAndBind;
-import static org.springframework.data.jpa.repository.query.QueryUtils.getQueryString;
-import static org.springframework.data.jpa.repository.query.QueryUtils.toOrders;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.NoResultException;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import com.huigou.data.query.executor.SQLExecutorDao;
+import com.huigou.data.query.model.QueryDescriptor;
+import com.huigou.util.ApplicationContextWrapper;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.type.DbTimestampType;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -52,21 +30,28 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import javax.persistence.*;
+import javax.persistence.criteria.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.*;
+
+import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 /**
  * Default implementation of the {@link org.springframework.data.repository.CrudRepository} interface. This
  * will offer you a more sophisticated interface than the plain {@link EntityManager} .
- * 
+ *
+ * @param <T>  the type of the entity to handle
+ * @param <ID> the type of the entity's identifier
  * @author Oliver Gierke
  * @author Eberhard Wolff
- * @param <T>
- *            the type of the entity to handle
- * @param <ID>
- *            the type of the entity's identifier
  */
-@Transactional()
 abstract public class GeneralRepositorySuper {
 
     abstract public EntityManager getEntityManager();
@@ -93,7 +78,7 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * Configures a custom {@link LockMetadataProvider} to be used to detect {@link LockModeType}s to be applied to queries.
-     * 
+     *
      * @param lockMetadataProvider
      */
     /*
@@ -122,8 +107,8 @@ abstract public class GeneralRepositorySuper {
 
         if (!exists(domainClass, id)) {
             throw new EmptyResultDataAccessException(String.format("No %s entity with id %s exists!",
-                                                                   JpaEntityInformationSupport.getEntityInformation(domainClass, this.getEntityManager())
-                                                                                              .getJavaType(), id), 1);
+                    JpaEntityInformationSupport.getEntityInformation(domainClass, this.getEntityManager())
+                            .getJavaType(), id), 1);
         }
 
         delete(findOne(domainClass, id));
@@ -168,8 +153,8 @@ abstract public class GeneralRepositorySuper {
             return;
         }
         applyAndBind(
-                     getQueryString(DELETE_ALL_QUERY_STRING, JpaEntityInformationSupport.getEntityInformation(domainClass, getEntityManager()).getEntityName()),
-                     entities, getEntityManager()).executeUpdate();
+                getQueryString(DELETE_ALL_QUERY_STRING, JpaEntityInformationSupport.getEntityInformation(domainClass, getEntityManager()).getEntityName()),
+                entities, getEntityManager()).executeUpdate();
     }
 
     /*
@@ -416,13 +401,10 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * Reads the given {@link TypedQuery} into a {@link Page} applying the given {@link Pageable} and {@link Specification}.
-     * 
-     * @param query
-     *            must not be {@literal null}.
-     * @param spec
-     *            can be {@literal null}.
-     * @param pageable
-     *            can be {@literal null}.
+     *
+     * @param query    must not be {@literal null}.
+     * @param spec     can be {@literal null}.
+     * @param pageable can be {@literal null}.
      * @return
      */
     private <T> Page<T> readPage(Class<T> domainClass, TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
@@ -430,18 +412,16 @@ abstract public class GeneralRepositorySuper {
         query.setMaxResults(pageable.getPageSize());
 
         Long total = getCountQuery(domainClass, spec).getSingleResult();
-        List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T> emptyList();
+        List<T> content = total > pageable.getOffset() ? query.getResultList() : Collections.<T>emptyList();
 
         return new PageImpl<T>(content, pageable, total);
     }
 
     /**
      * Creates a new {@link TypedQuery} from the given {@link Specification}.
-     * 
-     * @param spec
-     *            can be {@literal null}.
-     * @param pageable
-     *            can be {@literal null}.
+     *
+     * @param spec     can be {@literal null}.
+     * @param pageable can be {@literal null}.
      * @return
      */
     private <T> TypedQuery<T> getQuery(Class<T> domainClass, Specification<T> spec, Pageable pageable) {
@@ -451,11 +431,9 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
-     * 
-     * @param spec
-     *            can be {@literal null}.
-     * @param sort
-     *            can be {@literal null}.
+     *
+     * @param spec can be {@literal null}.
+     * @param sort can be {@literal null}.
      * @return
      */
     private <T> TypedQuery<T> getQuery(Class<T> domainClass, Specification<T> spec, Sort sort) {
@@ -475,9 +453,8 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * Creates a new count query for the given {@link Specification}.
-     * 
-     * @param spec
-     *            can be {@literal null}.
+     *
+     * @param spec can be {@literal null}.
      * @return
      */
     private <T> TypedQuery<Long> getCountQuery(Class<T> domainClass, Specification<T> spec) {
@@ -493,11 +470,9 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
-     * 
-     * @param spec
-     *            can be {@literal null}.
-     * @param query
-     *            must not be {@literal null}.
+     *
+     * @param spec  can be {@literal null}.
+     * @param query must not be {@literal null}.
      * @return
      */
     private <T, S> Root<T> applySpecificationToCriteria(Class<T> domainClass, Specification<T> spec, CriteriaQuery<S> query) {
@@ -605,9 +580,8 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * 构建统计数量HQL
-     * 
-     * @param hql
-     *            hql
+     *
+     * @param hql hql
      * @return
      */
     private String buildCountHql(String hql) {
@@ -619,7 +593,7 @@ abstract public class GeneralRepositorySuper {
         return sb.toString();
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Page query(String hql, Map<String, Object> ps, Pageable pageable) {
         if (!hql.contains(" order by ")) {
             hql += buildOrderBy(pageable);
@@ -640,7 +614,7 @@ abstract public class GeneralRepositorySuper {
         return new PageImpl(content, pageable, total.longValue());
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Page query(String hql, Pageable pageable) {
         if (!hql.contains(" order by ")) {
             hql += buildOrderBy(pageable);
@@ -655,7 +629,7 @@ abstract public class GeneralRepositorySuper {
         return new PageImpl(content, pageable, total);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Page<?> queryByNativeSql(String sql, Map<String, Object> ps, Pageable pageable) {
         Query query = getEntityManager().createNativeQuery(sql);
 
@@ -710,13 +684,10 @@ abstract public class GeneralRepositorySuper {
 
     /**
      * 使用本地SQL更新数据
-     * 
-     * @param sql
-     *            SQL
-     * @param parameterMap
-     *            参数
-     * @return
-     *         更新或删除的记录数
+     *
+     * @param sql          SQL
+     * @param parameterMap 参数
+     * @return 更新或删除的记录数
      */
     public int updateByNativeSql(String sql, Map<String, Object> parameterMap) {
         Query query = this.getEntityManager().createNativeQuery(sql);
@@ -813,28 +784,42 @@ abstract public class GeneralRepositorySuper {
     }
 
     private long getNextId(String sequenceName) {
-        Query q = getEntityManager().createNativeQuery(String.format("SELECT %s.nextval from DUAL", sequenceName));
-        BigDecimal result = (BigDecimal) q.getSingleResult();
-        return result.longValue();
+        SQLExecutorDao sqlExecutor = ApplicationContextWrapper.getBean("sqlExecutorDao", SQLExecutorDao.class);
+        QueryDescriptor queryDescriptor = sqlExecutor.getQuery("config/uasp/query/bmp/common.xml", "common");
+        return sqlExecutor.getSqlQuery().getJDBCDao().queryToLong(String.format(queryDescriptor.getSqlByName("nextSequence"), sequenceName));
     }
 
+    /**
+     * 获取序列
+     *
+     * @param sequenceName 序列名称
+     * @return 序列
+     * @since 1.1.3
+     */
+    @Transactional(rollbackFor = RuntimeException.class, propagation = Propagation.REQUIRES_NEW)
+    public long getSequence(String sequenceName) {
+        return getNextId(sequenceName);
+    }
+
+    @Transactional(rollbackFor = RuntimeException.class, propagation = Propagation.REQUIRES_NEW)
     public long getVersionNextId() {
         return getNextId("version_seq");
     }
 
+    @Transactional(rollbackFor = RuntimeException.class, propagation = Propagation.REQUIRES_NEW)
     public long getImportExcelNextId() {
         return getNextId("seq_imp_temp_table");
     }
 
     /**
      * 得到数据库系统时间
-     * 
-     * @return
+     *
+     * @return 数据库系统时间
      */
     public Date getDBSystemDateTime() {
-        Query query = getEntityManager().createNativeQuery("select sysdate from dual");
-        Timestamp result = (Timestamp) query.getSingleResult();
-        return new Date(result.getTime());
+        EntityManager em = getEntityManager();
+        SessionImplementor session = (SessionImplementor) em.getDelegate();
+        return DbTimestampType.INSTANCE.seed(session);
     }
 
 }
