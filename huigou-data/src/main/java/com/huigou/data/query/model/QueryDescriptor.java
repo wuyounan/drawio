@@ -3,6 +3,7 @@ package com.huigou.data.query.model;
 import com.huigou.data.query.XMLParseUtil;
 import com.huigou.exception.NotFoundException;
 import com.huigou.uasp.bmp.query.QueryDocument.Query;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +47,9 @@ public class QueryDescriptor {
 
     public Query getQuery() {
         // 优先从方言xml中取
-        return queries.stream().findFirst().get();
+        return queries.stream()
+                .filter(query -> StringUtils.isNotBlank(query.getSqlQuery()))
+                .findFirst().get();
     }
 
     public void setQuery(Query query) {
