@@ -12,7 +12,7 @@ import com.huigou.uasp.bpm.monitor.domain.query.AskQueryRequest;
  */
 public interface ProcMonitorApplication {
     
-    static String QUERY_XML_FILE_PATH = "config/uasp/query/bpm/monitor.xml";
+    static String QUERY_XML_FILE_PATH = "config/uasp/query/bpm/oracle/monitor.xml";
 
     /**
      * 加载询问表
