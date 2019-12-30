@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="queryExecutingProcs" label="处理中的流程">
+		<sql-query>
+			select t.description_         as title,
+                   t.status_name_,
+                   p.start_time_         as start_time,
+                   p.end_time_           as end_time,
+                   c.proc_id,
+                   c.proc_Name,
+                   t.business_key_        as biz_Id,
+                   t.APPLICANT_DEPT_NAME_ as dept_name
+              from act_hi_procinst p, act_hi_procinst_extension t, wf_procdef c
+             where p.id_ = t.proc_inst_id_
+               and p.proc_def_id_ like concat(c.proc_id,':%')
+               and c.node_kind_id = 'proc'
+               and t.status_id_ = 'executing'
+               and not exists
+             (select a.id from JD_Ask a where a.biz_id = t.business_key_)
+               and exists (select h.id
+                      from wf_procunithandler h
+                     where h.biz_id = t.business_key_)
+		</sql-query>
+		<condition column="proc_id" name="procId" symbol="=" alias="c"/>
+		<condition column="start_time_" name="startTime" symbol="&gt;=" alias="p">
+			p.start_time_ &gt;= str_to_date(:startTime,'%Y-%m-%d')
+		</condition>
+		<condition column="start_time_" name="endTime" symbol="&lt;=" alias="p">
+			p.start_time_ &lt;= str_to_date(:endTime,'%Y-%m-%d')
+		</condition>
+		<condition column="description" name="procName" symbol="like" alias="t"/>
+		<condition column="APPLICANT_DEPT_NAME" name="deptName" symbol="like" alias="t"/>
+	</query>
+	
+	<query name="queryCompletedProcs" label="已完成的流程">
+		<sql-query>
+			select t.description_         as title,
+                   t.status_name_,
+                   p.start_time_          as start_time,
+                   p.end_time_            as end_time,
+                   c.proc_id,
+                   c.proc_name,
+                   t.business_key_        as biz_Id,
+                   t.APPLICANT_DEPT_NAME_ as dept_Name
+              from act_hi_procinst p, act_hi_procinst_extension t, wf_procdef c
+             where p.id_ = t.proc_inst_id_
+               and p.proc_def_id_ like concat(c.proc_id,':%')
+               and c.node_kind_id = 'proc'
+               and t.status_id_ = 'completed'
+               and not exists
+             (select a.id from JD_Ask a where a.biz_id = t.business_key_)
+		</sql-query>
+		<condition column="proc_id" name="procId" symbol="=" alias="c"/>
+		<condition column="start_time_" name="startTime" symbol="&gt;=" alias="p">
+			p.start_time_ &gt;= str_to_date(:startTime,'%Y-%m-%d')
+		</condition>
+		<condition column="start_time_" name="endTime" symbol="&lt;=" alias="p">
+			p.start_time_ &lt;= str_to_date(:endTime,'%Y-%m-%d')
+		</condition>
+		<condition column="description" name="procName" symbol="like" alias="t"/>
+		<condition column="APPLICANT_DEPT_NAME" name="deptName" symbol="like" alias="t"/>
+	</query>
+</query-mappings>
