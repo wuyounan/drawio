@@ -189,7 +189,7 @@
 		  from act_hi_taskinst_extension te
 		 where te.proc_inst_id_ = ?
 		   and te.task_def_key_ = 'Apply'
-		   and te.previous_id_ is null
+		   and (te.previous_id_ is null or te.previous_id_ ='')
 		 order by te.id_ desc
 		</sql>
 		<sql name="queryApplicantByBizId">
@@ -205,7 +205,7 @@
 		       te.applicant_person_member_name_ as applicant_person_member_name
 		  from act_hi_taskinst_extension te
 		 where te.business_key_ = ?
-		   and te.previous_id_ is null
+		   and (te.previous_id_ is null or te.previous_id_ ='')
 		 order by te.id_ desc
 		</sql>
 		<sql name="loadRuntimeTaskById">
@@ -377,7 +377,7 @@
 			 where te.proc_inst_id_ = p.proc_inst_id_
 			   and te.task_def_key_ = 'Apply'
 			   and p.end_time_ is null
-			   and te.previous_id_ is null
+			   and (te.previous_id_ is null or te.previous_id_ ='')
 			   and te.status_id_ = 'completed'
 			   and te.creator_person_member_id_ like :personId
 		</sql>

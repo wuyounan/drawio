@@ -1060,7 +1060,7 @@ public class WorkflowApplicationImpl extends BaseApplication implements Workflow
             case INITIATE:
             case TRACKING:
                 sql = this.getHistoryTaskSql();
-                sb.append(" and te.creator_person_member_id_ like :personId and te.task_def_key_ = :taskDefKey and te.previous_id_ is null");
+                sb.append(" and te.creator_person_member_id_ like :personId and te.task_def_key_ = :taskDefKey and (te.previous_id_ is null or te.previous_id_ ='')");
                 if (viewKind == ViewTaskKind.TRACKING) {
                     sb.append(" and pi.end_time_ is null and te.status_id_ = 'completed' ");
                 }
@@ -1209,7 +1209,7 @@ public class WorkflowApplicationImpl extends BaseApplication implements Workflow
                 }
                 hasCondition = true;
                 if (!StringUtil.isBlank(administrativeOrgFullId)) {
-                    sb.append("  ( te.creator_full_id_ like  :administrativeOrgFullId  and te.task_def_key_ = 'Apply' and te.previous_id_ is null)");
+                    sb.append("  ( te.creator_full_id_ like  :administrativeOrgFullId  and te.task_def_key_ = 'Apply' and (te.previous_id_ is null or te.previous_id_ =''))");
                     queryModel.putParam("administrativeOrgFullId", administrativeOrgFullId + "%");
                     if (isSingleProcInstShowOneTask) {
                         orgCondition = " and  tei.creator_full_id_ like  :interalOrgId and i.task_def_key_ = 'Apply'";
