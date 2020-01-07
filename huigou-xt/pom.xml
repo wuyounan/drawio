@@ -90,11 +90,6 @@
                     <artifactId>huigou-uasp</artifactId>
                     <version>${project.version}</version>
                 </dependency>
-                <dependency>
-                    <groupId>com.huigou</groupId>
-                    <artifactId>huigou-demo</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
                 <!-- 公用的组件包 -->
                 <dependency>
                     <groupId>commons-lang</groupId>
