@@ -9,6 +9,24 @@
 			   and (o.org_Kind_Id != 'psm' or
 			       (select p.status from SA_OPPerson p where p.id = o.person_Id) >= :newStatus)
 		</sql>
+		<sql name="subordinatePsm">
+			select id
+			 from
+				 SA_OPOrg o
+			  where o.org_Kind_Id = 'psm'
+				 and o.status in (:oldStatus)
+				 and (select p.status from SA_OPOrg p where p.id = o.parent_Id) >= :newStatus
+				 and exists (select 1
+					 from SA_OPPerson person, SA_OPOrg org
+					   where person.status = :newStatus
+						 and org.org_Kind_Id = 'psm'
+					 	 and org.status in (:oldStatus)
+					 	 and org.full_Id like :fullId
+						 and person.main_Org_Id = org.parent_Id
+						 and person.id = org.person_Id
+						 and o.person_Id = person.id
+						 and o.parent_Id != person.main_Org_Id)
+		</sql>
 		<sql name="updateSubordinatePsmStatus">
 			update SA_OPOrg o
 			   set o.status = :newStatus, o.version = (select next_sequence('version_seq'))

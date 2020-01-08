@@ -7,8 +7,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 import com.huigou.cache.SystemCache;
@@ -129,7 +131,7 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
         Assert.hasText(orgPropertyDefinition.getName(), "属性名称不能为空。");
 
         OrgPropertyDefinition other = orgPropertyDefinitionRepository.findFirstByOrgKindIdAndName(orgPropertyDefinition.getOrgKindId(),
-                                                                                                  orgPropertyDefinition.getName());
+                orgPropertyDefinition.getName());
 
         if (other != null && !other.equals(orgPropertyDefinition)) {
             throw new ApplicationException("属性名重复，不能保存。");
@@ -181,18 +183,12 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
     /**
      * 更新组织状态
      *
-     * @param id
-     *            组织ID
-     * @param version
-     *            版本号
-     * @param fromStatuses
-     *            前驱状态
-     * @param toStatus
-     *            修改组织状态
-     * @param operateKind
-     *            操作类型
-     * @param isEnableSubordinatePsm
-     *            是否更新从属人员状态
+     * @param id                     组织ID
+     * @param version                版本号
+     * @param fromStatuses           前驱状态
+     * @param toStatus               修改组织状态
+     * @param operateKind            操作类型
+     * @param isEnableSubordinatePsm 是否更新从属人员状态
      */
     private void updateOrgStatus(String id, Collection<ValidStatus> fromStatuses, ValidStatus toStatus, String operateKind, boolean isEnableSubordinatePsm) {
         // 1、验证是否存在组织
@@ -222,11 +218,11 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
         // 4、启用人员成员 需要验证人员的状态
         if (OrgNodeKind.PSM.equals(org.getOrgKind())) {
             if (!org.getParentId().equalsIgnoreCase(org.getPerson().getMainOrgId())) {
-                Util.check(toStatus.getId() <= org.getPerson().getValidStatus().getId(), "%s失败，人员“%s”的状态是“%s”。", new Object[] {
-                                                                                                                               operateKind,
-                                                                                                                               org.getPerson().getName(),
-                                                                                                                               org.getPerson().getValidStatus()
-                                                                                                                                  .getDisplayName() });
+                Util.check(toStatus.getId() <= org.getPerson().getValidStatus().getId(), "%s失败，人员“%s”的状态是“%s”。", new Object[]{
+                        operateKind,
+                        org.getPerson().getName(),
+                        org.getPerson().getValidStatus()
+                                .getDisplayName()});
             }
         }
 
@@ -237,8 +233,8 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
             }
             updateChildrenStatus(org.getFullId(), fromStatuses, toStatus);
         } else {
-            Util.check(org.getValidStatus().equals(toStatus), "%s失败，“%s”当前的状态是“%s”。", new Object[] { operateKind, org.getName(),
-                                                                                                    org.getValidStatus().getDisplayName() });
+            Util.check(org.getValidStatus().equals(toStatus), "%s失败，“%s”当前的状态是“%s”。", new Object[]{operateKind, org.getName(),
+                    org.getValidStatus().getDisplayName()});
         }
     }
 
@@ -254,14 +250,33 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
     }
 
     private void updateSubordinatePsmStatus(String orgFullId, Collection<ValidStatus> fromStatuses, ValidStatus toStatus) {
-        String jpql = this.getQuerySqlByName("updateSubordinatePsmStatus");
-
-        Map<String, Object> params = new HashMap<String, Object>(3);
+        Map<String, Object> params = new HashMap<>(3);
         params.put("newStatus", toStatus.getId());
         params.put("oldStatus", ValidStatus.toList(fromStatuses));
         params.put("fullId", String.format("%s%%", orgFullId));
+        String sql = null;
+        try {
+            sql = this.getQuerySqlByName("subordinatePsm");
+        } catch (Exception ignored) {
 
-        this.generalRepository.updateByNativeSql(jpql, params);
+        }
+        if (StringUtils.isNotBlank(sql)) {
+            // @since 1.3.3
+            List<String> psmIds = this.generalRepository.queryByNativeSql(sql, params)
+                    .stream()
+                    .map(Map.class::cast)
+                    .map(row -> (String) row.get("id"))
+                    .collect(Collectors.toList());
+            for (String psmId : psmIds) {
+                Org psm = orgRepository.findOne(psmId);
+                psm.setStatus(toStatus.getId());
+                psm.setVersion(generalRepository.getVersionNextId());
+                orgRepository.save(psm);
+            }
+        } else {
+            String jpql = this.getQuerySqlByName("updateSubordinatePsmStatus");
+            this.generalRepository.updateByNativeSql(jpql, params);
+        }
     }
 
     private void updateMainOrgPersonStatus(String orgFullId, Collection<ValidStatus> fromStatuses, ValidStatus toStatus) {
@@ -653,11 +668,9 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
 
     /**
      * 删除业务管理权限
-     * 
-     * @param orgFullId
-     *            组织id全路径
-     * @param isDeletePerson
-     *            是否删除人员
+     *
+     * @param orgFullId      组织id全路径
+     * @param isDeletePerson 是否删除人员
      */
     @SuppressWarnings("unused")
     private void deleteBizManagement(String orgFullId, boolean isDeletePerson) {
@@ -690,11 +703,9 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
 
     /**
      * 删除授权
-     * 
-     * @param orgFullId
-     *            组织ID全路径
-     * @param isDeletePerson
-     *            是否删除人员
+     *
+     * @param orgFullId      组织ID全路径
+     * @param isDeletePerson 是否删除人员
      */
     @SuppressWarnings("unused")
     private void deleteAuthorize(String orgFullId, boolean isDeletePerson) {
@@ -724,11 +735,9 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
 
     /**
      * 删除代理
-     * 
-     * @param orgFullId
-     *            组织ID全路径
-     * @param isDeletePerson
-     *            是否删除人员
+     *
+     * @param orgFullId      组织ID全路径
+     * @param isDeletePerson 是否删除人员
      */
     @SuppressWarnings("unused")
     private void deleteAgent(String orgFullId, boolean isDeletePerson) {
@@ -793,35 +802,36 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
 
     /**
      * 删除人员
-     * 
-     * @param orgFullId
-     *            组织ID全路径
+     *
+     * @param orgFullId 组织ID全路径
      */
     private void deletePerson(String orgFullId) {
-        String orgFullIdCriteria = String.format("%s%%", orgFullId);
-        StringBuilder sb = new StringBuilder();
+        Map<String, Object> params = new HashMap<>(1);
+        params.put("fullId", String.format("%s%%", orgFullId));
+        StringBuilder jpql = new StringBuilder();
         // 删除一人多岗的人员数据
-        sb.append("delete from SA_OPOrg t");
-        sb.append(" where Org_Kind_ID = 'psm'");
-        sb.append("   and exists (select 1");
-        sb.append("          from SA_OPPerson person, SA_OPOrg org");
-        sb.append("         where person.ID = t.Person_ID");
-        sb.append("           and person.Main_Org_ID <> t.Parent_ID");
-        sb.append("           and org.Org_Kind_ID = 'psm'");
-        sb.append("           and person.Main_Org_ID = org.Parent_ID");
-        sb.append("           and person.ID = org.Person_ID");
-        sb.append("           and org.Full_ID like ?)");
+        jpql.append("from Org t");
+        jpql.append(" where orgKindId = 'psm'");
+        jpql.append("   and exists (select 1");
+        jpql.append("          from Person person, Org org");
+        jpql.append("         where person.id = t.person.id");
+        jpql.append("           and person.mainOrgId != t.parentId");
+        jpql.append("           and org.orgKindId = 'psm'");
+        jpql.append("           and person.mainOrgId = org.parentId");
+        jpql.append("           and person.id = org.person.id");
+        jpql.append("           and org.fullId like :fullId)");
         // 删除人员
-        this.sqlExecutorDao.executeUpdate(sb.toString(), orgFullIdCriteria);
-        sb.delete(0, sb.length());
-        sb.append("delete from SA_OPPerson person");
-        sb.append(" where exists (select 1");
-        sb.append("          from SA_OPOrg org");
-        sb.append("         where org.Org_Kind_ID = 'psm'");
-        sb.append("           and person.Main_Org_ID = org.Parent_ID");
-        sb.append("           and person.ID = org.Person_ID");
-        sb.append("           and Full_ID like ?)");
-        this.sqlExecutorDao.executeUpdate(sb.toString(), orgFullIdCriteria);
+        List<Org> persons = generalRepository.query(jpql.toString(), params);
+        orgRepository.deleteInBatch(persons);
+        jpql.delete(0, jpql.length());
+        jpql.append("delete Person person");
+        jpql.append(" where exists (select 1");
+        jpql.append("          from Org org");
+        jpql.append("         where org.orgKindId = 'psm'");
+        jpql.append("           and person.mainOrgId = org.parentId");
+        jpql.append("           and person.id = org.person.id");
+        jpql.append("           and fullId like :fullId)");
+        generalRepository.update(jpql.toString(), params);
     }
 
     @Override
@@ -829,7 +839,7 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
         Org org = this.orgRepository.findOne(id);
         Assert.notNull(org, MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, id, "组织"));
         Assert.isTrue(ValidStatus.LOGIC_DELETE == ValidStatus.fromId(org.getStatus()),
-                      String.format("清除组织失败，“%s”当前的状态是“%s”。", org.getName(), ValidStatus.LOGIC_DELETE.getDisplayName()));
+                String.format("清除组织失败，“%s”当前的状态是“%s”。", org.getName(), ValidStatus.LOGIC_DELETE.getDisplayName()));
 
         checkBizManagementForDeleteOrg(org);
         checkAuthorizeForDeleteOrg(org);
@@ -871,8 +881,8 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
             psmStatus = ValidStatus.fromId(Math.min(person.getValidStatus().getId(), position.getValidStatus().getId()));
         }
 
-        Util.check(psmStatus.getId() <= person.getStatus(), "新建人员成员失败，人员“%s”的状态是“%s”。", new Object[] { person.getName(),
-                                                                                                      person.getValidStatus().getDisplayName() });
+        Util.check(psmStatus.getId() <= person.getStatus(), "新建人员成员失败，人员“%s”的状态是“%s”。", new Object[]{person.getName(),
+                person.getValidStatus().getDisplayName()});
 
         String personMemberId = OpmUtil.formatPersonMemberId(person.getId(), position.getId());
 
@@ -1084,12 +1094,9 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
     /**
      * 获取父节点的最大序列号
      *
-     * @param parentId
-     *            父节点ID
-     * @param orgKind
-     *            节点类型
-     * @param isExcludeDiabled
-     *            是否排除停用的组织
+     * @param parentId         父节点ID
+     * @param orgKind          节点类型
+     * @param isExcludeDiabled 是否排除停用的组织
      * @return
      */
     private Integer getMaxSequence(String parentId, OrgKind orgKind, boolean isExcludeDiabled) {
@@ -1230,11 +1237,11 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
             Person existPerson = personList.get(0);
 
             Util.check(!person.getCode().equalsIgnoreCase(existPerson.getCode()), "人员编码“%s”与“%s”的编码重复。",
-                       new Object[] { person.getCode(), existPerson.getName() });
-            Util.check(!loginName.equalsIgnoreCase(existPerson.getLoginName()), "人员登录名“%s”与“%s”的登录名或编码重复。", new Object[] { loginName, existPerson.getName() });
+                    new Object[]{person.getCode(), existPerson.getName()});
+            Util.check(!loginName.equalsIgnoreCase(existPerson.getLoginName()), "人员登录名“%s”与“%s”的登录名或编码重复。", new Object[]{loginName, existPerson.getName()});
             if (Util.isNotEmptyString(person.getCertificateNo())) {
                 Util.check(!person.getCertificateNo().equalsIgnoreCase(existPerson.getCertificateNo()), "人员证件号“%s”与“%s”的证件号重复。",
-                           new Object[] { person.getCertificateNo(), existPerson.getName() });
+                        new Object[]{person.getCertificateNo(), existPerson.getName()});
             }
         }
     }
@@ -1343,18 +1350,12 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
     /**
      * 更新人员状态
      *
-     * @param id
-     *            人员唯一标识
-     * @param version
-     *            版本号
-     * @param fromStatuses
-     *            前置状态
-     * @param toStatus
-     *            更新状态
-     * @param operateType
-     *            操作类型
-     * @param isEnableSubordinatePsm
-     *            是否允许从属人员成员
+     * @param id                     人员唯一标识
+     * @param version                版本号
+     * @param fromStatuses           前置状态
+     * @param toStatus               更新状态
+     * @param operateType            操作类型
+     * @param isEnableSubordinatePsm 是否允许从属人员成员
      */
     private void updatePersonStatus(String id, Collection<ValidStatus> fromStatuses, ValidStatus toStatus, String operateType, boolean isEnableSubordinatePsm) {
         Org personMember = this.orgRepository.findMainOrgByPersonId(id);
@@ -1377,8 +1378,8 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
         Person person = this.personRepository.findOne(id);
         Assert.notNull(person, String.format("未找到人员ID“%s”对应的人员。", id));
 
-        Util.check(person.getValidStatus().equals(ValidStatus.LOGIC_DELETE), "%s失败，“%s”当前的状态是“%s”。", new Object[] { "清除人员", person.getName(),
-                                                                                                                   person.getValidStatus().getDisplayName() });
+        Util.check(person.getValidStatus().equals(ValidStatus.LOGIC_DELETE), "%s失败，“%s”当前的状态是“%s”。", new Object[]{"清除人员", person.getName(),
+                person.getValidStatus().getDisplayName()});
 
         List<Org> personMembers = this.orgRepository.findPersonMembersByPersonId(id);
         this.orgRepository.delete(personMembers);
@@ -1435,7 +1436,7 @@ public class OrgApplicationImpl extends BaseApplication implements OrgApplicatio
     public void initPassword(String personId) {
         Assert.hasText(personId, String.format(CommonDomainConstants.PARAMETER_NOT_NULL_FORMAT, "personId"));
         Person person = this.loadPerson(personId);
-        Util.check(person != null, "没有找到ID“%s”对应的人员。", new Object[] { personId });
+        Util.check(person != null, "没有找到ID“%s”对应的人员。", new Object[]{personId});
         person.setPassword(OpmUtil.getDefaultEncryptPassword());
         this.personRepository.save(person);
     }
