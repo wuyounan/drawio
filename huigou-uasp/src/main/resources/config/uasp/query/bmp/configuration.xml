@@ -17,7 +17,7 @@
 			  from SA_CommonTree t
 		 where 1 = 1
 		</sql-query>
-		<condition column="kind_id" name="kindId" symbol="=" alias="t"/>
+		<condition column="kind_id" type="java.lang.Integer" name="kindId" symbol="=" alias="t"/>
 		<condition column="parent_id" name="parentId" symbol="=" alias="t"/>
 	</query>
 	

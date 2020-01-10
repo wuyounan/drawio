@@ -143,7 +143,7 @@
 			 order by te.start_time_  asc
 		</sql>
 		<sql name="queryApprovalHistoryByProcInstId">
-			select te.task_def_key_ task_def_key, te.id_ id, te.name_ name,
+			select te.task_def_key_ task_def_key, te.id_ id, te.name_ as name,
 			       te.executor_ogn_name_ executor_ogn_name,
 			       te.executor_dept_name_ executor_dept_name,
 			       te.executor_person_member_name_ executor_person_member_name,
@@ -159,7 +159,7 @@
 			 order by te.id_	
 		</sql>
 		<sql name="queryBackTasksByBizCode">
-			select te.id_ id,  te.task_def_key_ task_def_key, te.name_ name, p.sub_proc_unit_name,
+			select te.id_ id,  te.task_def_key_ task_def_key, te.name_ as name, p.sub_proc_unit_name,
 				   concat(te.executor_dept_name_,concat('.',te.executor_person_member_name_)) executor_full_name,
 			       te.status_name_ status_name, (case when p.group_id is null then 0 else p.group_id end) group_id, pd.sequence process_definition_group_id,
 			       te.proc_unit_handler_id_ proc_unit_handler_id
@@ -180,7 +180,7 @@
 		<sql name="queryApplicantByProcInstId">
 			select te.id_                 id,
 		       te.task_def_key_       task_def_key,
-		       te.name_               name,
+		       te.name_           as    name,
 		       te.executor_full_id_   executor_full_id,
 		       te.executor_full_name_ executor_full_name,
 		       te.business_key_       business_key,
@@ -210,7 +210,7 @@
 		</sql>
 		<sql name="loadRuntimeTaskById">
 			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
-			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.name_ as name, te.process_definition_key_ process_definition_key,
 			       te.parent_task_id_ parent_task_id, te.description_ description,
 			       te.creator_ogn_name_ creator_ogn_name,
 			       te.creator_dept_name_ creator_dept_name,
@@ -235,7 +235,7 @@
 			select te.id_ id,
 			       te.proc_inst_id_ proc_inst_id,
 			       te.proc_def_id_ proc_def_id,
-			       te.name_ name,
+			       te.name_ as name,
 			       te.process_definition_key_ process_definition_key,
 			       te.parent_task_id_ parent_task_id,
 			       te.description_ description,
@@ -270,7 +270,7 @@
 		</sql>
 		<sql name="loadHistoricTaskById">
 			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
-			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.name_ as name, te.process_definition_key_ process_definition_key,
 			       te.parent_task_id_ parent_task_id, te.description_ description,
 			       te.creator_ogn_name_ creator_ogn_name,
 			       te.creator_dept_name_ creator_dept_name,
@@ -294,7 +294,7 @@
 		<sql name="queryHiTaskInstByBizCode">
 			select te.id_ id, te.proc_def_id_ proc_def_id, te.task_def_key_ task_def_key,
 			       te.proc_inst_id_ proc_inst_id, te.execution_id_ execution_id,
-			       te.name_ name, te.description_ description, te.start_time_ start_time,
+			       te.name_ as name, te.description_ description, te.start_time_ start_time,
 			       te.end_time_ end_time, te.priority_ priority, te.form_key_ form_key,
 			       te.catalog_id_ catalog_id, te.kind_id_ kind_id,
 			       te.creator_full_name_ creator_full_name,
@@ -322,7 +322,7 @@
 		<sql name="queryHiTaskInstByBizCodeAndKindId">
 			select te.id_ id, te.proc_def_id_ proc_def_id, te.task_def_key_ task_def_key,
 			       te.proc_inst_id_ proc_inst_id, te.execution_id_ execution_id,
-			       te.name_ name, te.description_ description, te.start_time_ start_time,
+			       te.name_ as name, te.description_ description, te.start_time_ start_time,
 			       te.end_time_ end_time, te.priority_ priority, te.form_key_ form_key,
 			       te.catalog_id_ catalog_id, te.kind_id_ kind_id,
 			       te.creator_full_name_ creator_full_name,
@@ -623,7 +623,7 @@
     <query name="workflow" label="任务查询">
 		<sql name="queryRuntimeTasks">
 			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
-			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.name_ as name, te.process_definition_key_ process_definition_key,
 			       te.parent_task_id_ parent_task_id, te.description_ description,
 			       te.creator_ogn_name_ creator_ogn_name,
 			       te.creator_dept_name_ creator_dept_name,
@@ -653,7 +653,7 @@
 		</sql>
 		<sql name="queryHistoryTasks">
 			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
-			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.name_  as name, te.process_definition_key_ process_definition_key,
 			       te.parent_task_id_ parent_task_id, description_ description,
 			       te.creator_ogn_name_ creator_ogn_name,
 			       te.creator_dept_name_ creator_dept_name,
@@ -683,7 +683,7 @@
 		</sql>
 		<sql name="queryCollectTasks">
 			select te.id_ id, te.proc_inst_id_ proc_inst_id, te.proc_def_id_ proc_def_id,
-			       te.name_ name, te.process_definition_key_ process_definition_key,
+			       te.name_ as name, te.process_definition_key_ process_definition_key,
 			       parent_task_id_ parent_task_id, description_ description,
 			       te.creator_ogn_name_ creator_ogn_name,
 			       te.creator_dept_name_ creator_dept_name,
