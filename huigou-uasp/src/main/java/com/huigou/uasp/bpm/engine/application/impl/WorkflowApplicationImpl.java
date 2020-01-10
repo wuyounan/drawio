@@ -1644,7 +1644,7 @@ public class WorkflowApplicationImpl extends BaseApplication implements Workflow
         StringBuffer sb = new StringBuffer();
         sb.append("select te.id_                    id,");
         sb.append("       te.task_def_key_          task_def_key,");
-        sb.append("       te.name_                  name,");
+        sb.append("       te.name_          as         name,");
         sb.append("       te.description_           description,");
         sb.append("       te.executor_full_id_,");
         sb.append("       te.executor_full_name_   executor_full_name,");
