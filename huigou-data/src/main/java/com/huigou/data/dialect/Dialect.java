@@ -185,7 +185,7 @@ public enum Dialect {
         }
         result = StringHelper.replace(result, "__hibernate_row_nr__", "_ROW_NUM_");
         // Replace a special top tag
-        result = StringHelper.replaceOnce(result, " $Top_Tag(?) ", " TOP(" + totalRows + ") ");
+        result = StringHelper.replaceOnce(result, " TOP(?) ", " TOP(" + totalRows + ") ");
         result = StringHelper.replaceOnce(result, "_ROW_NUM_ >= ? AND _ROW_NUM_ < ?", "_ROW_NUM_ >= " + (skipRows + 1) + " AND _ROW_NUM_ < " + (totalRows + 1));
         result = StringHelper.replaceOnce(result, "offset ? rows fetch next ? rows only", "offset " + skipRows + " rows fetch next " + pageSize + " rows only");
         result = StringHelper.replaceOnce(result, "offset 0 rows fetch next ? rows only", "offset 0 rows fetch next " + pageSize + " rows only");

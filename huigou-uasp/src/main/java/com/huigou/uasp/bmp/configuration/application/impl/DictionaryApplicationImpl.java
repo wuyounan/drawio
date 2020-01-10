@@ -128,6 +128,7 @@ public class DictionaryApplicationImpl extends BaseApplication implements Dictio
         QueryModel queryModel = new QueryModel();
         queryModel.setSql(sql);
         queryModel.putParam("code", code);
+        queryModel.setDefaultOrderBy("sequence");
         return this.sqlExecutorDao.executeQuery(queryModel);
     }
 

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	
+	<query name="orgPropertyDefinition" label="组织机构">
+		<sql-query>
+			select t.* from SA_OPOrgPropertyDefinition t where 1 = 1
+		</sql-query>
+		<condition column="org_kind_id" name="orgKindId" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="person" label="用户查询">
+		<sql-query>
+			select p.*, o.full_sequence
+			  from SA_OPOrg o, SA_OPPerson p
+			 where o.person_id = p.id
+			   and p.main_org_id = o.parent_id
+		</sql-query>
+		<condition column="code" name="code" symbol="like" alias="p"/>
+		<condition column="name" name="name" symbol="like" alias="p"/>
+		<sql name="checkDuplication">
+			select o
+			  from Person o
+			 where id != :id
+			   and (upper(code) = :code or upper(coalesce(loginName, code)) = :loginName %s )
+		</sql>
+	</query>
+
+	<query name="org" label="组织机构">
+		<sql name="updateChildrenStatus">
+			update SA_OPOrg o
+			   set o.status = :newStatus, o.version = (next value for VERSION_SEQ)
+			 where o.status in (:oldStatus)
+			   and o.full_Id like :fullId
+			   and (o.org_Kind_Id != 'psm' or
+			       (select p.status from SA_OPPerson p where p.id = o.person_Id) >= :newStatus)
+		</sql>
+		<sql name="updateSubordinatePsmStatus">
+			update SA_OPOrg o
+			   set o.status = :newStatus, o.version = (next value for VERSION_SEQ)
+			 where o.org_Kind_Id = 'psm'
+			   and o.status in (:oldStatus)
+			   and (select p.status from SA_OPOrg p where p.id = o.parent_Id) >= :newStatus
+			   and exists (select 1
+			          from SA_OPPerson person, SA_OPOrg org
+			         where person.status = :newStatus
+			           and org.org_Kind_Id = 'psm'
+			           and org.status in (:oldStatus)
+			           and org.full_Id like :fullId
+			           and person.main_Org_Id = org.parent_Id
+			           and person.id = org.person_Id
+			           and o.person_Id = person.id
+			           and o.parent_Id != person.main_Org_Id)
+		</sql>
+		<sql name="updateMainOrgPersonStatus">
+			update SA_OPPerson p
+			   set p.status = :newStatus, p.version = (next value for VERSION_SEQ)
+			 where (p.Status in (:oldStatus))
+			   and exists (select 1
+			          from SA_OPOrg o
+			         where (o.org_Kind_Id = 'psm')
+			           and (p.main_Org_Id = o.parent_Id)
+			           and (p.id = o.person_Id)
+			           and (o.status in (:oldStatus))
+			           and (o.full_Id like :fullId))
+		</sql>
+		<sql name="updateOrgChildrenFullCodeAndName">
+			update SA_OPOrg
+			   set full_Code = :parentNewFullCode +
+			                   substring(full_Code,
+			                          length(:parentOldFullCode) + 1,
+			                          length(full_Code)),
+			       full_Name = :parentNewFullName +
+			                   substring(full_Name,
+			                          length(:parentOldFullName) + 1,
+			                          length(full_Name)), version = (next value for VERSION_SEQ)
+			 where full_Id like :likeFullId
+		</sql>
+		<sql name="updateRedundantData">
+			update SA_OPOrg t
+			   set t.org_Id = :orgId, t.org_Code = :orgCode, t.org_Name = :orgName,
+			       t.dept_Id = :deptId, t.dept_Code = :deptCode, t.dept_Name = :deptName,
+			       t.position_Id = :positionId, t.position_Code = :positionCode,
+			       t.position_Name = :positionName, version = (next value for VERSION_SEQ)
+			 where t.id = :id
+		</sql>
+		<sql name="updateOrgChildrenFullOrgKindId">
+			update SA_OPOrg
+			   set full_org_kind_Id = :parentNewFullOrgKindId +
+			                        substring(full_Org_Kind_Id,
+			                               length(:parentOldOrgKindId) + 1,
+			                               length(full_Org_Kind_Id)),
+			       version = (next value for VERSION_SEQ)
+			 where full_Id like :likeFullId
+		</sql>
+		<sql name="updateOrgChildrenFullSequence">
+			update SA_OPOrg
+			   set full_Sequence = :parentNewSequence +
+			                       substring(full_Sequence,
+			                              length(:parentOldSequence) + 1,
+			                              length(full_Sequence)),
+			       version = (next value for VERSION_SEQ)
+			 where full_Id like :fullId
+		</sql>
+		<sql name="updateOrgSequence">
+			update SA_OPOrg
+			   set full_sequence = :fullSequence, sequence = :sequence,
+			       version = (next value for VERSION_SEQ)
+			 where id = :id	
+		</sql>
+		<sql name="queryOrgProperties">
+			select p.*, d.data_source, d.description
+			  from SA_OPOrgProperty p, SA_OPOrgPropertyDefinition d
+			 where p.property_definition_id = d.id
+			   and p.org_id = :orgId
+		</sql>
+		<sql name="getOrgNextSequence">
+			select max(sequence) as maxSequence
+			  from Org
+			 where parentId = :parentId	
+		</sql>
+		<sql name="orgQuery">
+			select o.id, o.type_id, o.code, o.name, o.long_Name, o.parent_Id, o.full_Id,
+			       o.full_Code, o.full_Name, o.org_Id, o.org_Code, o.org_Name, o.dept_Id,
+			       o.dept_Code, o.dept_Name, o.position_Id, o.position_Code,
+			       o.position_Name, o.org_Kind_Id, p.id as person_Id, o.description,
+			       o.status, o.full_Sequence, p.sex, p.certificate_no, p.status as personStatus,
+			       o.full_Org_Kind_Id, p.main_Org_Id, o.is_Virtual, o.sequence,
+			       o.version
+			  from SA_OPOrg o left join SA_OPPerson p on o.person_id = p.id
+			 where 1=1
+		</sql>
+		<sql name="queryOrgExcludePos">
+			select o.id, o.type_id, o.code, o.name, o.long_Name, o.parent_Id, o.full_Id,
+			       o.full_Code, o.full_Name, o.org_Id, o.org_Code, o.org_Name, o.dept_Id,
+			       o.dept_Code, o.dept_Name, o.position_Id, o.position_Code,
+			       o.position_Name, o.org_Kind_Id, p.id as person_Id, o.description,
+			       o.status, o.full_Sequence, p.sex, p.certificate_no, p.status as personStatus,
+			       o.full_Org_Kind_Id, p.main_Org_Id, o.is_Virtual, o.sequence,
+			       o.version
+			  from V_SA_OPOrg_Exclude_Pos o left join SA_OPPerson p on  o.person_id = p.id
+			 where 1=1
+		</sql>
+		<sql name="queryCount">
+			select count(o.id)
+			  from SA_OPOrg o left join SA_OPPerson p on o.person_id = p.id
+			 where  o.parent_id = :parentId
+		</sql>
+	</query>
+	
+</query-mappings>

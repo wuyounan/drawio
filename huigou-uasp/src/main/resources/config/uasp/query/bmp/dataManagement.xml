@@ -81,12 +81,13 @@
 			       t.full_name,
 			       k.code,
 			       k.name,
-			       k.data_kind
+			       k.data_kind,
+			       k.sequence,
+			       t.data_kind_id
 			  from sa_opdatamanagedetailresource t
 			  left join sa_opdatakind k
 			    on t.data_kind_id = k.id
 			 where t.data_managedetal_id = :dataManagedetalId
-			 order by k.sequence, t.data_kind_id asc
 		</sql-query>
 	</query>
 	

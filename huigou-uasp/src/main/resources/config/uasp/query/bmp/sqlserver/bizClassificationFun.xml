@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="bizClassificationFun" label="业务分类配置">
+		<sql name="findParameterByFullId">
+			select d.value
+			  from sa_flexfieldstorage t, sa_oporg o
+			 where t.biz_kind_id = ?
+			   and t.field_name = ?
+			   and t.biz_id = o.id
+			   and ? like o.full_id+'%'
+			 order by o.full_sequence desc
+		</sql>
+		<sql name="findParameterByOrgId">
+			select d.value
+		  from sa_flexfieldstorage t, sa_oporg o, sa_oporg op
+		 where t.biz_kind_id = ?
+		   and t.field_name = ?
+		   and t.biz_id = o.id
+		   and op.id = ?
+		   and op.full_id like o.full_id+'%'
+		 order by o.full_sequence desc
+		</sql>
+	</query> 
+</query-mappings>

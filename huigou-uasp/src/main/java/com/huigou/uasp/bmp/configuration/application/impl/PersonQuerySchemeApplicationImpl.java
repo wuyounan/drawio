@@ -51,6 +51,7 @@ public class PersonQuerySchemeApplicationImpl extends BaseApplication implements
         queryModel.setSql(sql);
         queryModel.putParam("personId", personId);
         queryModel.putParam("kindId", kindId);
+        queryModel.setDefaultOrderBy("sequence");
         return this.sqlExecutorDao.executeQuery(queryModel);
     }
 

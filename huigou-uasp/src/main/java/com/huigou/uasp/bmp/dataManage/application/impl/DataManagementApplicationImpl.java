@@ -130,6 +130,7 @@ public class DataManagementApplicationImpl extends BaseApplication implements Da
         QueryDescriptor queryDescriptor = this.sqlExecutorDao.getQuery(QUERY_XML_FILE_PATH, "opdatamanagedetailresource");
         QueryModel model = this.sqlExecutorDao.getQueryModel(queryDescriptor, queryRequest);
         model.putDictionary("dataKind", DataResourceKind.getData());
+        model.setDefaultOrderBy("sequence,data_kind_id");
         return this.sqlExecutorDao.executeQuery(model);
     }
 

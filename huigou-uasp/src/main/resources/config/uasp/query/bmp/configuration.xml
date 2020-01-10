@@ -51,7 +51,6 @@
 			   and m.status = 1
 			   and d.status = 1
 			   and m.code = :code
-			 order by d.sequence
 		</sql>
 		<condition column="dictionary_id" name="parentId" symbol="=" alias="t" append="false"/>
 	</query>
@@ -71,7 +70,6 @@
 			  from SA_PersonQueryScheme
 			 where person_id = :personId
 			   and kind_id = :kindId
-			 order by sequence
 		</sql>
 	</query>
 	

@@ -1,0 +1,1212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<query-mappings>
+	<query name="orgType" label="组织类型">
+		<sql-query>
+			 select t.* from SA_OPOrgType t where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="org_kind_id" name="orgKindId" symbol="=" alias="t"/>
+	</query>
+
+	<query name="orgTemplate" label="组织模板">
+		<sql-query>
+			select a.id, b.org_Kind_Id, a.parent_Id, b.code, b.name, a.type_id,
+			       a.sequence, a.version, (select count(1) from SA_OPOrgTemplate i where i.parent_id = a.id) has_Children, 0 is_expand
+			  from SA_OPOrgTemplate a, SA_OPOrgType b
+			 where a.type_id = b.id
+		</sql-query>
+		<condition column="parent_id" name="parentId" symbol="=" alias="a"/>
+		<condition column="code" name="code" symbol="like" alias="b"/>
+		<condition column="name" name="name" symbol="like" alias="b"/>
+	</query>  
+
+    <query name="org" label="组织机构">
+		<sql name="updateChildrenStatus">
+			update SA_OPOrg o
+			   set o.status = :newStatus, o.version = (next value for VERSION_SEQ)
+			 where o.status in (:oldStatus)
+			   and o.full_Id like :fullId
+			   and (o.org_Kind_Id != 'psm' or
+			       (select p.status from SA_OPPerson p where p.id = o.person_Id) >= :newStatus)
+		</sql>
+		<sql name="updateSubordinatePsmStatus">
+			update SA_OPOrg o
+			   set o.status = :newStatus, o.version = (next value for VERSION_SEQ)
+			 where o.org_Kind_Id = 'psm'
+			   and o.status in (:oldStatus)
+			   and (select p.status from SA_OPOrg p where p.id = o.parent_Id) >= :newStatus
+			   and exists (select 1
+			          from SA_OPPerson person, SA_OPOrg org
+			         where person.status = :newStatus
+			           and org.org_Kind_Id = 'psm'
+			           and org.status in (:oldStatus)
+			           and org.full_Id like :fullId
+			           and person.main_Org_Id = org.parent_Id
+			           and person.id = org.person_Id
+			           and o.person_Id = person.id
+			           and o.parent_Id != person.main_Org_Id)
+		</sql>
+		<sql name="updateMainOrgPersonStatus">
+			update SA_OPPerson p
+			   set p.status = :newStatus, p.version = (next value for VERSION_SEQ)
+			 where (p.Status in (:oldStatus))
+			   and exists (select 1
+			          from SA_OPOrg o
+			         where (o.org_Kind_Id = 'psm')
+			           and (p.main_Org_Id = o.parent_Id)
+			           and (p.id = o.person_Id)
+			           and (o.status in (:oldStatus))
+			           and (o.full_Id like :fullId))
+		</sql>
+		<sql name="updateOrgChildrenFullCodeAndName">
+			update SA_OPOrg
+			   set full_Code = :parentNewFullCode +
+			                   substring(full_Code,
+			                          length(:parentOldFullCode) + 1,
+			                          length(full_Code)),
+			       full_Name = :parentNewFullName +
+			                   substring(full_Name,
+			                          length(:parentOldFullName) + 1,
+			                          length(full_Name)), version = (next value for VERSION_SEQ)
+			 where full_Id like :likeFullId
+		</sql>
+		<sql name="updateRedundantData">
+			update SA_OPOrg t
+			   set t.org_Id = :orgId, t.org_Code = :orgCode, t.org_Name = :orgName,
+			       t.dept_Id = :deptId, t.dept_Code = :deptCode, t.dept_Name = :deptName,
+			       t.position_Id = :positionId, t.position_Code = :positionCode,
+			       t.position_Name = :positionName, version = (next value for VERSION_SEQ)
+			 where t.id = :id
+		</sql>
+		<sql name="updateOrgChildrenFullOrgKindId">
+			update SA_OPOrg
+			   set full_org_kind_Id = :parentNewFullOrgKindId +
+			                        substring(full_Org_Kind_Id,
+			                               length(:parentOldOrgKindId) + 1,
+			                               length(full_Org_Kind_Id)),
+			       version = (next value for VERSION_SEQ)
+			 where full_Id like :likeFullId
+		</sql>
+		<sql name="updateOrgChildrenFullSequence">
+			update SA_OPOrg
+			   set full_Sequence = :parentNewSequence +
+			                       substring(full_Sequence,
+			                              length(:parentOldSequence) + 1,
+			                              length(full_Sequence)),
+			       version = (next value for VERSION_SEQ)
+			 where full_Id like :fullId
+		</sql>
+		<sql name="updateOrgSequence">
+			update SA_OPOrg
+			   set full_sequence = :fullSequence, sequence = :sequence,
+			       version = (next value for VERSION_SEQ)
+			 where id = :id	
+		</sql>
+		<sql name="queryOrgProperties">
+			select p.*, d.data_source, d.description
+			  from SA_OPOrgProperty p, SA_OPOrgPropertyDefinition d
+			 where p.property_definition_id = d.id
+			   and p.org_id = :orgId
+		</sql>
+		<sql name="getOrgNextSequence">
+			select max(sequence) as maxSequence
+			  from Org
+			 where parentId = :parentId	
+		</sql>
+		<sql name="orgQuery">
+			select o.id, o.type_id, o.code, o.name, o.long_Name, o.parent_Id, o.full_Id,
+			       o.full_Code, o.full_Name, o.org_Id, o.org_Code, o.org_Name, o.dept_Id,
+			       o.dept_Code, o.dept_Name, o.position_Id, o.position_Code,
+			       o.position_Name, o.org_Kind_Id, p.id as person_Id, o.description,
+			       o.status, o.full_Sequence, p.sex, p.certificate_no, p.status as personStatus,
+			       o.full_Org_Kind_Id, p.main_Org_Id, o.is_Virtual, o.sequence, 
+			       (select pos.name from SA_OPOrg pos where pos.id = p.main_org_id) main_org_name,
+			       o.version
+			  from SA_OPOrg o left join SA_OPPerson p on o.person_id = p.id
+			 where 1=1
+		</sql>
+		<sql name="queryOrgExcludePos">
+			select o.id, o.type_id, o.code, o.name, o.long_Name, o.parent_Id, o.full_Id,
+			       o.full_Code, o.full_Name, o.org_Id, o.org_Code, o.org_Name, o.dept_Id,
+			       o.dept_Code, o.dept_Name, o.position_Id, o.position_Code,
+			       o.position_Name, o.org_Kind_Id, p.id as person_Id, o.description,
+			       o.status, o.full_Sequence, p.sex, p.certificate_no, p.status as personStatus,
+			       o.full_Org_Kind_Id, p.main_Org_Id, o.is_Virtual, o.sequence,
+			       o.version
+			  from V_SA_OPOrg_Exclude_Pos o left join SA_OPPerson on p o.person_id = p.id
+			 where 1=1
+		</sql>
+		<sql name="queryCount">
+			select count(o.id)
+			  from SA_OPOrg o left join SA_OPPerson p on o.person_id = p.id
+			 where o.parent_id = :parentId
+		</sql>
+		<sql name="deleteOrgChildren">
+			delete from SA_OPOrg where full_id like ?
+		</sql>
+	</query>
+
+    <query name="deleteOrg" label="删除组织机构">
+       <sql name="deleteOrgManagement">
+			delete from SA_OPBizManagement t
+			 where t.manager_id in (select id from SA_OPOrg o where o.full_id like ?)
+			    or t.subordination_id in
+			       (select id from SA_OPOrg o where o.full_id like ?)       
+       </sql>
+       <sql name="deleteOrgManagement">
+			delete from SA_OPBizManagement t
+			 where exists
+			 (select 1
+			          from SA_OPPerson person, SA_OPOrg org
+			         where org.Org_Kind_ID = 'psm'
+			           and person.Main_Org_ID = org.Parent_ID
+			           and person.ID = org.Person_ID
+			           and org.full_id like ?
+			           and (t.manager_id like person.ID + '@%' or
+			               t.subordination_id like person.ID + '@%'))
+        </sql>
+       
+    </query>
+    
+    <query name="orgPropertyDefinition" label="组织机构">
+		<sql-query>
+			select t.* from SA_OPOrgPropertyDefinition t where 1 = 1
+		</sql-query>
+		<condition column="org_kind_id" name="orgKindId" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="person" label="用户查询">
+		<sql-query>
+			select p.*, o.full_sequence
+			  from SA_OPOrg o, SA_OPPerson p
+			 where o.person_id = p.id
+			   and p.main_org_id = o.parent_id
+		</sql-query>
+		<condition column="code" name="code" symbol="like" alias="p"/>
+		<condition column="name" name="name" symbol="like" alias="p"/>
+		<sql name="checkDuplication">
+			select o
+			  from Person o
+			 where id != :id
+			   and (upper(code) = :code or upper(coalesce(loginName, code)) = :loginName %s )
+		</sql>
+	</query>
+
+	<query name="role" label="角色">
+		<sql-query>
+			<![CDATA[
+				select t.* from SA_OPRole t where t.status > -1
+			]]>
+		</sql-query>
+		<condition column="parent_id" name="parentId" symbol="=" alias="t"/>
+		<condition name="keyword" symbol="like">
+			(t.code like :keyword or t.name like :keyword)
+		</condition>
+		<condition name="tenantId" symbol="=">
+			t.tenant_id in ('global', :tenantId)
+		</condition>
+		<condition column="node_Kind_Id" name="nodeKindId" symbol="=" alias="t"/>
+
+		<sql name="queryRolesByParentId">
+			select id, role_kind_id, code, name, description, status, sequence, version,
+			       tenant_id, parent_id, full_id, full_name, node_kind_id,
+			       (select count(0)
+			           from SA_OPRole i
+			          where i.parent_id = t.id) has_children
+			  from SA_OPRole t
+			 where parent_id = ?
+			   and t.tenant_id in ('global', ?)
+		</sql>
+	</query>
+	
+	<query name="permission" label="权限">
+		<sql-query>
+			select id, parent_id, code, name, full_id, full_name, resource_kind_id,
+			       resource_id, operation_id, status, sequence, version, node_kind_id,
+			       (select count(0) from sa_oppermission i where i.parent_id = t.id) has_children,
+			       remark
+			  from sa_oppermission t
+			  where 1 = 1
+		</sql-query>
+		<condition column="parent_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<sql name="queryByParentId">
+		  select t.*,(select count(0) from sa_oppermission i where i.parent_id = t.id) has_children
+			  from sa_oppermission t
+			 where t.parent_id = ?
+			 order by t.sequence asc
+		</sql>
+		<sql name="queryByFullId">
+		<![CDATA[
+		  select t.*
+			  from sa_oppermission t
+			 where t.full_id like ?
+			   and not exists
+			 (select 0
+			          from sa_oppermission p
+			         where p.status <> 1
+			           and t.full_id like p.full_id + '%')
+			 order by t.sequence asc
+		]]>
+		</sql>
+	</query>
+	
+	<query name="permissionQueryUIElement" label="查询界面元素权限">
+		<sql-query>
+			 select * from SA_OPUIElementPermission p where 1=1
+		</sql-query>
+		<condition column="permission_id" name="parentId" symbol="=" alias="p"/>
+	</query>
+	
+	<query name="authorization" label="授权">
+		<sql-query>
+			 select o.id as org_id, o.org_Name, o.full_Id, o.full_Name,
+			       r.id as role_id, r.code role_code, r.name role_name, r.role_kind_id,
+			       r.description
+			  from sa_oporg o, sa_opauthorize a, sa_oprole r
+			 where o.id = a.org_id
+			   and a.role_id = r.id
+		</sql-query>
+		<condition column="id" name="orgId" symbol="=" alias="o"/>
+		<condition column="code" name="roleCode" symbol="half_like" alias="r"/>
+		<condition column="name" name="roleName" symbol="half_like" alias="r"/>
+	</query>
+	
+	<query name="queryPermissionsByRoleId" label="查询权限">
+		<sql-query>
+			 select p.*, rp.created_by_name, rp.created_date
+			  from sa_oprolepermission rp, sa_oppermission p
+			 where rp.permission_id = p.id
+		</sql-query>
+		<condition column="role_id" name="roleId" symbol="=" alias="rp"/>
+		<condition name="keyword" symbol="like">
+			(p.code like :keyword or p.name like :keyword)
+		</condition>
+		<condition column="node_kind_id" name="nodeKindId" symbol="=" alias="p"/>
+	</query>
+	
+	<query name="queryAuthorizedPermissionsByOrgFullId" label="查询已授权的权限">
+		<sql-query>
+			select *
+			  from SA_OPPermission t
+			 where t.id in (select rp.permission_id
+			                  from SA_OPOrg o, SA_OPAuthorize a, SA_OPRole r,
+			                       SA_OPRolePermission rp
+			                 where o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and :orgFullId like o.full_id + '%')
+		</sql-query>
+		
+		<condition column="orgFullId" name="orgFullId" symbol="=" alias="t" append="false"/>
+		<condition column="name" name="permissionName" symbol="like" alias="t"/>
+		<condition column="node_kind_id" name="nodeKindId" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="queryPersonAuthorizedPermissionsByOrgFullId" label="查询已授权的权限">
+		<sql-query>
+			select *
+			  from SA_OPPermission t
+			 where t.id in (select rp.permission_id
+			                  from SA_OPOrg            o,
+			                       SA_OPOrg            p,
+			                       sa_opperson         s,
+			                       SA_OPAuthorize      a,
+			                       SA_OPRole           r,
+			                       SA_OPRolePermission rp
+			                 where p.full_id like o.full_id + '%'
+			                   and p.person_id = s.id
+			                   and o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and ((case
+			                         when s.person_kind is null then
+			                          'def'
+			                         else
+			                          s.person_kind
+			                       end) = (case
+			                         when r.role_person_kind is null then
+			                          'def'
+			                         else
+			                          r.role_person_kind
+			                       end))
+			                   and s.id = :personId)
+		</sql-query>
+		<condition column="name" name="permissionName" symbol="like" alias="t"/>
+		<condition column="node_kind_id" name="nodeKindId" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="queryRolesByOrgFullId" label="查询角色继承数据">
+		<sql-query>
+			select r.*, o.name as org_name, o.full_name as org_full_name
+			  from SA_OPOrg o, SA_OPAuthorize a, SA_OPRole r
+			 where o.id = a.org_id
+			   and a.role_id = r.id
+			   and o.status = 1
+			   and r.status = 1
+			   and :orgFullId like o.full_id + '%'
+		</sql-query>
+		<condition column="orgFullId" name="orgFullId" symbol="=" alias="t" append="false"/>
+		<condition column="name" name="permissionName" symbol="like" alias="t">
+			(r.code like :permissionName or r.name like :permissionName or o.name like :permissionName)
+		</condition>
+	</query>
+	
+	<query name="access" label="权限相关">
+		<sql name="queryAllocatedPermissions">
+			select b
+			  from RolePermission a, Permission b
+			 where a.permissionId = b.id
+			     and b.fullId like :fullId
+			     and a.roleId = :roleId
+			   order by b.sequence
+		</sql>
+		<sql name="deletePermissionsByRoleAndOneLevePermissionId">
+			delete from RolePermission rp
+			 where rp.roleId = :roleId
+			   and rp.permissionId in
+			       (select p.id from Permission p where p.fullId like :fullId)	
+		</sql>
+		<sql name="queryPersonFunPermissions">
+			select distinct pp.code
+			  from sa_oporg            p,
+			       sa_opperson         s,
+			       sa_oporg            o,
+			       sa_opauthorize      a,
+			       sa_oprole           r,
+			       sa_oprolepermission rp,
+			       sa_oppermission     pp
+			 where p.person_id = s.id
+			   and s.id = ?
+			   and p.full_id like o.full_id + '%'
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and r.id = rp.role_id
+			   and rp.permission_id = pp.id
+			   and pp.resource_kind_id = 'fun'
+			   and pp.node_kind_id in ('permission')
+			   and p.status = 1
+			   and o.status = 1
+			   and r.status = 1
+			   and pp.status = 1
+		</sql>
+		<sql name="queryPersonRoleIds">
+			select distinct r.id
+			  from sa_oporg p, sa_opperson s, sa_oporg o, sa_opauthorize a, sa_oprole r
+			 where p.person_id = s.id
+			   and s.id = ?
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and p.full_id like o.full_id + '%'
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and p.status = 1
+			   and o.status = 1
+			   and r.status = 1
+		</sql>
+		<sql name="queryPersonRoleKindId">
+			select distinct r.role_kind_id
+			  from sa_oporg p, sa_opperson s, sa_oporg o, sa_opauthorize a, sa_oprole r
+			 where p.person_id = s.id
+			   and s.id = ?
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and p.full_id like o.full_id + '%'
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and p.status = 1
+			   and o.status = 1
+			   and r.status = 1
+			   and r.role_kind_id != 'common'
+		</sql>
+		<sql name="queryPersonFunctions">
+		 select id,
+		       parent_id,
+		       code,
+		       description,
+		       name,
+		       full_name,
+		       node_kind_id,
+		       key_code,
+		       url,
+		       icon,
+		       remark,
+		       depth,
+		       status,
+		       sequence,
+		       version,
+		       operation_map_id,
+		       (select count(0) from sa_opfunction i where i.parent_id = f.id) as has_children,
+		       0 as isexpand
+		  from sa_opfunction f
+		 where f.id in (select pp.resource_id
+		                  from sa_oporg            p,
+		                       sa_opperson         s,
+		                       sa_oporg            o,
+		                       sa_opauthorize      a,
+		                       sa_oprole           r,
+		                       sa_oprolepermission rp,
+		                       sa_oppermission     pp
+		                 where p.person_id = s.id
+		                   and s.id = :personId
+		                   and p.full_id like o.full_id + '%'
+		                   and ((case
+		                         when s.person_kind is null then
+		                          'def'
+		                         else
+		                          s.person_kind
+		                       end) = (case
+		                         when r.role_person_kind is null then
+		                          'def'
+		                         else
+		                          r.role_person_kind
+		                       end))
+		                   and o.id = a.org_id
+		                   and a.role_id = r.id
+		                   and r.id = rp.role_id
+		                   and rp.permission_id = pp.id
+		                   and pp.resource_kind_id = 'fun'
+		                   and pp.node_kind_id in ('folder', 'fun', 'permission')
+		                   and p.status = 1
+		                   and o.status = 1
+		                   and r.status = 1
+		                   and pp.status = 1)
+		   and f.status = 1
+		   and f.parent_id = :parentId
+		 order by sequence asc
+		</sql>
+		<sql name="queryPersonOneLevelAllFunctions">
+			select id,
+			       parent_id,
+			       code,
+			       description,
+			       name,
+			       full_name,
+			       node_kind_id,
+			       key_code,
+			       url,
+			       icon,
+			       remark,
+			       depth,
+			       status,
+			       sequence,
+			       version,
+			       operation_map_id,
+			       (select count(*) from sa_opfunction i where i.parent_id = f.id) as has_children,
+			       0 as isexpand
+			  from sa_opfunction f
+			 where f.id in (select pp.resource_id
+			                  from sa_oporg            p,
+			                       sa_opperson         s,
+			                       sa_oporg            o,
+			                       sa_opauthorize      a,
+			                       sa_oprole           r,
+			                       sa_oprolepermission rp,
+			                       sa_oppermission     pp
+			                 where p.person_id = s.id
+			                   and s.id = :personId
+			                   and p.full_id like o.full_id + '%'
+			                   and ((case
+			                         when s.person_kind is null then
+			                          'def'
+			                         else
+			                          s.person_kind
+			                       end) = (case
+			                         when r.role_person_kind is null then
+			                          'def'
+			                         else
+			                          r.role_person_kind
+			                       end))
+			                   and o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and rp.permission_id = pp.id
+			                   and pp.resource_kind_id = 'fun'
+			                   and p.status = 1
+			                   and o.status = 1
+			                   and r.status = 1
+			                   and pp.status = 1)
+			   and f.status = 1
+			   and f.full_id like :fullId
+			   and f.url is not null
+			 order by full_id
+		</sql>
+		<sql name="queryPersonAllFunctions">
+			select id,
+			       parent_id,
+			       code,
+			       description,
+			       name,
+			       full_name,
+			       node_kind_id,
+			       key_code,
+			       url,
+			       icon,
+			       remark,
+			       depth,
+			       status,
+			       sequence
+			  from sa_opfunction f
+			 where f.id in (select pp.resource_id
+			                  from sa_oporg            p,
+			                       sa_opperson         s,
+			                       sa_oporg            o,
+			                       sa_opauthorize      a,
+			                       sa_oprole           r,
+			                       sa_oprolepermission rp,
+			                       sa_oppermission     pp
+			                 where p.person_id = s.id
+			                   and s.id = :personId
+			                   and p.full_id like o.full_id + '%'
+			                   and ((case
+			                         when s.person_kind is null then
+			                          'def'
+			                         else
+			                          s.person_kind
+			                       end) = (case
+			                         when r.role_person_kind is null then
+			                          'def'
+			                         else
+			                          r.role_person_kind
+			                       end))
+			                   and o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and rp.permission_id = pp.id
+			                   and pp.resource_kind_id = 'fun'
+			                   and p.status = 1
+			                   and o.status = 1
+			                   and r.status = 1
+			                   and pp.status = 1)
+			   and f.status = 1
+			   and f.full_id like :fullId
+			 order by full_id
+		</sql>
+		<sql name="checkPersonFunPermissions">
+			select count(0)
+			  from sa_opfunction f
+			 where f.id in (select pp.resource_id
+			                  from sa_oporg            p,
+			                       sa_opperson         s,
+			                       sa_oporg            o,
+			                       sa_opauthorize      a,
+			                       sa_oprole           r,
+			                       sa_oprolepermission rp,
+			                       sa_oppermission     pp
+			                 where p.person_id = s.id
+			                   and s.id = ?
+			                   and p.full_id like o.full_id + '%'
+			                   and ((case
+			                         when s.person_kind is null then
+			                          'def'
+			                         else
+			                          s.person_kind
+			                       end) = (case
+			                         when r.role_person_kind is null then
+			                          'def'
+			                         else
+			                          r.role_person_kind
+			                       end))
+			                   and o.id = a.org_id
+			                   and a.role_id = r.id
+			                   and r.id = rp.role_id
+			                   and rp.permission_id = pp.id
+			                   and pp.resource_kind_id = 'fun'
+			                   and p.status = 1
+			                   and o.status = 1
+			                   and r.status = 1
+			                   and pp.status = 1)
+			   and f.status = 1
+			   and f.code = ?
+		</sql>
+		<sql name="loadPersonRole">
+			select distinct r.id
+			  from sa_oporg p, sa_opperson s, sa_oporg o, sa_opauthorize a, sa_oprole r
+			 where p.person_id = s.id
+			   and s.id = ?
+			   and p.full_id like o.full_id + '%'
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and p.status = 1
+			   and o.status = 1
+			   and r.status = 1
+		</sql>
+		<sql name="queryUIElementPermissionByFunction">
+			select uip.code, uip.name, uip.kind_id, uip.operation_id
+			  from sa_opuielementpermission uip, sa_oppermission op
+			 where uip.permission_id = op.id
+			   and op.resource_id = ?
+			   and exists (select 0
+			          from sa_oporg            p,
+			               sa_opperson         s,
+			               sa_oporg            o,
+			               sa_opauthorize      a,
+			               sa_oprole           r,
+			               sa_oprolepermission rp
+			         where p.person_id = s.id
+			           and s.id = ?
+			           and p.full_id like o.full_id + '%'
+			           and ((case
+			                 when s.person_kind is null then
+			                  'def'
+			                 else
+			                  s.person_kind
+			               end) = (case
+			                 when r.role_person_kind is null then
+			                  'def'
+			                 else
+			                  r.role_person_kind
+			               end))
+			           and o.id = a.org_id
+			           and a.role_id = r.id
+			           and r.id = rp.role_id
+			           and op.id = rp.permission_id
+			           and p.status = 1
+			           and o.status = 1
+			           and r.status = 1)
+			 order by uip.sequence
+		</sql>
+		<sql name="queryRoleKindContainsPersonIds">
+			select distinct p.person_id
+			  from sa_oporg p, sa_opperson s, sa_oporg o, sa_opauthorize a, sa_oprole r
+			 where p.person_id = s.id
+			   and p.full_id like o.full_id + '%'
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and p.status = 1
+			   and o.status = 1
+			   and r.status = 1
+			   and r.role_kind_id = ?
+		</sql>
+		<sql name="queryThreeMemberPermssion">
+			select distinct p.code, r.role_kind_id
+			  from sa_oprole r, sa_oprolepermission rp, sa_oppermission p
+			 where r.id = rp.role_id
+			   and rp.permission_id = p.id
+			   and r.role_kind_id in ('administrator', 'securityGuard', 'auditor')
+			   and r.status = 1
+			   and p.status = 1
+			   and p.node_kind_id = 'permission'
+			 order by p.code
+		</sql>
+		<sql name="queryFirstAuthorizationByRoleId">
+			select new com.huigou.uasp.bmp.opm.domain.query.AuthorizationDesc(o.id, o.fullName, r.id)
+			    from Org o join o.roles r
+			   where r.id = :roleId	
+		</sql>
+	</query>
+	
+	<query name="agent" label="代理信息">
+		<sql name="query">
+			select t.*, c.name as client_name, a.name agent_name
+			  from sa_opagent t, sa_oporg c, sa_oporg a
+			 where t.client_id = c.id
+			   and t.agent_id = a.id 
+			   and (t.client_id like :personId or t.agent_id like :personId)
+		</sql>
+		<sql name="queryByAgentId">
+			select t.*, c.name as client_name, a.name agent_name
+			  from sa_opagent t, sa_oporg c, sa_oporg a
+			 where t.client_id = c.id
+			   and t.agent_id = a.id 
+			   and t.agent_id like :personId
+		</sql>
+		<sql name="queryByClientId">
+			select t.*, c.name as client_name, a.name agent_name
+			  from sa_opagent t, sa_oporg c, sa_oporg a
+			 where t.client_id = c.id
+			   and t.agent_id = a.id 
+			   and t.client_id like :personId
+		</sql>
+		<sql name="queryProc">
+			select t.*, d.full_name, d.proc_name
+			  from sa_opagentproc t, wf_procdef d
+			 where t.proc_id = d.id
+			   and t.agent_id = :parentId
+		</sql>
+		<sql name="loadValid">
+			select o
+			  from Agent o left join o.client
+			 where o.client.id = :psmId
+			   and o.status = 1
+			   and current_date between o.startDate and o.endDate
+		</sql>
+		<condition column="start_date" name="startDate" symbol="&gt;="  type="java.util.Date" alias="t"/>
+		<condition column="end_date" name="endDate" symbol="&lt;="  type="java.util.Date" alias="t"/>
+	</query>
+	
+	<query name="baseManagementType" label="基础管理权限类别">
+		<sql-query>
+			select a.*, b.name as biz_Management_Type_Name,b.code as biz_Management_Type_code
+			  from SA_OPBaseManagementType a left join SA_OPBizManagementType b on a.biz_management_type_id = b.id
+			 where 1=1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="a"/>
+		<condition column="code" name="code" symbol="like" alias="a"/>
+		<condition column="name" name="name" symbol="like" alias="a"/>
+	</query>
+	
+	<query name="bizManagementType" label="业务管理权限类别">
+		<sql-query>
+			select id, code, name, manage_org_kind_id, manage_org_kind_name, kind_id,
+			       version, sequence, parent_id, full_id, node_kind_id, remark,
+			       full_name, status
+			  from SA_OPBizManagementType t
+			 where 1 = 1 
+		</sql-query>
+		<condition column="parent_id" name="parentId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="node_kind_id" name="nodeKindId" symbol="=" alias="t"/>
+		<condition column="full_id" name="fullId" symbol="half_like" alias="t"/>
+		<condition column="param" name="param" symbol="like" alias="t">
+			(t.code like :param or t.name like :param)
+		</condition>
+		<condition column="code" name="queryManageCodes" symbol="in" alias="t"/>
+		
+		<sql name="queryBizManagementType">
+			select id, code, name, manage_org_kind_id, manage_org_kind_name, kind_id,
+			       version, sequence, parent_id, full_id, node_kind_id, remark,
+			       full_name, status,
+			       (select count(0)
+			           from SA_OPBizManagementType i
+			          where i.parent_id = t.id) has_children
+			  from SA_OPBizManagementType t
+			 where parent_id = ?
+			 order by t.sequence
+		</sql>
+	</query>
+	
+	<query name="management" label="业务管理权限">
+		<sql name="queryByManagerAndManageTypeId">
+			select a.id, s.full_Name, s.status, a.created_By_Name, a.created_Date,s.name
+			  from SA_OPBizManagement a, SA_OPBizManagementType t, Sa_Oporg m,
+			       SA_OPorg s
+			 where a.manager_id = m.id
+			   and a.manage_type_id = t.id
+			   and a.subordination_id = s.id
+			   and m.id = :managerId
+			   and t.id = :manageTypeId
+		</sql>
+		<sql name="queryBySubordinationAndManageTypeId">
+			select a.id, m.full_Name, m.status, a.created_By_Name, a.created_Date,m.name
+			  from SA_OPBizManagement a, SA_OPBizManagementType t, Sa_Oporg m,
+			       SA_OPorg s
+			 where a.manager_id = m.id
+			   and a.manage_type_id = t.id
+			   and a.subordination_id = s.id
+			   and s.id = :subordinationId
+			   and t.id = :manageTypeId
+		</sql>
+		<!-- 选择查询组织管理者的已分配的业务权限类别 -->
+	    <sql name="selectOrgAllocatedBizManagementTypeForManager">
+			select *
+			  from SA_OPBizManagementType bizManagementType
+			 where id in (select manage_type_id
+			                from SA_OPBizManagement b, SA_OPOrg o
+			               where b.subordination_id = o.id
+			                 and :selectedFullId like o.full_Id + '%')
+	    </sql>
+	    <!-- 选择查询组织下属的已分配的业务权限类别 -->
+	    <sql name="selectOrgAllocatedBizManagementTypeForSubordination">
+			select *
+			  from SA_OPBizManagementType bizManagementType
+			 where id in (select manage_type_id
+			                from SA_OPBizManagement b, SA_OPOrg o
+			               where b.manager_id = o.id
+			                 and :selectedFullId like o.full_Id +'%')
+	    </sql>
+	    <!-- 选择管理者 -->
+		<sql name="selectBizManagementForManager">
+			select distinct m.full_name, s.status
+				  from sa_opbizmanagement a, sa_oporg s, sa_oporg m
+				 where a.subordination_id = s.id
+				   and a.manager_id = m.id
+				   and a.manage_type_id = :manageTypeId
+				   and :selectedFullId like s.full_id + '%'
+			
+		</sql>
+		<!-- 选择下属 -->
+		<sql name="selectBizManagementForSubordination">
+			select distinct s.full_name, s.status
+			  from sa_opbizmanagement a, sa_oporg s, sa_oporg m
+			 where a.subordination_id = s.id
+			   and a.manager_id = m.id
+			   and a.manage_type_id = :manageTypeId
+			   and :selectedFullId like m.full_id + '%'
+		</sql>
+	</query>
+
+	<query name="managementQuery" label="管理权限查询">
+		<sql-query>
+			select t.id,
+			       m.name            as manager_name,
+			       m.full_name       as manager_full_name,
+			       m.status          as manager_status,
+			       s.name            as sub_name,
+			       s.full_name       as sub_full_name,
+			       s.status          as sub_status,
+			       s.full_sequence,
+			       s.full_id,
+			       p.code,
+			       p.name,
+			       t.created_by_name,
+			       t.created_date
+			  from sa_opbizmanagement     t,
+			       sa_oporg               m,
+			       sa_oporg               s,
+			       sa_opbizmanagementtype p
+			 where t.manager_id = m.id
+			   and t.subordination_id = s.id
+			   and t.manage_type_id = p.id
+		</sql-query>
+		<condition column="manage_type_id" name="parentId" symbol="=" alias="t"/>
+		<condition column="manager_id" name="manageOrgId" symbol="half_like" alias="t"/>
+		<condition column="subordination_id" name="subordinationOrgId" symbol="=" alias="t"/>
+		<condition column="full_id" name="fullId" symbol="half_like" alias="p"/>
+		<condition column="keyValue" name="keyValue" symbol="like" alias="t">
+			 (m.name like :keyValue or s.name like :keyValue)
+		</condition>
+		<condition column="param" name="param" symbol="like" alias="p">
+			 (p.code like :param or p.name like :param)
+		</condition>
+	</query>
+	
+
+	<query name="tmAuthorize" label="三员授权">
+		<sql name="querySubordination">
+			select distinct subordination_id from SA_TMAuthorize where manager_id = :managerId
+		</sql>
+		<sql name="queryManager">
+			select o.id, o.full_id, o.status, o.name, o.person_id, o.full_name, o.code,
+			       o.org_kind_id
+			  from SA_TMAuthorize t, SA_OPOrg o
+			 where o.id = t.manager_id
+			  and t.system_id = :functionId
+			  and t.role_kind_id = :roleId
+			  and t.subordination_id = :subordinationId
+		</sql>
+	</query>
+	
+	<query name="uiElement" label="界面元素">
+		<sql-query>
+			 select t.* from SA_OPUIelement t where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<condition column="kind_id" name="kindId" symbol="=" alias="t"/>
+		<condition column="status" name="status" symbol="=" alias="t"/>
+	</query>
+	
+	<query name="userGroup" label="查询用户分组">
+		<sql-query>
+			 select t.* from SA_UserGroup t where 1 = 1
+		</sql-query>
+		<condition column="folder_id" name="folderId" symbol="=" alias="t"/>
+		<condition column="code" name="code" symbol="like" alias="t"/>
+		<condition column="name" name="name" symbol="like" alias="t"/>
+		<sql name="queryAvailableUserGroupDetail">
+			select d.id,
+		       d.group_id,
+		       o.id as org_node_id,
+		       o.name,
+		       o.full_id,
+		       o.full_name,
+		       o.full_sequence,
+		       o.org_kind_id,
+		       o.org_id,
+		       o.org_name,
+		       o.dept_id,
+		       o.dept_name,
+		       o.center_id,
+		       o.center_name,
+		       o.position_id,
+		       o.position_name,
+		       o.person_id,
+		       o.status,
+		       d.sequence
+		  from sa_usergroupdetail d, sa_oporg o
+		 where d.org_id = o.id
+		    and o.status =1
+		   and d.group_id = :groupId
+		</sql>
+		<sql name="queryAvailableUserGroup">
+			select id, name, node_kind_id, group_kind, parent_id
+			  from (select t.id,
+			               t.name,
+			               'tree' as node_kind_id,
+			               '' as group_kind,
+			               t.parent_id,
+			               t.sequence
+			          from sa_commontree t
+			         where t.kind_id = 25
+			         union all
+			        select g.id,
+			               g.name,
+			               'node' as node_kind_id,
+			               g.kind_id,
+			               g.folder_id as parent_id,
+			               g.sequence
+			          from sa_usergroup g
+			         where g.status = 1
+			           and (g.kind_id = 'SYSTEM' or (g.kind_id = 'CUSTOM' and g.created_by_id like ?)))
+			 order by sequence asc
+		</sql>
+		<sql name="queryUserCustomGroup">
+		 select * from sa_usergroup t where t.kind_id = 'CUSTOM' and t.created_by_id like ? order by t.sequence
+		</sql>
+	</query>
+	
+	<query name="systemGroupDetail" label="查询用户分组">
+		<sql-query>
+			select d.id,
+			       d.group_id,
+			       o.id as org_node_id,
+			       o.name,
+			       o.full_id,
+			       o.full_name,
+			       o.full_sequence,
+			       o.org_kind_id,
+			       o.person_id,
+			       o.status,
+			       d.sequence
+			  from sa_usergroupdetail d, sa_oporg o
+			 where d.org_id = o.id
+			   and d.group_id = :groupId
+		</sql-query>
+		<condition column="full_name" name="name" symbol="like" alias="o"/>
+	</query>
+	
+	<query name="queryRolesByPermissionId" label="根据权限查询角色">
+		<sql-query>
+			select r.*
+			  from SA_OPRole r, SA_OPRolePermission rp
+			 where r.id = rp.role_id
+			   and rp.permission_id = :permissionId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="r">
+			(r.code like :keyword or r.name like :keyword)
+		</condition>
+	</query>
+	
+	<query name="queryAuthorizeByPermissionId" label="根据权限查询授权信息">
+		<sql-query>
+			select o.name,
+			       o.full_name,
+			       o.full_sequence,
+			       r.code      as role_code,
+			       r.name      as role_name,
+			       r.full_name as role_full_name
+			  from SA_OPOrg o, SA_OPAuthorize a, SA_OPRole r, SA_OPRolePermission rp
+			 where o.id = a.org_id
+			   and a.role_id = r.id
+			   and r.id = rp.role_id
+			   and o.status = 1
+			   and r.status = 1
+			   and rp.permission_id = :permissionId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="r">
+			(r.code like :keyword or r.name like :keyword or o.name like :keyword)
+		</condition>
+	</query>
+	
+	<query name="queryPersonsByPermissionId" label="根据权限具有权限的用户">
+		<sql-query>
+			select p.name,
+			       o.name as org_name,
+			       o.full_name as org_full_name,
+			       o.full_sequence,
+			       r.code      as role_code,
+			       r.name      as role_name,
+			       r.full_name as role_full_name
+			  from sa_oporg            p,
+			       sa_opperson         s,
+			       SA_OPOrg            o,
+			       SA_OPAuthorize      a,
+			       SA_OPRole           r,
+			       SA_OPRolePermission rp
+			 where p.full_id like o.full_id + '%'
+			   and p.person_id = s.id
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and r.id = rp.role_id
+			   and o.status = 1
+			   and r.status = 1
+			   and p.status = 1
+			   and rp.permission_id = :permissionId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="r">
+			(r.code like :keyword or r.name like :keyword or o.name like :keyword or p.name like :keyword)
+		</condition>
+	</query>
+	
+	<query name="querySinglePersonsByPermissionId" label="根据权限具有权限的用户">
+		<sql-query>
+			select distinct p.name,
+			                p.dept_name     as org_name,
+			                p.full_name     as org_full_name,
+			                p.full_sequence
+			  from sa_oporg            p,
+			       sa_opperson         s,
+			       SA_OPOrg            o,
+			       SA_OPAuthorize      a,
+			       SA_OPRole           r,
+			       SA_OPRolePermission rp
+			 where p.full_id like o.full_id + '%'
+			   and p.person_id = s.id
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and r.id = rp.role_id
+			   and o.status = 1
+			   and r.status = 1
+			   and p.status = 1
+			   and rp.permission_id = :permissionId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="p"/>
+	</query>
+	
+	<query name="queryRoleByAuthorize" label="查询角色授权信息">
+		<sql-query>
+			select o.name, o.full_name,o.full_sequence
+			  from SA_OPOrg o, SA_OPAuthorize a
+			 where o.id = a.org_id
+			   and a.role_id = :roleId
+			   and o.status = 1
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="o">
+			(o.name like :keyword or o.full_name like :keyword)
+		</condition>
+	</query>
+	
+	<query name="queryPersonAsRoleAuthorize" label="查询具有角色的用户">
+		<sql-query>
+			select p.name, p.full_name, o.name as org_name, o.full_name as org_full_name,p.full_sequence
+			  from sa_oporg p, sa_opperson s, SA_OPOrg o, SA_OPAuthorize a, SA_OPRole r
+			 where p.full_id like o.full_id + '%'
+			   and p.person_id = s.id
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and p.status = 1
+			   and o.status = 1
+			   and r.id = :roleId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="p">
+			(p.name like :keyword or p.full_name like :keyword)
+		</condition>
+	</query>
+	
+	<query name="querySinglePersonAsRoleAuthorize" label="查询具有角色的用户">
+		<sql-query>
+			select distinct p.name,  p.dept_name as org_name,p.full_name as org_full_name, p.full_sequence
+			  from sa_oporg p, sa_opperson s, SA_OPOrg o, SA_OPAuthorize a, SA_OPRole r
+			 where p.full_id like o.full_id + '%'
+			   and p.person_id = s.id
+			   and ((case
+			         when s.person_kind is null then
+			          'def'
+			         else
+			          s.person_kind
+			       end) = (case
+			         when r.role_person_kind is null then
+			          'def'
+			         else
+			          r.role_person_kind
+			       end))
+			   and o.id = a.org_id
+			   and a.role_id = r.id
+			   and p.status = 1
+			   and o.status = 1
+			   and r.id = :roleId
+		</sql-query>
+		<condition column="name" name="keyword" symbol="like" alias="p"/>
+	</query>
+	
+</query-mappings>
