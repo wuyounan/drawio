@@ -1,5 +1,16 @@
 SET FOREIGN_KEY_CHECKS = 0;
-
+  create table tmp_sa_i18nproperties
+   (	tmp_id varchar(32 ) not null,
+	batch_number varchar(64 ),
+	status varchar(64 ),
+	message varchar(512 ),
+	code varchar(128 ),
+	value1 varchar(512 ),
+	value2 varchar(512 ),
+	value3 varchar(512 ),
+	value4 varchar(512 ),
+	value5 varchar(512 )
+   );
 -- ----------------------------
 -- Table structure for act_ge_bytearray
 -- ----------------------------
