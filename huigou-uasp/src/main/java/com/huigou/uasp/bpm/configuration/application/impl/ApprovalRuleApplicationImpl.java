@@ -100,7 +100,7 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
             procApprovalElement = procApprovalElementRepository.findFirstByApprovalElement(approvalElement);
             if (procApprovalElement != null) {
                 throw new ApplicationException(MessageSourceContext.getMessage(MessageConstants.OBJECT_REFERENCED_BY_WHO, approvalElement.getName(),
-                                                                               procApprovalElement.getProcDefinition().getName()));
+                        procApprovalElement.getProcDefinition().getName()));
             }
         }
 
@@ -285,7 +285,7 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
 
         ApprovalRule dbApprovalRule = this.loadApprovalRule(approvalRule.getId());
         Assert.notNull(dbApprovalRule,
-                       MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, approvalRule.getId(), approvalRule.getClass().getName()));
+                MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, approvalRule.getId(), approvalRule.getClass().getName()));
         String oldName = dbApprovalRule.getName();
         dbApprovalRule.fromEntity(approvalRule);
         dbApprovalRule.buildRuleScopes();
@@ -461,10 +461,16 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = RuntimeException.class)
     public void saveApprovalRuleHandler(String approvalRuleId, ApprovalRuleHandler approvalRuleHandler, TaskExecuteMode taskExecuteMode,
                                         List<ApprovalRuleHandlerAssist> assistants, List<ApprovalRuleHandlerAssist> ccs,
-                                        List<ApprovalRuleHandlerUIElmentPermission> uiElmentPermissions) {
+                                        List<ApprovalRuleHandlerUIElmentPermission> fieldAuthorizations) {
+        saveApprovalRuleHandler(approvalRuleId, approvalRuleHandler, taskExecuteMode, null, assistants, ccs, fieldAuthorizations);
+    }
+
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
+    public void saveApprovalRuleHandler(String approvalRuleId, ApprovalRuleHandler approvalRuleHandler, TaskExecuteMode taskExecuteMode, Integer limitHandler, List<ApprovalRuleHandlerAssist> assistants, List<ApprovalRuleHandlerAssist> ccs, List<ApprovalRuleHandlerUIElmentPermission> fieldAuthorizations) {
         Assert.hasText(approvalRuleId, "参数approvalRuleId不能为空。");
         Assert.notNull(approvalRuleHandler, "参数approvalRuleHandler不能为空。");
 
@@ -473,12 +479,17 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
         ApprovalRuleHandler sourceApprovalRuleHandler = approvalRule.findApprovalRuleHandler(approvalRuleHandler.getId());
 
         ApprovalRuleHandlerGroup approvalRuleHandlerGroup = approvalRule.findApprovalRuleHandlerGroup(sourceApprovalRuleHandler.getGroupId());
-
         sourceApprovalRuleHandler.fromEntity(approvalRuleHandler);
+
+        if(taskExecuteMode == null && limitHandler == null) {
+            if (approvalRuleHandlerGroup != null) {
+                approvalRule.getApprovalRuleHandlerGroups().remove(approvalRuleHandlerGroup);
+            }
+        }
 
         if (taskExecuteMode == null) {
             if (approvalRuleHandlerGroup != null) {
-                approvalRule.getApprovalRuleHandlerGroups().remove(approvalRuleHandlerGroup);
+                approvalRuleHandlerGroup.setTaskExecuteMode(null);
             }
         } else {
             if (approvalRuleHandlerGroup == null) {
@@ -488,6 +499,21 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
             approvalRuleHandlerGroup.setGroupId(sourceApprovalRuleHandler.getGroupId());
             approvalRuleHandlerGroup.setTaskExecuteMode(taskExecuteMode);
         }
+
+        if(limitHandler == null) {
+            if(approvalRuleHandlerGroup != null) {
+                approvalRuleHandlerGroup.setLimitHandler(null);
+            }
+        } else {
+            if (approvalRuleHandlerGroup == null) {
+                approvalRuleHandlerGroup = new ApprovalRuleHandlerGroup();
+                approvalRule.getApprovalRuleHandlerGroups().add(approvalRuleHandlerGroup);
+            }
+            approvalRuleHandlerGroup.setGroupId(sourceApprovalRuleHandler.getGroupId());
+            approvalRuleHandlerGroup.setLimitHandler(limitHandler);
+        }
+
+
         // 协审 抄送
         sourceApprovalRuleHandler.getAssists().clear();
         if (assistants != null) {
@@ -498,8 +524,8 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
         }
         // 权限字段
         sourceApprovalRuleHandler.getUIElmentPermissions().clear();
-        if (uiElmentPermissions != null) {
-            sourceApprovalRuleHandler.getUIElmentPermissions().addAll(uiElmentPermissions);
+        if (fieldAuthorizations != null) {
+            sourceApprovalRuleHandler.getUIElmentPermissions().addAll(fieldAuthorizations);
         }
         this.commonDomainService.saveTreeEntity(approvalRule, this.approvalRuleRepository, approvalRule.getName(), false);
     }
@@ -521,7 +547,7 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
             if (procunithandlerIds != null && procunithandlerIds.size() > 0) {
                 List<Object[]> updateIds = new ArrayList<>(procunithandlerIds.size());
                 for (String procunithandlerId : procunithandlerIds) {
-                    updateIds.add(new Object[] { procunithandlerId });
+                    updateIds.add(new Object[]{procunithandlerId});
                 }
                 if (updateIds.size() > 0) {
                     this.sqlExecutorDao.batchUpdate("update wf_procunithandler t set t.approval_rule_handler_id='' where t.id=?", updateIds);

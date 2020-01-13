@@ -343,7 +343,7 @@ public class ApprovalRuleController extends CommonController {
         return success();
     }
 
-    @RequiresPermissions(value = { "ProcApprovalRuleConfig:create", "ProcApprovalRuleConfig:update" }, logical = Logical.OR)
+    @RequiresPermissions(value = {"ProcApprovalRuleConfig:create", "ProcApprovalRuleConfig:update"}, logical = Logical.OR)
     @LogInfo(logType = LogType.SYS, subType = "", operaionType = OperationType.SAVE, description = "保存流程审批规则处理人")
     public String saveApprovalRuleHandlers() {
         SDO params = this.getSDO();
@@ -356,7 +356,7 @@ public class ApprovalRuleController extends CommonController {
         return success();
     }
 
-    @RequiresPermissions(value = { "ProcApprovalRuleConfig:create", "ProcApprovalRuleConfig:update" }, logical = Logical.OR)
+    @RequiresPermissions(value = {"ProcApprovalRuleConfig:create", "ProcApprovalRuleConfig:update"}, logical = Logical.OR)
     @LogInfo(logType = LogType.SYS, subType = "", operaionType = OperationType.SAVE, description = "保存流程审批规则处理人")
     public String saveApprovalRuleHandler() {
         SDO params = this.getSDO();
@@ -365,6 +365,8 @@ public class ApprovalRuleController extends CommonController {
         ApprovalRuleHandler approvalRuleHandler = params.toObject(ApprovalRuleHandler.class);
         // 分组 任务执行模式
         TaskExecuteMode taskExecuteMode = TaskExecuteMode.fromId(params.getString("taskExecuteMode"));
+        // 最少审批人数
+        Integer limitHandler = params.getInteger("limitHandler");
         // 协审
         List<ApprovalRuleHandlerAssist> assistants = params.getList("assistantList", ApprovalRuleHandlerAssist.class);
         // 抄送
@@ -372,7 +374,7 @@ public class ApprovalRuleController extends CommonController {
         // 字段权限
         List<ApprovalRuleHandlerUIElmentPermission> uiElmentPermissions = params.getList("fieldPermissionList", ApprovalRuleHandlerUIElmentPermission.class);
 
-        this.approvalRuleApplication.saveApprovalRuleHandler(approvalRuleId, approvalRuleHandler, taskExecuteMode, assistants, ccs, uiElmentPermissions);
+        this.approvalRuleApplication.saveApprovalRuleHandler(approvalRuleId, approvalRuleHandler, taskExecuteMode, limitHandler, assistants, ccs, uiElmentPermissions);
 
         return success();
     }
@@ -409,7 +411,7 @@ public class ApprovalRuleController extends CommonController {
         return toResult(data);
     }
 
-    @RequiresPermissions(value = { "ProcApprovalRuleConfig:create", "ProcApprovalRuleConfig:update" }, logical = Logical.OR)
+    @RequiresPermissions(value = {"ProcApprovalRuleConfig:create", "ProcApprovalRuleConfig:update"}, logical = Logical.OR)
     @LogInfo(logType = LogType.SYS, subType = "", operaionType = OperationType.SAVE, description = "保存流程审批规则审批要素")
     public String saveApprovalRuleElements() {
         SDO params = this.getSDO();
@@ -448,6 +450,7 @@ public class ApprovalRuleController extends CommonController {
 
         if (approvalRuleHandlerGroup != null) {
             this.putAttribute("taskExecuteMode", approvalRuleHandlerGroup.getTaskExecuteMode());
+            this.putAttribute("limitHandler", approvalRuleHandlerGroup.getLimitHandler());
         }
 
         return forward("ApprovalHandlerDetailConfig", approvalRuleHandler);
@@ -486,7 +489,7 @@ public class ApprovalRuleController extends CommonController {
 
     /**
      * 进入审批规则应用页面
-     * 
+     *
      * @return
      */
     public String forwardApprovalRuleApply() {
@@ -495,7 +498,7 @@ public class ApprovalRuleController extends CommonController {
 
     /**
      * 查询审批规则应用
-     * 
+     *
      * @return
      */
     public String queryApprovalRuleApply() {
@@ -529,7 +532,7 @@ public class ApprovalRuleController extends CommonController {
 
     /**
      * 同步审批规则
-     * 
+     *
      * @return
      */
     @RequiresPermissions("ProcApprovalRuleConfig:syn")

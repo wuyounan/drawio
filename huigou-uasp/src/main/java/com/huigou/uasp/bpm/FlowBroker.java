@@ -1,12 +1,8 @@
 package com.huigou.uasp.bpm;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -84,6 +80,10 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
     private static final long serialVersionUID = -6575998537083218220L;
 
     private static final String PREEMPT_CANCEL_VARIABLE = "preemptCancel";
+    /**
+     * @since 1.1.3
+     */
+    private static final String LIMIT_HANDLER_CANCEL_VARIABLE = "limitHandlerCancel";
 
     private static final String CHIEF_APPROVE_PASSED_VARIABLE = "chiefApprovePassed";
 
@@ -168,7 +168,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到业务和审批数据
-     * 
+     *
      * @return 业务和审批数据
      */
     protected SDO getBizAndApprovalData() {
@@ -177,7 +177,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到业务实体
-     * 
+     *
      * @param cls
      * @return
      */
@@ -191,7 +191,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到业务实体明细
-     * 
+     *
      * @param cls
      * @param key
      * @return
@@ -206,7 +206,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到任务ID
-     * 
+     *
      * @return 任务ID
      */
     protected String getNewTaskId() {
@@ -235,9 +235,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 设置任务ID
-     * 
-     * @param taskId
-     *            任务ID
+     *
+     * @param taskId 任务ID
      */
     protected void setNewTaskId(String taskId) {
         getBizAndApprovalData().putProperty("newTaskId", taskId);
@@ -245,7 +244,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到申请人
-     * 
+     *
      * @return 申请人
      */
     protected String getApplicantName() {
@@ -254,7 +253,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到填单日期
-     * 
+     *
      * @return 填单日期
      */
     protected String getFillInDate() {
@@ -285,9 +284,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 当前任务是否为审批环节
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      * @return 当前任务是否为审批环节
      */
     protected boolean isApprovalProcUnit(DelegateTask delegateTask) {
@@ -296,16 +294,15 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 当前任务是否为审批环节
-     * 
-     * @param procUnitId
-     *            环节id
+     *
+     * @param procUnitId 环节id
      * @return 当前任务是否为审批环节
      */
     protected boolean isApprovalProcUnit(String procUnitId) {
         return ActivityKind.APPROVE.equalsIgnoreCase(procUnitId);
     }
 
-    /**
+    /**currentGroupChiefApprovePassed
      * 流程通知事件处理
      * <ul>
      * <li>流程实例启动事件：调用<code>onStart</code>保存业务数据和历史流程实例扩展数据。</li>
@@ -318,50 +315,51 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * <li>流程实例撤销事件</li>
      * </ul>
      */
+    @Override
     public void notify(DelegateExecution delegateExecution) {
         String eventName = delegateExecution.getEventName();
         try {
             switch (eventName) {
-            case ExecutionListener.EVENTNAME_START:
-                getApprovalParameter().setTaskId("");
-                this.onStart(delegateExecution);
-                break;
-            case ExecutionListener.EVENTNAME_END:
-                // 1 parentExecution
-                // 2 childExecution1 parent(1)
-                // 3 childExecution2 parent(1)
-                // 终止流程 调用顺序 （3 2） 1
-                if (StringUtil.isNotBlank(delegateExecution.getParentId())) {
-                    return;
-                }
-                String processInstanceId = delegateExecution.getProcessInstanceId();
-                String currentActivityId = delegateExecution.getCurrentActivityId();
-
-                if (getApprovalParameter().isSpecifiedProcessAction(ProcessAction.DELETE_PROCESS_INSTANCE)) { // 删除流程实例
-                    this.actApplication.updateHistoricProcessInstanceExtensionEnded(processInstanceId, ProcessStatus.DELETED,
-                                                                                    ProcessAction.DELETE_PROCESS_INSTANCE, currentActivityId);
-                    onDeleteProcessInstance(delegateExecution);
-                } else if (getApprovalParameter().isSpecifiedProcessAction(ProcessAction.ABORT_PROCESS_INSTANCE)) {// 终止流程实例
-                    if (getApprovalParameter().getProcUnitId() != null) {// 在流程处理页面中终止，否则在维护页面中终止
-                        if (isAbortSaveBizData()) {
-                            this.saveBizAndApprovalData();
-                        } else {
-                            this.updateProcUnitHandlerResult(this.getTaskId());
-                        }
+                case ExecutionListener.EVENTNAME_START:
+                    getApprovalParameter().setTaskId("");
+                    this.onStart(delegateExecution);
+                    break;
+                case ExecutionListener.EVENTNAME_END:
+                    // 1 parentExecution
+                    // 2 childExecution1 parent(1)
+                    // 3 childExecution2 parent(1)
+                    // 终止流程 调用顺序 （3 2） 1
+                    if (StringUtil.isNotBlank(delegateExecution.getParentId())) {
+                        return;
                     }
-                    this.actApplication.updateHistoricProcessInstanceExtensionEnded(processInstanceId, ProcessStatus.ABORTED,
-                                                                                    ProcessAction.ABORT_PROCESS_INSTANCE, currentActivityId);
-                    this.onAbortProcessInstance(delegateExecution);
-                } else {
-                    this.actApplication.updateHistoricProcessInstanceExtensionEnded(processInstanceId, ProcessStatus.COMPLETED, null, currentActivityId);
-                    this.onEnd(delegateExecution);
-                }
-                break;
-            case ExecutionListenerExt.EVENTNAME_RECALL_PROCESS_INSTANCE:
-                onRecallProcessInstance(delegateExecution);
-                break;
-            default:
-                break;
+                    String processInstanceId = delegateExecution.getProcessInstanceId();
+                    String currentActivityId = delegateExecution.getCurrentActivityId();
+
+                    if (getApprovalParameter().isSpecifiedProcessAction(ProcessAction.DELETE_PROCESS_INSTANCE)) { // 删除流程实例
+                        this.actApplication.updateHistoricProcessInstanceExtensionEnded(processInstanceId, ProcessStatus.DELETED,
+                                ProcessAction.DELETE_PROCESS_INSTANCE, currentActivityId);
+                        onDeleteProcessInstance(delegateExecution);
+                    } else if (getApprovalParameter().isSpecifiedProcessAction(ProcessAction.ABORT_PROCESS_INSTANCE)) {// 终止流程实例
+                        if (getApprovalParameter().getProcUnitId() != null) {// 在流程处理页面中终止，否则在维护页面中终止
+                            if (isAbortSaveBizData()) {
+                                this.saveBizAndApprovalData();
+                            } else {
+                                this.updateProcUnitHandlerResult(this.getTaskId());
+                            }
+                        }
+                        this.actApplication.updateHistoricProcessInstanceExtensionEnded(processInstanceId, ProcessStatus.ABORTED,
+                                ProcessAction.ABORT_PROCESS_INSTANCE, currentActivityId);
+                        this.onAbortProcessInstance(delegateExecution);
+                    } else {
+                        this.actApplication.updateHistoricProcessInstanceExtensionEnded(processInstanceId, ProcessStatus.COMPLETED, null, currentActivityId);
+                        this.onEnd(delegateExecution);
+                    }
+                    break;
+                case ExecutionListenerExt.EVENTNAME_RECALL_PROCESS_INSTANCE:
+                    onRecallProcessInstance(delegateExecution);
+                    break;
+                default:
+                    break;
             }
         } catch (Exception ex) {
             throw new ApplicationException(ex.getMessage(), ex);
@@ -379,38 +377,39 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * <li>预览处理人事件</li>
      * </ul>
      */
+    @Override
     public void notify(DelegateTask delegateTask) {
         String eventName = delegateTask.getEventName();
         try {
             switch (eventName) {
-            case TaskListenerExt.EVENTNAME_CREATE:
-                this.onCreate(delegateTask);
-                break;
-            case TaskListenerExt.EVENTNAME_ASSIGNMENT:
-                this.onAssignment(delegateTask);
-                break;
-            case TaskListenerExt.EVENTNAME_COMPLETE:
-                this.onComplete(delegateTask);
-                break;
-            case TaskListenerExt.EVENTNAME_DELETE:
-                this.onDelete(delegateTask);
-                break;
-            case TaskListenerExt.EVENTNAME_SAVE_BIZ_DATA:
-                // 只保存处理人数据
-                if (getApprovalParameter().getOnlySaveHandlerData()) {
-                    this.updateProcUnitHandlerResult();
-                } else {
-                    this.onSaveBizData(delegateTask);
-                }
-                break;
-            case TaskListenerExt.EVENTNAME_QUERY_HANDLERS:
-                this.onQueryHandlers(delegateTask);
-                break;
-            case TaskListenerExt.EVENTNAME_CHECK_CONSTRAINTS:
-                this.onCheckConstraints(delegateTask);
-                break;
-            default:
-                break;
+                case TaskListenerExt.EVENTNAME_CREATE:
+                    this.onCreate(delegateTask);
+                    break;
+                case TaskListenerExt.EVENTNAME_ASSIGNMENT:
+                    this.onAssignment(delegateTask);
+                    break;
+                case TaskListenerExt.EVENTNAME_COMPLETE:
+                    this.onComplete(delegateTask);
+                    break;
+                case TaskListenerExt.EVENTNAME_DELETE:
+                    this.onDelete(delegateTask);
+                    break;
+                case TaskListenerExt.EVENTNAME_SAVE_BIZ_DATA:
+                    // 只保存处理人数据
+                    if (getApprovalParameter().getOnlySaveHandlerData()) {
+                        this.updateProcUnitHandlerResult();
+                    } else {
+                        this.onSaveBizData(delegateTask);
+                    }
+                    break;
+                case TaskListenerExt.EVENTNAME_QUERY_HANDLERS:
+                    this.onQueryHandlers(delegateTask);
+                    break;
+                case TaskListenerExt.EVENTNAME_CHECK_CONSTRAINTS:
+                    this.onCheckConstraints(delegateTask);
+                    break;
+                default:
+                    break;
             }
         } catch (Exception ex) {
             throw new ApplicationException(ex.getMessage(), ex);
@@ -419,9 +418,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 审批是否完成
-     * 
-     * @param procUnitId
-     *            流程环节ID
+     *
+     * @param procUnitId 流程环节ID
      * @return 审批是否完成
      */
     protected boolean approveFinished(String procUnitId) {
@@ -432,22 +430,26 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 当前审批人审批是否通过
      * <p>
      * 不为主审，或者审批通过：审批为"主审", 审批意见为"同意", "已阅"
-     * 
+     *
      * @return 当前审批人审批是否通过
      */
     protected boolean approvePassed() {
         return !CooperationModelKind.CHIEF.equalsIgnoreCase(getApprovalParameter().getCurrentHandleCooperationModelId())
-               || getApprovalParameter().getHandleResult() != HandleResult.DISAGREE.getId();
+                || getApprovalParameter().getHandleResult() != HandleResult.DISAGREE.getId();
     }
 
     /**
      * 当前组主审人审批是否通过
-     * 
+     *
      * @return 当前组主审人审批是否通过
      */
     protected boolean currentGroupChiefApprovePassed(String procUnitId) {
         int groupId = getCurrentHandleGroupId();
-        return this.procUnitHandlerApplication.checkCurrentGroupChiefApprovePassed(getApprovalParameter().getBizId(), procUnitId, groupId);
+        if (this.procUnitHandlerApplication.checkCurrentGroupChiefApprovePassed(getApprovalParameter().getBizId(), procUnitId, groupId)) {
+            return true;
+        }
+        ProcUnitHandler procUnitHandler = procUnitHandlerApplication.queryProcUnitHandlers(getApprovalParameter().getBizId(), procUnitId, groupId).get(0);
+        return isLimitHandler(procUnitId, groupId, procUnitHandler.getLimitHandler());
     }
 
     private String getTaskDescriptionPrefix() {
@@ -472,9 +474,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 设置默认任务主题
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void setTaskDescription(DelegateTask delegateTask) {
 
@@ -482,11 +483,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 处理设置任务处理人信息（非申请环节和审批环节）
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param runtimeTaskExtension
-     *            运行时任务扩展数据
+     *
+     * @param delegateTask         代理任务
+     * @param runtimeTaskExtension 运行时任务扩展数据
      */
     protected void doOtherSetCurrentTaskHandler(DelegateTask delegateTask, RuntimeTaskExtension runtimeTaskExtension) {
 
@@ -494,11 +493,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 应用代理规则
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param procUnitHandler
-     *            环节处理人
+     *
+     * @param delegateTask    代理任务
+     * @param procUnitHandler 环节处理人
      * @return
      */
     protected Agent applyAgentRule(DelegateTask delegateTask, ProcUnitHandler procUnitHandler) {
@@ -527,9 +524,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 填充申请人扩展数据
-     * 
-     * @param runtimeTaskExtension
-     *            运行时任务扩展数据
+     *
+     * @param runtimeTaskExtension 运行时任务扩展数据
      */
     private void fillApplicantExtendData(RuntimeTaskExtension runtimeTaskExtension) {
         SDO sdo = ThreadLocalUtil.getVariable(Constants.SDO, SDO.class);
@@ -555,11 +551,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 2、设置任务的出人
      * <p>
      * 3、设置扩展属性的处理人
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param runtimeTaskExtension
-     *            运行时任务扩展数据
+     *
+     * @param delegateTask         代理任务
+     * @param runtimeTaskExtension 运行时任务扩展数据
      */
     protected void setCurrentTaskHandler(DelegateTask delegateTask, RuntimeTaskExtension runtimeTaskExtension) {
         String processDefinitionId = delegateTask.getExecution().getProcessDefinitionId();
@@ -618,8 +612,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
             delegateTask.setDescription(taskDescription);
         } else if (isApprovalProcUnit(delegateTask)) {
             if (approvalParameter.isTransmitProcessAction() || approvalParameter.isAssistProcessAction() || approvalParameter.isBackProcessAction()
-                || approvalParameter.isReplenishProcessAction() || approvalParameter.isWithdrawProcessAction()
-                || approvalParameter.isRecallProcessInstanceProcessAction()) {
+                    || approvalParameter.isReplenishProcessAction() || approvalParameter.isWithdrawProcessAction()
+                    || approvalParameter.isRecallProcessInstanceProcessAction()) {
                 // 转交、协审、 回退等没有传UI数据
                 HistoricTaskInstanceExtension hiTaskInstExtension = this.actApplication.loadHistoricTaskInstanceExtension(approvalParameter.getTaskId());
                 runtimeTaskExtension.setBusinessCode(hiTaskInstExtension.getBusinessCode());
@@ -699,7 +693,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         String opinion = getApprovalParameter().getHandleOpinion();
         // 更新处理结果
         this.procUnitHandlerApplication.updateProcUnitHandlerResult(procUnitHandlerId, getApprovalParameter().getProcUnitHandlerResult(), opinion,
-                                                                    getApprovalParameter().getProcUnitHandlerStatus());
+                getApprovalParameter().getProcUnitHandlerStatus());
         String processAction = getApprovalParameter().getProcessAction();
         if (processAction != null && processAction.equalsIgnoreCase(ProcessAction.ABORT_PROCESS_INSTANCE)) {
             // 终止流程时运行时runtimeTaskExtension已不存在 只更新 historicTaskInstExtension
@@ -721,7 +715,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * </ul>
      * </li>
      * </ul>
-     * 
+     *
      * @return 业务主键ID
      */
     protected String saveBizAndApprovalData() {
@@ -733,9 +727,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 保存业务和审批人数据
      * <p>
      * 与<code>saveBizAndApprovalData()</code>不同，可以通过本方法设置任务属性。
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      * @return
      * @see #saveBizAndApprovalData()
      */
@@ -749,9 +742,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * <li>保存业务单据，更新业务主键</li>
      * <li>保存历史流程实例扩展表</li>
      * </ul>
-     * 
-     * @param delegateExecution
-     *            代理执行
+     *
+     * @param delegateExecution 代理执行
      */
     protected void onStart(DelegateExecution delegateExecution) {
         String startModel = (String) delegateExecution.getVariable("startModel");
@@ -765,19 +757,18 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
         String processInstanceId = delegateExecution.getProcessInstanceId();
         HistoricProcessInstanceEntity historicProcessInstanceEntity = Context.getCommandContext().getHistoricProcessInstanceEntityManager()
-                                                                             .findHistoricProcessInstance(processInstanceId);
+                .findHistoricProcessInstance(processInstanceId);
 
         // 流程实例扩展信息
         String initiatorPersonMemberId = ClassHelper.convert(delegateExecution.getVariable(ProcessTaskContants.INITIATOR_PERSONMEMBER_ID), String.class, "");
         this.actApplication.saveHistoricProcessInstanceExtension(historicProcessInstanceEntity, initiatorPersonMemberId, getProcessDescription(),
-                                                                 ProcessStatus.EXECUTING);
+                ProcessStatus.EXECUTING);
     }
 
     /**
      * 流程结束事件
-     * 
-     * @param delegateExecution
-     *            代理执行
+     *
+     * @param delegateExecution 代理执行
      */
     protected void onEnd(DelegateExecution delegateExecution) {
         boolean isMakeACopyFor = ClassHelper.convert(delegateExecution.getVariable(IS_MAKE_A_COPY_FOR), Boolean.class, false);
@@ -802,9 +793,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 流程撤销事件
-     * 
-     * @param delegateExecution
-     *            代理执行实例
+     *
+     * @param delegateExecution 代理执行实例
      */
     protected void onRecallProcessInstance(DelegateExecution delegateExecution) {
 
@@ -812,18 +802,16 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 删除流程实例事件
-     * 
-     * @param delegateExecution
-     *            代理执行
+     *
+     * @param delegateExecution 代理执行
      */
     protected void onDeleteProcessInstance(DelegateExecution delegateExecution) {
     }
 
     /**
      * 终止流程实例事件
-     * 
-     * @param delegateExecution
-     *            代理执行
+     *
+     * @param delegateExecution 代理执行
      */
     protected void onAbortProcessInstance(DelegateExecution delegateExecution) {
         boolean isMakeACopyFor = ClassHelper.convert(delegateExecution.getVariable(IS_MAKE_A_COPY_FOR), Boolean.class, false);
@@ -860,7 +848,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到流程标题
-     * 
+     *
      * @return
      */
     protected String getProcessDescription() {
@@ -871,7 +859,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 申请环节特殊处理 手工启动的流程
      * <p>
      * 若流程为手工模式保存业务单据，更新流程的业务主键。保存流程实例扩展数据。
-     * 
+     *
      * @param delegateTask
      *            代理任务
      */
@@ -898,11 +886,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 设置任务扩展数据默认值
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param runtimeTaskExtension
-     *            运行时任务数据
+     *
+     * @param delegateTask         代理任务
+     * @param runtimeTaskExtension 运行时任务数据
      */
     private void setTaskExtendData(DelegateTask delegateTask, RuntimeTaskExtension runtimeTaskExtension) {
         runtimeTaskExtension.setGenerateReason(getApprovalParameter().getProcessAction());
@@ -913,11 +899,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 设置任务是否计时
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param runtimeTaskExtension
-     *            运行时任务数据
+     *
+     * @param delegateTask         代理任务
+     * @param runtimeTaskExtension 运行时任务数据
      */
     protected void setTaskLimitTime(DelegateTask delegateTask, RuntimeTaskExtension runtimeTaskExtension) {
         if (!this.isApplyProcUnit(delegateTask)) {
@@ -926,7 +910,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
                 String procId = ProcessDefinitionUtil.getProcessDefinitionKeyFromId(processDefinitionId);
                 String procUnitId = delegateTask.getTaskDefinitionKey();
                 LimitTime limitTime = this.approvalRuleApplication.getApprovalRuleHandlerLimitTime(procId, procUnitId,
-                                                                                                   runtimeTaskExtension.getApprovalRuleHandlerId());
+                        runtimeTaskExtension.getApprovalRuleHandlerId());
                 runtimeTaskExtension.setNeedTiming(limitTime.getNeedTiming());
                 runtimeTaskExtension.setLimitTime(limitTime.getLimitTime());
             }
@@ -935,11 +919,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 修正扩展数据
-     * 
-     * @param delegateTask
-     *            代理人员
-     * @param runtimeTaskExtension
-     *            任务扩展
+     *
+     * @param delegateTask         代理人员
+     * @param runtimeTaskExtension 任务扩展
      */
 
     protected void reviseExtendData(DelegateTask delegateTask, RuntimeTaskExtension runtimeTaskExtension) {
@@ -955,9 +937,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * <li>设置任务创建人信息
      * <li>设置任务执行人信息
      * </ul>
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void onBeforeCreate(DelegateTask delegateTask) {
         RuntimeTaskExtension runtimeTaskExtension = new RuntimeTaskExtension();
@@ -1019,7 +1000,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
             Person person = orgApplication.loadPerson(runtimeTaskExtension.getExecutorPersonId());
             String urlFormat = "isReadOnly=false&taskKindId=task&procInstId=%s&bizId=%s&bizCode=%s&processDefinitionKey=%s&procUnitId=%s&taskId=%s&procUnitHandlerId=%s&taskStatusId=%s";
             String url = String.format(urlFormat, delegateTask.getProcessInstanceId(), delegateTask.getExecution().getProcessBusinessKey(), this.getBizCode(),
-                                       processKey, delegateTask.getTaskDefinitionKey(), delegateTask.getId(), procUnitHandlerId, TaskStatus.READY.getId());
+                    processKey, delegateTask.getTaskDefinitionKey(), delegateTask.getId(), procUnitHandlerId, TaskStatus.READY.getId());
             String executorUrl = runtimeTaskExtension.getExecutorUrl();
             // String webBasePath = Singleton.getParameter("webBasePath",
             // String.class);
@@ -1030,8 +1011,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
                 url = String.format("%s?%s", executorUrl, url);
             }
             messageSenderManager.send(delegateTask.getExecution().getProcessBusinessKey(), delegateTask.getDescription(), url, this.getOperator()
-                                                                                                                                   .getLoginName(),
-                                      person.getLoginName());
+                            .getLoginName(),
+                    person.getLoginName());
         }
     }
 
@@ -1056,9 +1037,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * <li>申请环节需保存业务和审批数据，给流程赋业务ID
      * <li>给任务赋默认值
      * </ul>
-     * 
-     * @param delegateTas
-     *            代理任务
+     *
+     * @param delegateTas 代理任务
      */
     @Transactional
     public void onCreate(DelegateTask delegateTask) {
@@ -1067,9 +1047,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 给任务赋处理人事件
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     public void onAssignment(DelegateTask delegateTask) {
 
@@ -1089,9 +1068,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 是否抢占取消任务
-     * 
-     * @param delegateTask
-     *            任务代理
+     *
+     * @param delegateTask 任务代理
      * @return
      */
     private boolean isPreemptCanceledTask(DelegateTask delegateTask) {
@@ -1103,8 +1081,19 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
     }
 
     /**
+     * @since 1.1.3
+     */
+    private boolean isLimitHandlerCanceledTask(DelegateTask delegateTask) {
+        Object object = delegateTask.getVariable(LIMIT_HANDLER_CANCEL_VARIABLE);
+        if (object != null) {
+            return delegateTask.getVariable(LIMIT_HANDLER_CANCEL_VARIABLE, Boolean.class);
+        }
+        return false;
+    }
+
+    /**
      * 处理任务协作模式
-     * 
+     *
      * @param delegateTask
      */
     private void handleTaskCooperationModelKind(DelegateTask delegateTask) {
@@ -1123,7 +1112,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         String procId = processFun.getProcessKeyFromProcessDefinitionId(delegateTask.getProcessDefinitionId());
         ProcDefinition procDefinition = this.procDefinitionApplication.loadProcDefinitionByProcAndProcUnitId(procId, delegateTask.getTaskDefinitionKey());
         boolean assistantMustApprove = procDefinition != null && procDefinition.getAssistantMustApprove() != null
-                                       && procDefinition.getAssistantMustApprove().equals(1);
+                && procDefinition.getAssistantMustApprove().equals(1);
 
         Integer count = this.actApplication.countWaitedAssistantTask(approvalParameter.getBizId(), procUnitHandler.getId());
         Assert.isTrue(count == 0, "协审任务已打回，正在等待处理，不能流转。");
@@ -1140,14 +1129,27 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
             List<String> taskIds = this.actApplication.queryRuTaskIdsByProcessInstanceId(delegateTask.getProcessInstanceId());
             for (String taskId : taskIds) {
                 if (!delegateTask.getId().equals(taskId)) {
-                    Map<String, Object> variables = new HashMap<String, Object>(1);
+                    Map<String, Object> variables = new HashMap<>(1);
                     variables.put(PREEMPT_CANCEL_VARIABLE, true);
                     this.workflowService.getTaskService().complete(taskId, variables, true);
                 }
             }
             this.procUnitHandlerApplication.updateOtherProcUnitHandlersResultSystemComplete(this.getBizId(), delegateTask.getTaskDefinitionKey(),
-                                                                                            this.getCurrentHandleGroupId(), procUnitHandlerId, null);
+                    this.getCurrentHandleGroupId(), procUnitHandlerId, null);
         } else {
+            // @since 1.1.3
+            if (isLimitHandler(procUnitHandler.getProcUnitId(), procUnitHandler.getGroupId(), procUnitHandler.getLimitHandler())) {
+                // 系统完成其他人的任务（包括协审任务）
+                Map<String, Object> variables = new HashMap<>(1);
+                variables.put(LIMIT_HANDLER_CANCEL_VARIABLE, true);
+                this.actApplication.queryRuTaskIdsByProcessInstanceId(delegateTask.getProcessInstanceId())
+                        .stream()
+                        .filter(taskId -> !taskId.equals(delegateTask.getId()))
+                        .forEach(taskId -> workflowService.getTaskService().complete(taskId, variables, true));
+                this.procUnitHandlerApplication.updateOtherProcUnitHandlersResultSystemComplete(this.getBizId(), delegateTask.getTaskDefinitionKey(),
+                        this.getCurrentHandleGroupId(), procUnitHandlerId, null);
+                return;
+            }
             // 主审完成后，查询协审任务添加到通知事件环境中
             List<String> taskIds = this.actApplication.queryRuAssistantTaskIds(this.getBizId(), procUnitHandlerId);
             for (String taskId : taskIds) {
@@ -1157,10 +1159,27 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
     }
 
     /**
+     * @since 1.1.3
+     */
+    private boolean isLimitHandler(String procUnitId, Integer groupId, Integer limitHandler) {
+        int procUnitHandlerCount = procUnitHandlerApplication.queryProcUnitHandlerIds(getBizId(), procUnitId, groupId).size();
+        if (procUnitHandlerCount < 2) {
+            return false;
+        }
+        // 已完成的环节处理人（主审）
+        List<ProcUnitHandler> completedChiefProcUnitHandlers = procUnitHandlerApplication.queryCompletedProcUnitHandlers(getBizId(), procUnitId, groupId)
+                .stream()
+                .filter(handler -> CooperationModelKind.isChief(handler.getCooperationModelId()))
+                .collect(Collectors.toList());
+        return limitHandler != null
+                && limitHandler > 0
+                && Objects.equals(limitHandler, completedChiefProcUnitHandlers.size());
+    }
+
+    /**
      * 任务完成前事件处理
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void onBeforeComplete(DelegateTask delegateTask) {
         if (isApprovalProcUnit(delegateTask)) {
@@ -1175,24 +1194,24 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
             if (!approvePassed()) {
                 switch (getApproveNotPassedHandleKind()) {
-                case CONTINUE:
-                    delegateTask.setVariable(APPROVE_PASSED_VARIABLE, true);
-                    break;
-                case BACK_TO_APPLY:
-                    // 并行任务的处理
-                    delegateTask.setVariable(APPROVE_NOT_PASSED_BACK_KEY, true);
-                    delegateTask.setVariable("startModel", "");
-                    break;
-                case ABORT:
-                    // parent execution record handlerList
-                    // child1 execution record (nrOfInstances、nrOfCompletedInstances、 nrOfActiveInstances)
-                    // child2 execution record (loopCounter、assignee)
-                    // child3 execution record (loopCounter、assignee)
-                    List<String> handlers = new ArrayList<String>(1);
-                    delegateTask.setVariable("handlerList", handlers);
-                    break;
-                default:
-                    break;
+                    case CONTINUE:
+                        delegateTask.setVariable(APPROVE_PASSED_VARIABLE, true);
+                        break;
+                    case BACK_TO_APPLY:
+                        // 并行任务的处理
+                        delegateTask.setVariable(APPROVE_NOT_PASSED_BACK_KEY, true);
+                        delegateTask.setVariable("startModel", "");
+                        break;
+                    case ABORT:
+                        // parent execution record handlerList
+                        // child1 execution record (nrOfInstances、nrOfCompletedInstances、 nrOfActiveInstances)
+                        // child2 execution record (loopCounter、assignee)
+                        // child3 execution record (loopCounter、assignee)
+                        List<String> handlers = new ArrayList<String>(1);
+                        delegateTask.setVariable("handlerList", handlers);
+                        break;
+                    default:
+                        break;
                 }
             }
         } else {
@@ -1204,9 +1223,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 任务完成后事件处理
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void onAfterComplete(DelegateTask delegateTask) {
 
@@ -1216,9 +1234,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 填充下一环节的审批人
      * <p>
      * 基类只处理申请环节提交后，计算审批环节处理人
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     @Deprecated
     protected void calculateNextProcUnitHandlers(DelegateTask delegateTask) {
@@ -1253,7 +1270,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 验证预览提交规则
-     * 
+     *
      * @param handlers
      */
     @SuppressWarnings("unchecked")
@@ -1348,7 +1365,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
     private void calculateNextProcUnitHandlersForQueryAdvance(VariableScope variableScope, String processDefinitionKey, String nextProcUnitId) {
 
         List<Object> inputHandlers = this.getBizAndApprovalData().getList("procUnitHandlers");
-        List<Map<String, Object>> handlerList = new ArrayList<Map<String, Object>>(inputHandlers.size());
+        List<Map<String, Object>> handlerList = new ArrayList<>(inputHandlers.size());
 
         checkQueryAdvance(inputHandlers);
 
@@ -1427,9 +1444,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 修正下一环节处理人
-     * 
-     * @param handlerList
-     *            环节处理人
+     *
+     * @param handlerList 环节处理人
      */
     protected void reviseNextProcUnitHandlers(List<Map<String, Object>> handlerList) {
 
@@ -1491,8 +1507,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
                     assistHandler = chiefHandler.getAssists().get(j);
                     for (OrgUnit orgUnit : assistHandler.getOrgUnits()) {
                         Map<String, Object> assistantHandlerData = this.buildProcUnitHandlerAssists(approvalRule, chiefHandler, assistHandler, bizId,
-                                                                                                    item.getId(), orgUnit, sequence, j + 1,
-                                                                                                    assistHandler.getKindId(), procUnitHandlerChiefId);
+                                item.getId(), orgUnit, sequence, j + 1,
+                                assistHandler.getKindId(), procUnitHandlerChiefId);
 
                         handlerList.add(assistantHandlerData);
                     }
@@ -1526,9 +1542,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 计算下一环节处理人
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void doCalculateNextProcUnitHandlers(DelegateTask delegateTask) {
         checkLicense();
@@ -1565,16 +1580,15 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 1、当前环节没有审批完，获取当前环节的下一组审批人
      * <p>
      * 2、当前环节已审批完成，获取下一环节第一组审批人
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void fillNextGroupHandlers(DelegateTask delegateTask) {
         Boolean needApprove = ClassHelper.convert(delegateTask.getVariable("needApprove"), Boolean.class, true);
         Boolean currentGroupChiefApprovePassed = ClassHelper.convert(delegateTask.getVariable(CHIEF_APPROVE_PASSED_VARIABLE), Boolean.class, false);
 
         if ((this.isApplyProcUnit(delegateTask) && needApprove) || (this.isApprovalProcUnit(delegateTask) && currentGroupChiefApprovePassed)
-            || getOtherProcUnitHandleCompleted(delegateTask)) {
+                || getOtherProcUnitHandleCompleted(delegateTask)) {
             // 环节处理完成后，发抄送任务
             if (this.isApprovalProcUnit(delegateTask)) {
                 doMakeACopyFor(delegateTask);
@@ -1591,7 +1605,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         String bizId = delegateTask.getExecution().getProcessBusinessKey();
         String currentProcUnitHandlerId = getApprovalParameter().getCurrentHandleId();
         List<ProcUnitHandler> ccProcUnitHandlers = this.procUnitHandlerApplication.queryCCProcUnitHandlers(bizId, delegateTask.getTaskDefinitionKey(),
-                                                                                                           currentProcUnitHandlerId);
+                currentProcUnitHandlerId);
 
         if (ccProcUnitHandlers.size() > 0) {
             List<String> ccIds = new ArrayList<String>(ccProcUnitHandlers.size());
@@ -1604,18 +1618,16 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 保存逻辑处理
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void onSave(DelegateTask delegateTask) {
     }
 
     /**
      * 提交事件
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void onAdvance(DelegateTask delegateTask) {
 
@@ -1623,11 +1635,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 抓回逻辑处理
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param destActivityId
-     *            目标环境id
+     *
+     * @param delegateTask   代理任务
+     * @param destActivityId 目标环境id
      */
     protected void onWithdraw(DelegateTask delegateTask, String destActivityId) {
 
@@ -1652,7 +1662,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 审批不同意处理类别
-     * 
+     *
      * @return
      */
     protected ApproveNotPassedHandleKind getApproveNotPassedHandleKind() {
@@ -1674,108 +1684,111 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         ApprovalParameter approvalParameter = getApprovalParameter();
 
         switch (approvalParameter.getProcessAction()) {
-        case ProcessAction.WITHDRAW:// 回收
-            boolean mainWithdrawTask = this.getBizAndApprovalData().getProperty("mainWithdrawTask", Boolean.class);
-            delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, mainWithdrawTask);
+            case ProcessAction.WITHDRAW:// 回收
+                boolean mainWithdrawTask = this.getBizAndApprovalData().getProperty("mainWithdrawTask", Boolean.class);
+                delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, mainWithdrawTask);
 
-            if (mainWithdrawTask) {
-                fillWithdrawTaskProcUnitHandlers(delegateTask);
-                onWithdraw(delegateTask, getDestActivityId());
-            }
-            // 删除审批人的审批信息
-            // this.procUnitHandlerApplication.deleteProcUnitHandlersByBizId(this.getBizId());
-            result = true;
-            break;
-        case ProcessAction.BACK:// 回退
-            // 主回退任务
-            boolean mainBackTask = this.getBizAndApprovalData().getProperty("mainBackTask", Boolean.class);
-            delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, mainBackTask);
-
-            if (mainBackTask) {
-                if (this.isBackSaveBizData()) {
-                    this.saveBizAndApprovalData(delegateTask);
-                } else {
-                    this.updateProcUnitHandlerResult();
+                if (mainWithdrawTask) {
+                    fillWithdrawTaskProcUnitHandlers(delegateTask);
+                    onWithdraw(delegateTask, getDestActivityId());
                 }
-                fillBackProcUnitHandlers(delegateTask);
-                onBack(delegateTask, this.getDestActivityId());
-            }
-            result = true;
-            break;
-        case ProcessAction.REPLENISH:// 打回
-            delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, false);
-
-            Boolean isOtherPreemptModelTask = delegateTask.getVariableLocal("otherPreemptModelTask", Boolean.class);
-            if (isOtherPreemptModelTask == null) {
-                isOtherPreemptModelTask = false;
-            }
-            if (Boolean.FALSE.equals(isOtherPreemptModelTask)) {
-                if (this.isBackSaveBizData()) {
-                    this.saveBizAndApprovalData(delegateTask);
-                } else {
-                    this.updateProcUnitHandlerResult();
-                }
-            }
-
-            result = true;
-            break;
-        case ProcessAction.TRANSMIT:
-            delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, false);
-
-            if (!StringUtil.isBlank(this.getBizAndApprovalData().getProperty(ProcessTaskContants.BIZ_ID, String.class, ""))) {
-                this.saveBizAndApprovalData(delegateTask);
-            }
-            onTransmit(delegateTask);
-            result = true;
-            break;
-        case ProcessAction.ADVANCE:
-        case ProcessAction.QUERY_ADVANCE:
-            if (isPreemptCanceledTask(delegateTask)) {
+                // 删除审批人的审批信息
+                // this.procUnitHandlerApplication.deleteProcUnitHandlersByBizId(this.getBizId());
                 result = true;
                 break;
-            }
+            case ProcessAction.BACK:// 回退
+                // 主回退任务
+                boolean mainBackTask = this.getBizAndApprovalData().getProperty("mainBackTask", Boolean.class);
+                delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, mainBackTask);
 
-            String bizId = approvalParameter.getBizId();
-            if (StringUtil.isNotBlank(bizId)) {
-                if (approvalParameter.isQueryAdvanceProcessAction() || approvalParameter.getOnlyAdvance()) {
-                    this.updateProcUnitHandlerResult();
-                } else {
-                    saveBizAndApprovalData(delegateTask);
+                if (mainBackTask) {
+                    if (this.isBackSaveBizData()) {
+                        this.saveBizAndApprovalData(delegateTask);
+                    } else {
+                        this.updateProcUnitHandlerResult();
+                    }
+                    fillBackProcUnitHandlers(delegateTask);
+                    onBack(delegateTask, this.getDestActivityId());
                 }
+                result = true;
+                break;
+            case ProcessAction.REPLENISH:// 打回
+                delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, false);
 
-                // TODO
-                // this.procUnitHandlerApplication.getHistoricProcUnitHandlerService().updateHistoricProcUnitHandlerInstVersion(bizId,
-                // this.getProcUnitId());
-            }
-
-            boolean isApproveNotPassedAbort = this.isApprovalProcUnit(delegateTask) && !this.approvePassed()
-                                              && (getApproveNotPassedHandleKind() == ApproveNotPassedHandleKind.ABORT);
-            if (isApproveNotPassedAbort) {
-                List<String> handlers = new ArrayList<String>(1);
-                delegateTask.setVariable("handlerList", handlers);
-
-                String procUnitHandlerId = approvalParameter.getCurrentHandleId();
-                ProcUnitHandler procUnitHandler = procUnitHandlerApplication.loadProcUnitHandler(procUnitHandlerId);
-
-                Assert.notNull(procUnitHandler, MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, procUnitHandlerId, "流程环节处理人"));
-
-                delegateTask.setVariable("isPreempt", procUnitHandler.isPreempt());
-                delegateTask.setVariable("preemptTaskId", delegateTask.getId());
-
-                this.workflowService.deleteProcessInstance(delegateTask.getProcessInstanceId(), "approveNotPass");
-                this.onAbortProcessInstance(delegateTask.getExecution());
-
-                if (procUnitHandler.isPreempt()) {
-                    this.procUnitHandlerApplication.updateOtherProcUnitHandlersResultSystemComplete(this.getBizId(), delegateTask.getTaskDefinitionKey(),
-                                                                                                    this.getCurrentHandleGroupId(), procUnitHandlerId, null);
+                Boolean isOtherPreemptModelTask = delegateTask.getVariableLocal("otherPreemptModelTask", Boolean.class);
+                if (isOtherPreemptModelTask == null) {
+                    isOtherPreemptModelTask = false;
+                }
+                if (Boolean.FALSE.equals(isOtherPreemptModelTask)) {
+                    if (this.isBackSaveBizData()) {
+                        this.saveBizAndApprovalData(delegateTask);
+                    } else {
+                        this.updateProcUnitHandlerResult();
+                    }
                 }
 
                 result = true;
                 break;
-            }
+            case ProcessAction.TRANSMIT:
+                delegateTask.setVariable(CHIEF_APPROVE_PASSED_VARIABLE, false);
 
-            onAdvance(delegateTask);
-            break;
+                if (!StringUtil.isBlank(this.getBizAndApprovalData().getProperty(ProcessTaskContants.BIZ_ID, String.class, ""))) {
+                    this.saveBizAndApprovalData(delegateTask);
+                }
+                onTransmit(delegateTask);
+                result = true;
+                break;
+            case ProcessAction.ADVANCE:
+            case ProcessAction.QUERY_ADVANCE:
+                if (isPreemptCanceledTask(delegateTask)) {
+                    result = true;
+                    break;
+                }
+                if (isLimitHandlerCanceledTask(delegateTask)) {
+                    result = true;
+                    break;
+                }
+                String bizId = approvalParameter.getBizId();
+                if (StringUtil.isNotBlank(bizId)) {
+                    if (approvalParameter.isQueryAdvanceProcessAction() || approvalParameter.getOnlyAdvance()) {
+                        this.updateProcUnitHandlerResult();
+                    } else {
+                        saveBizAndApprovalData(delegateTask);
+                    }
+
+                    // TODO
+                    // this.procUnitHandlerApplication.getHistoricProcUnitHandlerService().updateHistoricProcUnitHandlerInstVersion(bizId,
+                    // this.getProcUnitId());
+                }
+
+                boolean isApproveNotPassedAbort = this.isApprovalProcUnit(delegateTask) && !this.approvePassed()
+                        && (getApproveNotPassedHandleKind() == ApproveNotPassedHandleKind.ABORT);
+                if (isApproveNotPassedAbort) {
+                    List<String> handlers = new ArrayList<String>(1);
+                    delegateTask.setVariable("handlerList", handlers);
+
+                    String procUnitHandlerId = approvalParameter.getCurrentHandleId();
+                    ProcUnitHandler procUnitHandler = procUnitHandlerApplication.loadProcUnitHandler(procUnitHandlerId);
+
+                    Assert.notNull(procUnitHandler, MessageSourceContext.getMessage(MessageConstants.OBJECT_NOT_FOUND_BY_ID, procUnitHandlerId, "流程环节处理人"));
+
+                    delegateTask.setVariable("isPreempt", procUnitHandler.isPreempt());
+                    delegateTask.setVariable("preemptTaskId", delegateTask.getId());
+
+                    this.workflowService.deleteProcessInstance(delegateTask.getProcessInstanceId(), "approveNotPass");
+                    this.onAbortProcessInstance(delegateTask.getExecution());
+
+                    if (procUnitHandler.isPreempt()) {
+                        this.procUnitHandlerApplication.updateOtherProcUnitHandlersResultSystemComplete(this.getBizId(), delegateTask.getTaskDefinitionKey(),
+                                this.getCurrentHandleGroupId(), procUnitHandlerId, null);
+                    }
+
+                    result = true;
+                    break;
+                }
+
+                onAdvance(delegateTask);
+                break;
         }
 
         if (result) {
@@ -1792,9 +1805,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * <li>结束前事件
      * <li>计算并填充流出节点的处理人
      * </ul>
-     * 
-     * @param delegateTask
-     *            代理人
+     *
+     * @param delegateTask 代理人
      */
     public void onComplete(DelegateTask delegateTask) {
         if (fireEvent(delegateTask)) {
@@ -1819,27 +1831,27 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         }
         // 审批流和业务流通过审批人规则计算审批人
         switch (this.getFlowKind()) {
-        case APPROVAL:
-        case BUSINESS:
-        case FREE:
-            Boolean needApprove = ClassHelper.convert(delegateTask.getVariable("needApprove"), Boolean.class, true);
-            if ((this.isApplyProcUnit(delegateTask) && needApprove) || (loopApprovalFinished(delegateTask) && isLeaveCurrentProcUnit)) {
-                if (this.getFlowKind() == ProcessKind.FREE) {
-                    RuntimeTaskExtension runtimeTaskExtension = this.actApplication.loadRuntimeTaskExtension(this.getTaskId());
-                    if (ProcessAction.RECALL_PROCESS_INSTANCE.equals(runtimeTaskExtension.getGenerateReason())) {
-                        // 撤销自由流程,删除处理人
-                        this.procUnitHandlerApplication.deleteProcUnitHandlersByBizId(this.getBizId());
-                    } else if (ProcessAction.WITHDRAW.equals(runtimeTaskExtension.getGenerateReason())) {
-                        // 回收任务，删除后继处理人(A--(B,C,D)-->A'; A'-->B-->A
-                        HistoricTaskInstanceExtension historicTaskInstanceExtension = this.actApplication.loadHistoricTaskInstanceExtension(runtimeTaskExtension.getPreviousId());
-                        this.procUnitHandlerApplication.deleteWithdrawSucceedingHandlers(this.getBizId(), historicTaskInstanceExtension.getPreviousId());
+            case APPROVAL:
+            case BUSINESS:
+            case FREE:
+                Boolean needApprove = ClassHelper.convert(delegateTask.getVariable("needApprove"), Boolean.class, true);
+                if ((this.isApplyProcUnit(delegateTask) && needApprove) || (loopApprovalFinished(delegateTask) && isLeaveCurrentProcUnit)) {
+                    if (this.getFlowKind() == ProcessKind.FREE) {
+                        RuntimeTaskExtension runtimeTaskExtension = this.actApplication.loadRuntimeTaskExtension(this.getTaskId());
+                        if (ProcessAction.RECALL_PROCESS_INSTANCE.equals(runtimeTaskExtension.getGenerateReason())) {
+                            // 撤销自由流程,删除处理人
+                            this.procUnitHandlerApplication.deleteProcUnitHandlersByBizId(this.getBizId());
+                        } else if (ProcessAction.WITHDRAW.equals(runtimeTaskExtension.getGenerateReason())) {
+                            // 回收任务，删除后继处理人(A--(B,C,D)-->A'; A'-->B-->A
+                            HistoricTaskInstanceExtension historicTaskInstanceExtension = this.actApplication.loadHistoricTaskInstanceExtension(runtimeTaskExtension.getPreviousId());
+                            this.procUnitHandlerApplication.deleteWithdrawSucceedingHandlers(this.getBizId(), historicTaskInstanceExtension.getPreviousId());
+                        }
                     }
+                    doCalculateNextProcUnitHandlers(delegateTask);
                 }
-                doCalculateNextProcUnitHandlers(delegateTask);
-            }
-            break;
-        default:
-            break;
+                break;
+            default:
+                break;
         }
         fillNextGroupHandlers(delegateTask);
 
@@ -1907,11 +1919,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 填充流程环节handlerList变量
      * <p>
      * 取出下一组审批人列表，放入到handlerList中
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param nextProcUnitId
-     *            下一环节ID
+     *
+     * @param delegateTask   代理任务
+     * @param nextProcUnitId 下一环节ID
      */
     protected void fillHandlerListVariable(DelegateTask delegateTask, String nextProcUnitId) {
         List<String> handlers = buildNextActivityGroupHandlers(delegateTask.getExecution().getProcessBusinessKey(), nextProcUnitId, getCurrentHandleGroupId());
@@ -1930,16 +1940,14 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 1、当前环节没有审批完，获取当前环节的下一组审批人
      * <p>
      * 2、当前环节已审批完成，获取下一环节第一组审批人
-     * 
-     * @param delegateTask
-     *            代理任务
-     * @param nextProcUnitId
-     *            下一环节ID
+     *
+     * @param delegateTask   代理任务
+     * @param nextProcUnitId 下一环节ID
      */
     protected void doFillNextGroupHandlers(DelegateTask delegateTask, String nextProcUnitId) {
         if (StringUtil.isNotBlank(nextProcUnitId)) {
             if (!loopApprovalFinished(delegateTask)
-                || (loopApprovalFinished(delegateTask) && !delegateTask.getTaskDefinitionKey().equalsIgnoreCase(nextProcUnitId))) {
+                    || (loopApprovalFinished(delegateTask) && !delegateTask.getTaskDefinitionKey().equalsIgnoreCase(nextProcUnitId))) {
                 fillHandlerListVariable(delegateTask, nextProcUnitId);
             }
         }
@@ -1953,7 +1961,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 终止保存业务数据
-     * 
+     *
      * @return
      */
     protected boolean isAbortSaveBizData() {
@@ -1966,9 +1974,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 任务删除事件
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected void onDelete(DelegateTask delegateTask) {
         // 审批未通过终止，删除流程实例的时候，任务已删除。
@@ -1981,70 +1988,70 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         ApprovalParameter approvalParameter = getApprovalParameter();
 
         switch (approvalParameter.getProcessAction()) {
-        case ProcessAction.ADVANCE:
-        case ProcessAction.QUERY_ADVANCE:
-            boolean isApproveNotPassedAbort = this.isApprovalProcUnit(delegateTask) && !this.approvePassed()
-                                              && (getApproveNotPassedHandleKind() == ApproveNotPassedHandleKind.ABORT);
-            if (isApproveNotPassedAbort) {
-                // 审批未通过 终止
-                status = TaskStatus.ABORTED;
-                boolean isPreempt = delegateTask.getVariable("isPreempt", Boolean.class);
-                String preemptTaskId = delegateTask.getVariable("preemptTaskId", String.class);
-                if (isPreempt && !delegateTask.getId().equals(preemptTaskId)) {
+            case ProcessAction.ADVANCE:
+            case ProcessAction.QUERY_ADVANCE:
+                boolean isApproveNotPassedAbort = this.isApprovalProcUnit(delegateTask) && !this.approvePassed()
+                        && (getApproveNotPassedHandleKind() == ApproveNotPassedHandleKind.ABORT);
+                if (isApproveNotPassedAbort) {
+                    // 审批未通过 终止
+                    status = TaskStatus.ABORTED;
+                    boolean isPreempt = delegateTask.getVariable("isPreempt", Boolean.class);
+                    String preemptTaskId = delegateTask.getVariable("preemptTaskId", String.class);
+                    if (isPreempt && !delegateTask.getId().equals(preemptTaskId)) {
+                        status = TaskStatus.CANCELED;
+                    }
+                    // boolean deleteProcessInstance = ClassHelper.convert(delegateTask.getVariable("deleteProcessInstance"), Boolean.class, false);
+                    // if (!deleteProcessInstance) {
+                    // delegateTask.setVariable("deleteProcessInstance", true);
+                    // delegateTask.setVariable(ABORT_TASK_ID_VARIABLE, delegateTask.getId());
+                    // this.workflowService.deleteProcessInstance(delegateTask.getProcessInstanceId(), "approveNotPass");
+                    // }
+                    // if (!deleteProcessInstance) {
+                    // this.onAbortProcessInstance(delegateTask.getExecution());
+                    // }
+                } else if (this.isAssistTask(delegateTask)) {
+                    if (delegateTask.getId().equals(this.getApprovalParameter().getTaskId())) {
+                        status = TaskStatus.COMPLETED;
+                    } else {
+                        status = TaskStatus.CANCELED;
+                    }
+                } else if (isPreemptCanceledTask(delegateTask)) {// 抢占取消任务
                     status = TaskStatus.CANCELED;
                 }
-                // boolean deleteProcessInstance = ClassHelper.convert(delegateTask.getVariable("deleteProcessInstance"), Boolean.class, false);
-                // if (!deleteProcessInstance) {
-                // delegateTask.setVariable("deleteProcessInstance", true);
-                // delegateTask.setVariable(ABORT_TASK_ID_VARIABLE, delegateTask.getId());
-                // this.workflowService.deleteProcessInstance(delegateTask.getProcessInstanceId(), "approveNotPass");
-                // }
-                // if (!deleteProcessInstance) {
-                // this.onAbortProcessInstance(delegateTask.getExecution());
-                // }
-            } else if (this.isAssistTask(delegateTask)) {
-                if (delegateTask.getId().equals(this.getApprovalParameter().getTaskId())) {
-                    status = TaskStatus.COMPLETED;
-                } else {
-                    status = TaskStatus.CANCELED;
-                }
-            } else if (isPreemptCanceledTask(delegateTask)) {// 抢占取消任务
-                status = TaskStatus.CANCELED;
-            }
-            break;
-        case ProcessAction.TRANSMIT:
-            status = TaskStatus.TRANSMITED;
-            break;
-        case ProcessAction.BACK:
-        case ProcessAction.REPLENISH:
-            status = TaskStatus.RETURNED;
+                break;
+            case ProcessAction.TRANSMIT:
+                status = TaskStatus.TRANSMITED;
+                break;
+            case ProcessAction.BACK:
+            case ProcessAction.REPLENISH:
+                status = TaskStatus.RETURNED;
 
-            Boolean isOtherPreemptModelTask = delegateTask.getVariableLocal("otherPreemptModelTask", Boolean.class);
-            if (approvalParameter.getProcessAction().equals(ProcessAction.REPLENISH) && Boolean.TRUE.equals(isOtherPreemptModelTask)) {
+                Boolean isOtherPreemptModelTask = delegateTask.getVariableLocal("otherPreemptModelTask", Boolean.class);
+                if (approvalParameter.getProcessAction().equals(ProcessAction.REPLENISH) && Boolean.TRUE.equals(isOtherPreemptModelTask)) {
+                    status = TaskStatus.CANCELED;
+                }
+                break;
+            case ProcessAction.ASSIST:
+                // 删除协审人员
+                status = TaskStatus.ABORTED;
+                break;
+            case ProcessAction.DELETE_PROCESS_INSTANCE:
+                deleteReason = ProcessAction.DELETE_PROCESS_INSTANCE;
+                status = TaskStatus.DELETED;
+                break;
+            case ProcessAction.RECALL_PROCESS_INSTANCE:
+                deleteReason = ProcessAction.RECALL_PROCESS_INSTANCE;
                 status = TaskStatus.CANCELED;
-            }
-            break;
-        case ProcessAction.ASSIST:
-            // 删除协审人员
-            status = TaskStatus.ABORTED;
-            break;
-        case ProcessAction.DELETE_PROCESS_INSTANCE:
-            deleteReason = ProcessAction.DELETE_PROCESS_INSTANCE;
-            status = TaskStatus.DELETED;
-            break;
-        case ProcessAction.RECALL_PROCESS_INSTANCE:
-            deleteReason = ProcessAction.RECALL_PROCESS_INSTANCE;
-            status = TaskStatus.CANCELED;
-            break;
-        case ProcessAction.WITHDRAW:
-            deleteReason = ProcessAction.WITHDRAW;
-            status = TaskStatus.CANCELED;
-            break;
-        case ProcessAction.ABORT_PROCESS_INSTANCE:
-            status = TaskStatus.ABORTED;
-            break;
-        default:
-            throw new ApplicationException(String.format("无效的流程命令“%s”。", approvalParameter.getProcessAction()));
+                break;
+            case ProcessAction.WITHDRAW:
+                deleteReason = ProcessAction.WITHDRAW;
+                status = TaskStatus.CANCELED;
+                break;
+            case ProcessAction.ABORT_PROCESS_INSTANCE:
+                status = TaskStatus.ABORTED;
+                break;
+            default:
+                throw new ApplicationException(String.format("无效的流程命令“%s”。", approvalParameter.getProcessAction()));
         }
 
         if (deleteReason == null) {
@@ -2057,9 +2064,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 保存业务数据
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     protected String onSaveBizData(DelegateTask delegateTask) {
         return saveBizAndApprovalData(delegateTask);
@@ -2067,8 +2073,6 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 检查审批规则处理人不能为空
-     * 
-     * @param approvalRuleHandlers
      */
     private void checkApprovalRuleHandlerNotNull(ApprovalRule approvalRule) {
         // 检查审批人是否为空
@@ -2101,7 +2105,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * 是否排序处理人
      * <p>
      * 用于预览处理人
-     * 
+     *
      * @return
      */
     protected boolean isSortHandlers() {
@@ -2109,17 +2113,11 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
     }
 
     /**
-     * 
-     */
-    /**
      * 生成任务执行模型
-     * 
-     * @param approvalRule
-     *            审批规则
-     * @param groupId
-     *            分组ID
-     * @param handler
-     *            处理人
+     *
+     * @param approvalRule 审批规则
+     * @param groupId      分组ID
+     * @param handler      处理人
      */
     private void buildTaskExecuteMode(ApprovalRule approvalRule, Integer groupId, Map<String, Object> handler) {
         ApprovalRuleHandlerGroup approvalRuleHandlerGroup = approvalRule.findApprovalRuleHandlerGroup(groupId);
@@ -2130,19 +2128,13 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 生成环节预览处理人
-     * 
-     * @param processDefinitionKey
-     *            流程定义ID
-     * @param procUnitId
-     *            流程环节ID
-     * @param procUnitName
-     *            流程环节名称
-     * @param hasGatewayManual
-     *            是否有选择网关
-     * @param bizParams
-     *            业务参数
-     * @param handlers
-     *            处理人
+     *
+     * @param processDefinitionKey 流程定义ID
+     * @param procUnitId           流程环节ID
+     * @param procUnitName         流程环节名称
+     * @param hasGatewayManual     是否有选择网关
+     * @param bizParams            业务参数
+     * @param handlers             处理人
      * @return
      */
     protected boolean buildProcUnitHandlersForQuery(DelegateTask delegateTask, String processDefinitionKey, String procUnitId, String procUnitName,
@@ -2169,74 +2161,74 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         for (int i = 0; i < approvalRuleHandlers.size(); i++) {
             ApprovalRuleHandler chiefHandler = approvalRuleHandlers.get(i);
             switch (chiefHandler.getHandlerKind()) {
-            case MANUAL_SELECTION:
-            case SCOPE_SELECTION:
-                hasSelection = hasSelection || true;
-                handler = buildProcUnitHandler(approvalRule, chiefHandler, this.getBizId(), procUnitId, procUnitName, null, sequence);
-                procUnitHandlerChiefId = CommonUtil.createGUID();
-                handler.put("isMustPass", approvalRuleHandlers.get(i).getMustPass());
-                handler.put("id", procUnitHandlerChiefId);
+                case MANUAL_SELECTION:
+                case SCOPE_SELECTION:
+                    hasSelection = hasSelection || true;
+                    handler = buildProcUnitHandler(approvalRule, chiefHandler, this.getBizId(), procUnitId, procUnitName, null, sequence);
+                    procUnitHandlerChiefId = CommonUtil.createGUID();
+                    handler.put("isMustPass", approvalRuleHandlers.get(i).getMustPass());
+                    handler.put("id", procUnitHandlerChiefId);
 
-                if (hasGatewayManual) {
-                    handler.put("showRadio", "true");
-                }
-
-                if (chiefHandler.getHandlerKind() == HandlerKind.SCOPE_SELECTION) {
-                    chiefHandler.setHandlerKindCode(HandlerKind.MANAGER_FUN.getId());
-                    List<Map<String, Object>> scopeData = new ArrayList<Map<String, Object>>(chiefHandler.getOrgUnits().size());
-                    for (OrgUnit orgUnit : chiefHandler.getOrgUnits()) {
-                        Map<String, Object> scopeItem = new HashMap<String, Object>();
-
-                        scopeItem = buildProcUnitHandler(approvalRule, chiefHandler, this.getBizId(), procUnitId, procUnitName, orgUnit, sequence);
-                        procUnitHandlerChiefId = CommonUtil.createGUID();
-                        scopeItem.put("id", procUnitHandlerChiefId);
-                        scopeData.add(scopeItem);
-
-                        sequence++;
-                    }
-                    handler.put("scopeData", scopeData);
-                    chiefHandler.setHandlerKindCode(HandlerKind.SCOPE_SELECTION.getId());
-                }
-                handlers.add(handler);
-                break;
-            default:
-                if (chiefHandler.getOrgUnits().size() == 0) {
-                    continue;
-                }
-
-                if (lastGroupId != chiefHandler.getGroupId()) {
-                    lastGroupId = chiefHandler.getGroupId();
-                    sequence = 1;
-                }
-                // 主审人
-                for (OrgUnit orgUnit : chiefHandler.getOrgUnits()) {
-                    handler = buildProcUnitHandler(approvalRule, chiefHandler, this.getBizId(), procUnitId, procUnitName, orgUnit, sequence);
-
-                    if (hasGatewayManual && index == 0) {
+                    if (hasGatewayManual) {
                         handler.put("showRadio", "true");
                     }
 
-                    procUnitHandlerChiefId = CommonUtil.createGUID();
-                    handler.put("id", procUnitHandlerChiefId);
-                    handlers.add(handler);
+                    if (chiefHandler.getHandlerKind() == HandlerKind.SCOPE_SELECTION) {
+                        chiefHandler.setHandlerKindCode(HandlerKind.MANAGER_FUN.getId());
+                        List<Map<String, Object>> scopeData = new ArrayList<Map<String, Object>>(chiefHandler.getOrgUnits().size());
+                        for (OrgUnit orgUnit : chiefHandler.getOrgUnits()) {
+                            Map<String, Object> scopeItem = new HashMap<String, Object>();
 
-                    sequence++;
-                    index++;
-                }
+                            scopeItem = buildProcUnitHandler(approvalRule, chiefHandler, this.getBizId(), procUnitId, procUnitName, orgUnit, sequence);
+                            procUnitHandlerChiefId = CommonUtil.createGUID();
+                            scopeItem.put("id", procUnitHandlerChiefId);
+                            scopeData.add(scopeItem);
 
-                // 协审人
-                ApprovalRuleHandlerAssist assistHandler;
-                Map<String, Object> assistHandlerData;
-                for (int j = 0; j < chiefHandler.getAssists().size(); j++) {
-                    assistHandler = chiefHandler.getAssists().get(j);
-                    for (OrgUnit orgUnit : assistHandler.getOrgUnits()) {
-                        assistHandlerData = this.buildProcUnitHandlerAssists(approvalRule, chiefHandler, assistHandler, this.getBizId(), procUnitId, orgUnit,
-                                                                             sequence, j + 1, assistHandler.getKindId(), procUnitHandlerChiefId);
-
-                        handlers.add(assistHandlerData);
-
+                            sequence++;
+                        }
+                        handler.put("scopeData", scopeData);
+                        chiefHandler.setHandlerKindCode(HandlerKind.SCOPE_SELECTION.getId());
                     }
-                }
+                    handlers.add(handler);
+                    break;
+                default:
+                    if (chiefHandler.getOrgUnits().size() == 0) {
+                        continue;
+                    }
+
+                    if (lastGroupId != chiefHandler.getGroupId()) {
+                        lastGroupId = chiefHandler.getGroupId();
+                        sequence = 1;
+                    }
+                    // 主审人
+                    for (OrgUnit orgUnit : chiefHandler.getOrgUnits()) {
+                        handler = buildProcUnitHandler(approvalRule, chiefHandler, this.getBizId(), procUnitId, procUnitName, orgUnit, sequence);
+
+                        if (hasGatewayManual && index == 0) {
+                            handler.put("showRadio", "true");
+                        }
+
+                        procUnitHandlerChiefId = CommonUtil.createGUID();
+                        handler.put("id", procUnitHandlerChiefId);
+                        handlers.add(handler);
+
+                        sequence++;
+                        index++;
+                    }
+
+                    // 协审人
+                    ApprovalRuleHandlerAssist assistHandler;
+                    Map<String, Object> assistHandlerData;
+                    for (int j = 0; j < chiefHandler.getAssists().size(); j++) {
+                        assistHandler = chiefHandler.getAssists().get(j);
+                        for (OrgUnit orgUnit : assistHandler.getOrgUnits()) {
+                            assistHandlerData = this.buildProcUnitHandlerAssists(approvalRule, chiefHandler, assistHandler, this.getBizId(), procUnitId, orgUnit,
+                                    sequence, j + 1, assistHandler.getKindId(), procUnitHandlerChiefId);
+
+                            handlers.add(assistHandlerData);
+
+                        }
+                    }
             }
 
         }
@@ -2258,9 +2250,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 预览处理人事件
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      */
     @SuppressWarnings("unchecked")
     protected void onQueryHandlers(DelegateTask delegateTask) {
@@ -2284,11 +2275,11 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
         Integer porcUnitSequence = 0;
 
-        List<Map<String, Object>> handlers = new ArrayList<Map<String, Object>>(nextProcUnits.size());
+        List<Map<String, Object>> handlers = new ArrayList<>(nextProcUnits.size());
 
         List<Map<String, Object>> currentProcUnitHandlers;
         for (String procUnitId : nextProcUnits.keySet()) {
-            currentProcUnitHandlers = new ArrayList<Map<String, Object>>();
+            currentProcUnitHandlers = new ArrayList<>();
             if (hasGatewayManual) {
                 if (nextProcUnits.get(procUnitId) instanceof EndEvent) {
                     handlers.add(buildEndHandlersForQuery(procUnitId));
@@ -2297,8 +2288,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
             }
 
             currentProcUnitHasSelection = buildProcUnitHandlersForQuery(delegateTask, processDefinitionKey, procUnitId,
-                                                                        nextProcUnits.get(procUnitId).getName(), hasGatewayManual, bizParams,
-                                                                        currentProcUnitHandlers);
+                    nextProcUnits.get(procUnitId).getName(), hasGatewayManual, bizParams,
+                    currentProcUnitHandlers);
             hasSelection = hasSelection || currentProcUnitHasSelection;
             // 排除相同人员
             this.mergeHandler(processDefinitionKey, procUnitId, currentProcUnitHandlers);
@@ -2350,11 +2341,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 冒泡排序处理人
-     * 
-     * @param handlers
-     *            处理人
-     * @param sortField
-     *            排序字段
+     *
+     * @param handlers  处理人
+     * @param sortField 排序字段
      */
     private void bubbleSortHandlers(List<Map<String, Object>> handlers, String sortField) {
         Integer currentValue, nextValue;
@@ -2404,9 +2393,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到流程业务参数
-     * 
-     * @param bizId
-     *            业务ID
+     *
+     * @param bizId 业务ID
      * @return 业务参数
      */
     protected Map<String, Object> getProcessBizParams(String bizId) {
@@ -2415,9 +2403,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到当前Activity
-     * 
-     * @param processDefinitionId
-     *            流程定义ID
+     *
+     * @param processDefinitionId 流程定义ID
      * @return activity 环节ID
      */
     protected ActivityImpl getCurrentActivity(String processDefinitionId, String activityId) {
@@ -2435,9 +2422,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 是否申请环节
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      * @return 是否申请环节
      */
     protected boolean isApplyProcUnit(DelegateTask delegateTask) {
@@ -2568,25 +2554,19 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
                                                               String chiefId) {
         String approvalRuleId = approvalRule == null ? "" : approvalRule.getId();
         return internalBuildProcUnitHandler(bizId, procUnitId, "", "", approvalRuleHandlerAssist.getDescription(),
-                                            approvalRuleHandlerAssist.getHandlerKindCode(), cooperationModelId, chiefId, orgUnit, approvalRuleId,
-                                            approvalRuleHandler.getId(), approvalRuleHandler.getGroupId(), sequence, assistantSequence);
+                approvalRuleHandlerAssist.getHandlerKindCode(), cooperationModelId, chiefId, orgUnit, approvalRuleId,
+                approvalRuleHandler.getId(), approvalRuleHandler.getGroupId(), sequence, assistantSequence);
     }
 
     /**
      * 生成环节处理人
-     * 
-     * @param approvalRule
-     *            审批规则
-     * @param approvalRuleHandler
-     *            审批规则处理人
-     * @param bizId
-     *            业务ID
-     * @param procUnitId
-     *            流程环节ID
-     * @param orgUnit
-     *            组织单元
-     * @param sequence
-     *            序号
+     *
+     * @param approvalRule        审批规则
+     * @param approvalRuleHandler 审批规则处理人
+     * @param bizId               业务ID
+     * @param procUnitId          流程环节ID
+     * @param orgUnit             组织单元
+     * @param sequence            序号
      * @return
      */
     protected Map<String, Object> buildProcUnitHandler(ApprovalRule approvalRule, ApprovalRuleHandler approvalRuleHandler, String bizId, String procUnitId,
@@ -2595,16 +2575,27 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         String approvalRuleHandlerId = approvalRuleHandler.isNew() ? "" : approvalRuleHandler.getId();
 
         Map<String, Object> handler = internalBuildProcUnitHandler(bizId, procUnitId, procUnitName, approvalRuleHandler.getHandlerKindId(),
-                                                                   approvalRuleHandler.getDescription(), approvalRuleHandler.getHandlerKindCode(),
-                                                                   CooperationModelKind.CHIEF, "", orgUnit, approvalRuleId, approvalRuleHandlerId,
-                                                                   approvalRuleHandler.getGroupId(), sequence, 0);
+                approvalRuleHandler.getDescription(), approvalRuleHandler.getHandlerKindCode(),
+                CooperationModelKind.CHIEF, "", orgUnit, approvalRuleId, approvalRuleHandlerId,
+                approvalRuleHandler.getGroupId(), sequence, 0);
         if (approvalRule != null) {
             buildTaskExecuteMode(approvalRule, approvalRuleHandler.getGroupId(), handler);
+            buildLimitHandler(approvalRule, approvalRuleHandler, handler);
         }
         // 发送消息
         handler.put("sendMessage", approvalRuleHandler.getSendMessage());
 
         return handler;
+    }
+
+    /**
+     * @since 1.1.3
+     */
+    private void buildLimitHandler(ApprovalRule approvalRule, ApprovalRuleHandler approvalRuleHandler, Map<String, Object> handler) {
+        ApprovalRuleHandlerGroup approvalRuleHandlerGroup = approvalRule.findApprovalRuleHandlerGroup(approvalRuleHandler.getGroupId());
+        if (approvalRuleHandlerGroup != null) {
+            handler.put("limitHandler", approvalRuleHandlerGroup.getLimitHandler());
+        }
     }
 
     /**
@@ -2615,7 +2606,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * map.put("fullId", fullId); <br>
      * map.put("fullName", fullName); <br>
      * map.put("groupId", 1);
-     * 
+     *
      * @return 附加审批人员列表
      */
     protected List<Map<String, Object>> getAdditionalHandlers() {
@@ -2624,15 +2615,11 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 添加附加处理人
-     * 
-     * @param bizId
-     *            业务ID
-     * @param chiefHandlers
-     *            主审人
-     * @param additionalHandlers
-     *            附加处理人
-     * @param currentProcUnitId
-     *            当前流程环节ID
+     *
+     * @param bizId              业务ID
+     * @param chiefHandlers      主审人
+     * @param additionalHandlers 附加处理人
+     * @param currentProcUnitId  当前流程环节ID
      */
     protected void addAdditionalHandlers(String bizId, List<Map<String, Object>> chiefHandlers, List<Map<String, Object>> additionalHandlers,
                                          String currentProcUnitId) {
@@ -2668,7 +2655,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 未找到处理人是否忽略
-     * 
+     *
      * @return 忽略未找到处理人
      */
     protected boolean ignoreNotFoundHandler() {
@@ -2677,9 +2664,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 通过环节ID获取环节处理人
-     * 
-     * @param delegateTask
-     *            代理任务
+     *
+     * @param delegateTask 代理任务
      * @return 环节处理人
      */
     protected List<OrgUnit> getHandlersByProcUnitId(DelegateTask delegateTask, String procUnitId) {
@@ -2698,7 +2684,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
             if (activity.getId().equalsIgnoreCase(procUnitId)) {
 
                 ApprovalRule approvalRule = procApprovalRuleParseService.execute(processDefinitionKey, activity.getId(),
-                                                                                 getProcessBizParams(delegateTask.getExecution().getProcessBusinessKey()));
+                        getProcessBizParams(delegateTask.getExecution().getProcessBusinessKey()));
                 List<ApprovalRuleHandler> approvalRuleHandlers = approvalRule.getApprovalRuleHandlers();
                 if (approvalRuleHandlers == null || approvalRuleHandlers.size() == 0) {
                     return result;
@@ -2716,7 +2702,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 获取允许合并的子环节id
-     * 
+     *
      * @return
      */
     protected List<String> getCanMergeSubProcUnitId() {
@@ -2729,7 +2715,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 排除相同处理人
-     * 
+     *
      * @param handlers
      * @param mergeHandlerKind
      */
@@ -2750,7 +2736,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
                 continue;
             }
             currentPersonId = currentPersonId.substring(0, currentPersonId.indexOf('@'));
-            handlersLoop: for (int j = i - 1; j >= 0; j--) {
+            handlersLoop:
+            for (int j = i - 1; j >= 0; j--) {
                 priorHandler = handlers.get(j);
                 priorPersonId = ClassHelper.convert(priorHandler.get("handlerId"), String.class);
                 priorStatus = ClassHelper.convert(priorHandler.get("status"), Integer.class, 0);
@@ -2782,7 +2769,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 合并处理人
-     * 
+     *
      * @param procId
      * @param procUnitId
      * @param handlers
@@ -2798,11 +2785,9 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 排除指定人员
-     * 
-     * @param bizId
-     *            业务ID
-     * @param handlers
-     *            处理人集合
+     *
+     * @param bizId    业务ID
+     * @param handlers 处理人集合
      */
     private void excludeSpecifiedHandler(String bizId, List<Map<String, Object>> handlers) {
         List<String> specifiedExcludeHandler = getSpecifiedExcludeHandler(bizId);
@@ -2839,9 +2824,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 得到指定的排除人员列表
-     * 
-     * @param bizId
-     *            业务id
+     *
+     * @param bizId 业务id
      * @return
      */
     protected List<String> getSpecifiedExcludeHandler(String bizId) {
@@ -2850,13 +2834,10 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 内部抄送
-     * 
-     * @param orgUnits
-     *            组织单元
-     * @param taskId
-     *            任务ID
-     * @param description
-     *            标题
+     *
+     * @param orgUnits    组织单元
+     * @param taskId      任务ID
+     * @param description 标题
      */
     private void internalMakeACopyFor(List<OrgUnit> orgUnits, String taskId, String description) {
         if (orgUnits.size() > 0) {
@@ -2873,15 +2854,11 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 给指定的管理权限发抄送任务
-     * 
-     * @param orgId
-     *            组织ID
-     * @param manageType
-     *            业务管理权限类别
-     * @param taskId
-     *            任务ID
-     * @param description
-     *            标题
+     *
+     * @param orgId       组织ID
+     * @param manageType  业务管理权限类别
+     * @param taskId      任务ID
+     * @param description 标题
      */
     protected void makeACopyForToManageType(String orgId, String manageType, String taskId, String description) {
         List<OrgUnit> orgUnits = orgFun.findManagers(orgId, manageType, false, null);
@@ -2890,7 +2867,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /***
      * 给最近的管理权限抄送任务
-     * 
+     *
      * @param fullId
      *            fullId
      * @param manageType
@@ -2907,7 +2884,7 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
 
     /**
      * 检查约束
-     * 
+     *
      * @param delegateTask
      */
     protected void onCheckConstraints(DelegateTask delegateTask) {
@@ -2938,12 +2915,12 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
                 return FULL_NAME;
             }
             switch (id) {
-            case "fullName":
-                return FULL_NAME;
-            case "handlerName":
-                return HANDLER_NAME;
-            default:
-                throw new IllegalStateException(String.format("无效的预览处理人显示办理人字段类型“%s”。", id));
+                case "fullName":
+                    return FULL_NAME;
+                case "handlerName":
+                    return HANDLER_NAME;
+                default:
+                    throw new IllegalStateException(String.format("无效的预览处理人显示办理人字段类型“%s”。", id));
             }
         }
     }

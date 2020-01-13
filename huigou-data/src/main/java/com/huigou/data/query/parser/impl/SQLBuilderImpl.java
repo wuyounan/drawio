@@ -1,13 +1,9 @@
 package com.huigou.data.query.parser.impl;
 
-import java.util.Map;
-import java.util.regex.Matcher;
-
 import com.huigou.data.domain.query.QueryAbstractRequest;
 import com.huigou.data.query.QueryPermissionBuilder;
 import com.huigou.data.query.SQLExecutor;
 import com.huigou.data.query.XMLParseUtil;
-import com.huigou.data.query.model.QueryDescriptor;
 import com.huigou.data.query.parser.SQLBuilder;
 import com.huigou.data.query.parser.model.ConditionModel;
 import com.huigou.data.query.parser.model.DataFilterGroup;
@@ -20,6 +16,9 @@ import com.huigou.uasp.bmp.query.PermissionsDocument.Permissions;
 import com.huigou.uasp.bmp.query.QueryDocument.Query;
 import com.huigou.uasp.bmp.query.SqlDocument.Sql;
 import com.huigou.util.StringUtil;
+
+import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * 根据查询对象组合SQL
