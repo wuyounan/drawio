@@ -296,6 +296,7 @@ public class ProcUnitHandlerApplicationImpl extends BaseApplication implements P
         QueryModel queryModel = new QueryModel();
         queryModel.setSql(this.getQuerySqlByName("queryProcunitHandlersByBizCode"));
         queryModel.putParam("bizCode", bizCode);
+        queryModel.setDefaultOrderBy("procUnitId,groupId");
 
         return this.sqlExecutorDao.executeQuery(queryModel);
     }
