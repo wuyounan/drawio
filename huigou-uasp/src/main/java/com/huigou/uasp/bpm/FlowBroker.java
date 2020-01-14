@@ -302,7 +302,8 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         return ActivityKind.APPROVE.equalsIgnoreCase(procUnitId);
     }
 
-    /**currentGroupChiefApprovePassed
+    /**
+     * currentGroupChiefApprovePassed
      * 流程通知事件处理
      * <ul>
      * <li>流程实例启动事件：调用<code>onStart</code>保存业务数据和历史流程实例扩展数据。</li>
@@ -1162,18 +1163,23 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
      * @since 1.1.3
      */
     private boolean isLimitHandler(String procUnitId, Integer groupId, Integer limitHandler) {
-        int procUnitHandlerCount = procUnitHandlerApplication.queryProcUnitHandlerIds(getBizId(), procUnitId, groupId).size();
-        if (procUnitHandlerCount < 2) {
+        if (limitHandler == null || limitHandler < 1) {
             return false;
         }
-        // 已完成的环节处理人（主审）
-        List<ProcUnitHandler> completedChiefProcUnitHandlers = procUnitHandlerApplication.queryCompletedProcUnitHandlers(getBizId(), procUnitId, groupId)
+        int procUnitHandlerCount = (int) procUnitHandlerApplication.queryProcUnitHandlers(getBizId(), procUnitId, groupId)
                 .stream()
                 .filter(handler -> CooperationModelKind.isChief(handler.getCooperationModelId()))
-                .collect(Collectors.toList());
-        return limitHandler != null
-                && limitHandler > 0
-                && Objects.equals(limitHandler, completedChiefProcUnitHandlers.size());
+                .count();
+        // 已完成的环节处理人（主审）
+        int completedChiefHandlerCount = (int) procUnitHandlerApplication.queryCompletedProcUnitHandlers(getBizId(), procUnitId, groupId)
+                .stream()
+                .filter(handler -> CooperationModelKind.isChief(handler.getCooperationModelId()))
+                .count();
+        int totalChiefHandlers = procUnitHandlerCount + completedChiefHandlerCount;
+        if (totalChiefHandlers < 2) {
+            return false;
+        }
+        return Objects.equals(limitHandler, completedChiefHandlerCount);
     }
 
     /**

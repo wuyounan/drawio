@@ -481,7 +481,7 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
         ApprovalRuleHandlerGroup approvalRuleHandlerGroup = approvalRule.findApprovalRuleHandlerGroup(sourceApprovalRuleHandler.getGroupId());
         sourceApprovalRuleHandler.fromEntity(approvalRuleHandler);
 
-        if(taskExecuteMode == null && limitHandler == null) {
+        if (taskExecuteMode == null && limitHandler == null) {
             if (approvalRuleHandlerGroup != null) {
                 approvalRule.getApprovalRuleHandlerGroups().remove(approvalRuleHandlerGroup);
             }
@@ -500,11 +500,12 @@ public class ApprovalRuleApplicationImpl extends BaseApplication implements Appr
             approvalRuleHandlerGroup.setTaskExecuteMode(taskExecuteMode);
         }
 
-        if(limitHandler == null) {
-            if(approvalRuleHandlerGroup != null) {
+        if (limitHandler == null) {
+            if (approvalRuleHandlerGroup != null) {
                 approvalRuleHandlerGroup.setLimitHandler(null);
             }
         } else {
+            Assert.isTrue(limitHandler > 0, "最少审批人必须大于0");
             if (approvalRuleHandlerGroup == null) {
                 approvalRuleHandlerGroup = new ApprovalRuleHandlerGroup();
                 approvalRule.getApprovalRuleHandlerGroups().add(approvalRuleHandlerGroup);

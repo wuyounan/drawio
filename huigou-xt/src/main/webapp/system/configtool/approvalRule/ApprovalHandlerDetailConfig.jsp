@@ -39,7 +39,7 @@
 						label="任务执行模式" emptyOption="true" fieldCol="4" />
 				</div>
 				<div class="hg-form-row">
-					<x:inputC name="limitHandler" label="最少审批人数" spinner="true" mask="nnn" fieldCol="4" />
+					<x:inputC name="limitHandler" label="最少审批人数" spinner="true" mask="nnn" dataOptions="min:1" fieldCol="4" />
 					<x:inputC name="groupId" spinner="true" mask="nnn"
 						dataOptions="min:1" required="true" label="审批分组" fieldCol="4" />
 				</div>
