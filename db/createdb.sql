@@ -4993,3 +4993,12 @@ end p_update_role_fullinfo;
   ALTER TABLE "WF_TASKCOLLECTION" MODIFY ("TASK_ID" NOT NULL ENABLE);
  
   ALTER TABLE "WF_TASKCOLLECTION" MODIFY ("PERSON_ID" NOT NULL ENABLE);
+
+  ALTER TABLE WF_ApprovalRuleHandlerGroup
+ADD  LIMIT_HANDLER int;
+
+ALTER TABLE wf_procunithandler
+ADD  LIMIT_HANDLER int;
+
+ALTER TABLE wf_procunithandler_cache
+ADD  LIMIT_HANDLER int;
