@@ -395,6 +395,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
         QueryModel queryModel = new QueryModel();
         queryModel.setSql(this.getQuerySqlByName("queryProcUnitHandlersByBizId"));
         queryModel.putParam("businessKey", bizId);
+        queryModel.setDefaultOrderBy("startTime");
         Map<String, Object> result = this.sqlExecutorDao.executeQuery(queryModel);
         boolean supportManuscript = Boolean.valueOf(SystemCache.getParameter("wf.approval.supportManuscript", String.class));
         List<ProcUnitHandlerManuscript> procUnitHandlerManuscripts = null;
@@ -433,6 +434,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
         QueryModel queryModel = new QueryModel();
         queryModel.setSql(this.getQuerySqlByName("queryApprovalHistoryByProcInstId"));
         queryModel.putParam("procInstId", processInstanceId);
+        queryModel.setDefaultOrderBy("id");
         return this.sqlExecutorDao.executeQuery(queryModel);
     }
 
@@ -554,6 +556,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
         QueryModel queryModel = new QueryModel();
         queryModel.setSql(this.getQuerySqlByName("queryHiTaskInstByBizCode"));
         queryModel.putParam("bizCode", bizCode);
+        queryModel.setDefaultOrderBy("startTime");
         return this.sqlExecutorDao.executeQuery(queryModel);
     }
 
@@ -566,7 +569,7 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
         queryModel.setSql(this.getQuerySqlByName("queryHiTaskInstByBizCodeAndKindId"));
         queryModel.putParam("bizCode", bizCode);
         queryModel.putParam("kindId", kindId);
-
+        queryModel.setDefaultOrderBy("startTime");
         return this.sqlExecutorDao.executeQuery(queryModel);
     }
 

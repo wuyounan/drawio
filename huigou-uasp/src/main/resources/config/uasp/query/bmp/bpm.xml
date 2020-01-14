@@ -156,7 +156,7 @@
 			  from act_hi_taskinst_extension te
 			   left join wf_procunithandler uh on te.proc_unit_handler_id_ = uh.id
 			 where te.proc_inst_id_ = :procInstId
-			 order by te.id_	
+<!--			 order by te.id_	-->
 		</sql>
 		<sql name="queryBackTasksByBizCode">
 			select te.id_ id,  te.task_def_key_ task_def_key, te.name_ as name, p.sub_proc_unit_name,
@@ -317,7 +317,7 @@
 			       te.need_timing_ need_timing
 			  from act_hi_taskinst_extension te
 			 where te.business_code_ = :bizCode
-			 order by te.start_time_
+<!--			 order by te.start_time_-->
 		</sql>
 		<sql name="queryHiTaskInstByBizCodeAndKindId">
 			select te.id_ id, te.proc_def_id_ proc_def_id, te.task_def_key_ task_def_key,
@@ -346,7 +346,7 @@
 			  from act_hi_taskinst_extension te
 			 where te.business_code_ = :bizCode
 			   and te.kind_id_ = :kindId
-			 order by te.start_time_
+<!--			 order by te.start_time_-->
 		</sql>
 		<sql name="taskInstRelationQuery">
 			select r.task_id, r.related_task_id, te.proc_inst_id_ proc_inst_id,
@@ -479,7 +479,7 @@
 			  left join wf_approvalrule r
 			    on h.approval_rule_id = r.id
 			 where biz_code = :bizCode
-			 order by h.proc_unit_id, group_id	
+<!--			 order by h.proc_unit_id, group_id	-->
 		</sql>
 		<sql name="queryOneTaskByBizIdAndProcUnitHandlerId">
 			select e.id_ as task_id, e.status_id_ as status_id
