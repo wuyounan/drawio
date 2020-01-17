@@ -1179,6 +1179,10 @@ public class FlowBroker extends BaseApplication implements TaskListener, Executi
         if (totalChiefHandlers < 2) {
             return false;
         }
+        if(totalChiefHandlers <= limitHandler) {
+            // 主审总人数须大于最少审批人数
+            return false;
+        }
         return Objects.equals(limitHandler, completedChiefHandlerCount);
     }
 
