@@ -3,6 +3,7 @@ package com.huigou.uasp.bpm.configuration.domain.model;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -27,7 +28,7 @@ import com.huigou.data.domain.model.TreeEntity;
 
 @Entity
 @Table(name = "WF_ApprovalRule")
-@EntityListeners({ CreatorAndModifierListener.class })
+@EntityListeners({CreatorAndModifierListener.class})
 public class ApprovalRule extends TreeEntity {
 
     public static final String ROOT_ID = "1";
@@ -291,9 +292,12 @@ public class ApprovalRule extends TreeEntity {
     }
 
     public ApprovalRuleHandlerGroup findApprovalRuleHandlerGroup(Integer groupId) {
-        for (ApprovalRuleHandlerGroup item : this.getApprovalRuleHandlerGroups()) {
-            if (item.getGroupId().equals(groupId)) {
-                return item;
+        List<ApprovalRuleHandlerGroup> approvalRuleHandlerGroups = this.getApprovalRuleHandlerGroups();
+        if (approvalRuleHandlerGroups != null) {
+            for (ApprovalRuleHandlerGroup group : approvalRuleHandlerGroups) {
+                if (Objects.equals(group.getGroupId(), groupId)) {
+                    return group;
+                }
             }
         }
         return null;
@@ -347,9 +351,9 @@ public class ApprovalRule extends TreeEntity {
             }
             return result;
         }
-        
-        public static boolean isCategory(int id){
-            return CATEGORY.getId() == id; 
+
+        public static boolean isCategory(int id) {
+            return CATEGORY.getId() == id;
         }
     }
 }

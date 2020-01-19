@@ -32,11 +32,11 @@ import com.huigou.util.StringUtil;
 
 /**
  * 环节处理人
- * 
+ *
  * @author gongmm
  */
 @MappedSuperclass
-@EntityListeners({ VersionListener.class })
+@EntityListeners({VersionListener.class})
 public class ProcUnitHandlerBase implements IdentifiedEntity, Cloneable, Serializable {
 
     private static final long serialVersionUID = 7627740680619707939L;
@@ -214,6 +214,13 @@ public class ProcUnitHandlerBase implements IdentifiedEntity, Cloneable, Seriali
     private String clientName;
 
     private Integer sequence;
+    /**
+     * 分组最少审批人数。
+     *
+     * @since 1.1.3
+     */
+    @Column(name = "limit_handler")
+    private Integer limitHandler;
 
     @Override
     public String getId() {
@@ -475,6 +482,14 @@ public class ProcUnitHandlerBase implements IdentifiedEntity, Cloneable, Seriali
         this.sendMessage = sendMessage;
     }
 
+    public Integer getLimitHandler() {
+        return limitHandler;
+    }
+
+    public void setLimitHandler(Integer limitHandler) {
+        this.limitHandler = limitHandler;
+    }
+
     public void updateHandleResult(int result, String opinion, int status) {
         this.setResult(result);
         this.setOpinion(opinion);
@@ -513,7 +528,7 @@ public class ProcUnitHandlerBase implements IdentifiedEntity, Cloneable, Seriali
     public boolean isPreempt() {
         return TaskExecuteMode.PREEMPT.equals(taskExecuteMode);
     }
-    
+
     @JsonIgnore
     public boolean isChief() {
         return CooperationModelKind.isChief(cooperationModelId);
@@ -546,7 +561,8 @@ public class ProcUnitHandlerBase implements IdentifiedEntity, Cloneable, Seriali
     }
 
     public enum Status {
-        INITIAL(-2, "补审初始化状态"), MERGED(-1, "已合并"), READY(0, "未处理"), COMPLETED(1, "已处理"), RETURNED(2, "已回退"), ;
+        INITIAL(-2, "补审初始化状态"), MERGED(-1, "已合并"), READY(0, "未处理"), COMPLETED(1, "已处理"), RETURNED(2, "已回退"),
+        ;
         private final int id;
 
         private final String displayName;
@@ -570,18 +586,18 @@ public class ProcUnitHandlerBase implements IdentifiedEntity, Cloneable, Seriali
 
         public static Status fromId(int id) {
             switch (id) {
-            case -2:
-                return INITIAL;
-            case -1:
-                return MERGED;
-            case 0:
-                return READY;
-            case 1:
-                return COMPLETED;
-            case 2:
-                return RETURNED;
-            default:
-                throw new ApplicationException(String.format("无效的流程环节处理状态“%s”。", new Object[] { Integer.valueOf(id) }));
+                case -2:
+                    return INITIAL;
+                case -1:
+                    return MERGED;
+                case 0:
+                    return READY;
+                case 1:
+                    return COMPLETED;
+                case 2:
+                    return RETURNED;
+                default:
+                    throw new ApplicationException(String.format("无效的流程环节处理状态“%s”。", new Object[]{Integer.valueOf(id)}));
             }
         }
     }

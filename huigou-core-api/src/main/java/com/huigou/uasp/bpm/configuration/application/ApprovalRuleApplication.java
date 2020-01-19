@@ -18,7 +18,7 @@ import com.huigou.uasp.bpm.engine.domain.model.LimitTime;
 
 /**
  * 流程审批规则服务
- * 
+ *
  * @author gongmm
  */
 public interface ApprovalRuleApplication {
@@ -29,58 +29,53 @@ public interface ApprovalRuleApplication {
 
     /**
      * 保存审批要素
-     * 
-     * @param approvalElement
-     *            审批要素
+     *
+     * @param approvalElement 审批要素
      * @return 审批要素ID
      */
     String saveApprovalElement(ApprovalElement approvalElement);
 
     /**
      * 加载审批要素
-     * 
-     * @param id
-     *            审批要素ID
+     *
+     * @param id 审批要素ID
      * @return 审批要素实体
      */
     ApprovalElement loadApprovalElement(String id);
 
     /**
      * 删除审批要素
-     * 
-     * @param ids
-     *            审批要素ID列表
+     *
+     * @param ids 审批要素ID列表
      */
     void deleteApprovalElements(List<String> ids);
 
     /**
      * 分页查询审批要素
-     * 
-     * @param queryRequest
-     *            查询模型
+     *
+     * @param queryRequest 查询模型
      * @return
      */
     Map<String, Object> slicedQueryApprovalElements(CodeAndNameQueryRequest queryRequest);
 
     /**
      * 得到审批要素排序号
-     * 
+     *
      * @return
      */
     Integer getApprovalElementNextSequence();
 
     /**
      * 保存审批要素排序号
-     * 
+     *
      * @param params
      */
     void updateApprovalElementsSequence(Map<String, Integer> params);
 
     /**
      * 保存审批处理人类别
-     * 
-     * @param approvalHandlerKind
-     *            审批处理人类别
+     *
+     * @param approvalHandlerKind 审批处理人类别
      * @return 审批处理人类别ID
      */
     String saveApprovalHandlerKind(ApprovalHandlerKind approvalHandlerKind);
@@ -102,27 +97,24 @@ public interface ApprovalRuleApplication {
 
     /**
      * 得到审批处理人类别排序号
-     * 
+     *
      * @return
      */
     Integer getApprovalHandlerKindNextSequence();
 
     /**
      * 保存审批处理人类别排序号
-     * 
+     *
      * @param params
      */
     void updateApprovalHandlerKindsSequence(Map<String, Integer> params);
 
     /**
      * 保存流程审批要素
-     * 
-     * @param procId
-     *            流程ID
-     * @param procUnitId
-     *            流程环节ID
-     * @param elementIds
-     *            审批要素ID列表
+     *
+     * @param procId     流程ID
+     * @param procUnitId 流程环节ID
+     * @param elementIds 审批要素ID列表
      */
     void saveProcApprovalElement(String procId, String procUnitId, List<String> elementIds);
 
@@ -133,25 +125,23 @@ public interface ApprovalRuleApplication {
 
     /**
      * 更新流程审批要素配置序列号
-     * 
+     *
      * @param params
      */
     void updateProcApprovalElementSequence(Map<String, Integer> params);
 
     /**
      * 查询流程审批要素
-     * 
-     * @param procId
-     *            流程ID
-     * @param procUnitId
-     *            流程环节ID
+     *
+     * @param procId     流程ID
+     * @param procUnitId 流程环节ID
      * @return
      */
     List<ProcApprovalElementDesc> queryProcApprovalElements(String procId, String procUnitId);
 
     /**
      * 添加流程审批规则
-     * 
+     *
      * @param approvalRule
      * @return
      */
@@ -163,206 +153,185 @@ public interface ApprovalRuleApplication {
      */
     /**
      * 更新流程审批规则
-     * 
-     * @param approvalRule
-     *            审批规则
-     *            原名称
+     *
+     * @param approvalRule 审批规则
+     *                     原名称
      */
     void updateApprovalRule(ApprovalRule approvalRule);
 
     /**
      * 加载流程审批规则
-     * 
-     * @param id
-     *            流程审批规则ID
+     *
+     * @param id 流程审批规则ID
      * @return
      */
     ApprovalRule loadApprovalRule(String id);
 
     /**
      * 删除流程审批规则
-     * 
-     * @param ids
-     *            审批规则ID列表
+     *
+     * @param ids 审批规则ID列表
      */
     void deleteApprovalRules(List<String> ids);
 
     /**
      * 移动审批规则
-     * 
-     * @param id
-     *            审批规则ID
-     * @param parentId
-     *            父ID
+     *
+     * @param id       审批规则ID
+     * @param parentId 父ID
      */
     void moveApprovalRules(String id, String parentId);
 
     /**
      * 查询流程审批规则
-     * 
-     * @param orgId
-     *            组织ID
-     * @param procId
-     *            流程ID
-     * @param procUnitId
-     *            流程环节ID
-     * @param procUnitName
-     *            流程环节名称
-     * @param parentId
-     *            父ID
+     *
+     * @param orgId        组织ID
+     * @param procId       流程ID
+     * @param procUnitId   流程环节ID
+     * @param procUnitName 流程环节名称
+     * @param parentId     父ID
      * @return
      */
     Map<String, Object> queryApprovalRules(String orgId, String procId, String procUnitId, String procUnitName, String parentId);
 
     /**
      * 查询流程审批规则
-     * 
-     * @param procId
-     *            流程Id
-     * @param procUnitId
-     *            流程环节ID
-     * @param parentId
-     *            父ID
+     *
+     * @param procId     流程Id
+     * @param procUnitId 流程环节ID
+     * @param parentId   父ID
      * @return
      */
     List<ApprovalRule> queryApprovalRules(String procId, String procUnitId, String parentId);
 
     /**
      * 保存审批规则要素
-     * 
-     * @param approvalRuleId
-     *            审批规则ID
-     * @param approvalRuleElements
-     *            审批规则要素
+     *
+     * @param approvalRuleId       审批规则ID
+     * @param approvalRuleElements 审批规则要素
      */
     void saveApprovalRuleElements(String approvalRuleId, List<ApprovalRuleElement> approvalRuleElements);
 
     /**
      * 删除审批规则要素
-     * 
-     * @param approvalRuleId
-     *            流程审批规则ID
-     * @param ids
-     *            审批规则要素ID列表
+     *
+     * @param approvalRuleId 流程审批规则ID
+     * @param ids            审批规则要素ID列表
      */
     void deleteApprovalRuleElements(String approvalRuleId, List<String> ids);
 
     /**
      * 查询审批规则要素
-     * 
-     * @param approvalRuleId
-     *            审批规则ID
-     * @param queryRequest
-     *            分页信息
+     *
+     * @param approvalRuleId 审批规则ID
+     * @param queryRequest   分页信息
      * @return
      */
     Map<String, Object> queryApprovalRuleElements(String approvalRuleId, EmptyQueryRequest queryRequest);
 
     /**
      * 为流程图查询审批规则要素
-     * 
-     * @param approvalRuleId
-     *            审批规则ID
+     *
+     * @param approvalRuleId 审批规则ID
      * @return
      */
     List<Map<String, Object>> queryApprovalRuleElementsForFlowChart(String approvalRuleId);
 
     /**
      * 保存流程审批规则审批人
-     * 
-     * @param approvalRuleId
-     *            流程审批规则ID
-     * @param approvalRuleHandlers
-     *            流程审批规则处理人列表
+     *
+     * @param approvalRuleId       流程审批规则ID
+     * @param approvalRuleHandlers 流程审批规则处理人列表
      */
     void saveApprovalRuleHandlers(String approvalRuleId, List<ApprovalRuleHandler> approvalRuleHandlers);
 
     /**
      * 保存流程审批规则审批人明细
-     * 
-     * @param approvalRuleId
-     *            流程审批规则ID
-     * @param approvalRuleHandler
-     *            流程审批规则处理人
-     * @param taskExecuteMode
-     *            任务执行模式
-     * @param assistants
-     *            协审
-     * @param ccs
-     *            抄送
-     * @param fieldAuthorizations
-     *            字段授权
+     *
+     * @param approvalRuleId      流程审批规则ID
+     * @param approvalRuleHandler 流程审批规则处理人
+     * @param taskExecuteMode     任务执行模式
+     * @param assistants          协审
+     * @param ccs                 抄送
+     * @param fieldAuthorizations 字段授权
+     * @deprecated 已被 {@link #saveApprovalRuleHandler(String, ApprovalRuleHandler, TaskExecuteMode, Integer, List, List, List)} 替代。
      */
+    @Deprecated
     void saveApprovalRuleHandler(String approvalRuleId, ApprovalRuleHandler approvalRuleHandler, TaskExecuteMode taskExecuteMode,
                                  List<ApprovalRuleHandlerAssist> assistants, List<ApprovalRuleHandlerAssist> ccs,
                                  List<ApprovalRuleHandlerUIElmentPermission> fieldAuthorizations);
 
     /**
+     * 保存流程审批规则审批人明细
+     *
+     * @param approvalRuleId      流程审批规则ID
+     * @param approvalRuleHandler 流程审批规则处理人
+     * @param taskExecuteMode     任务执行模式
+     * @param limitHandler        最少审批人数
+     * @param assistants          协审
+     * @param ccs                 抄送
+     * @param fieldAuthorizations 字段授权
+     * @since 1.1.3
+     */
+    void saveApprovalRuleHandler(String approvalRuleId, ApprovalRuleHandler approvalRuleHandler, TaskExecuteMode taskExecuteMode, Integer limitHandler,
+                                 List<ApprovalRuleHandlerAssist> assistants, List<ApprovalRuleHandlerAssist> ccs,
+                                 List<ApprovalRuleHandlerUIElmentPermission> fieldAuthorizations);
+
+    /**
      * 删除流程审批规则审批人
-     * 
-     * @param approvalRule
-     *            流程审批规则
-     * @param ids
-     *            流程审批规则审批人ID列表
+     *
+     * @param approvalRule 流程审批规则
+     * @param ids          流程审批规则审批人ID列表
      */
     void deleteApprovalRuleHandlers(String approvalRuleId, List<String> ids);
 
     /**
      * 查询审批规则处理人
-     * 
-     * @param approvalRuleId
-     *            流程审批规则ID
-     * @param queryRequest
-     *            分页信息
+     *
+     * @param approvalRuleId 流程审批规则ID
+     * @param queryRequest   分页信息
      * @return
      */
     Map<String, Object> queryApprovalRuleHandlers(String approvalRuleId, EmptyQueryRequest queryRequest);
 
     /**
      * 查询审批环节协审人员
-     * 
-     * @param approvalRuleHandlerId
-     *            审批规则处理人ID
+     *
+     * @param approvalRuleHandlerId 审批规则处理人ID
      * @return
      */
     Map<String, Object> queryAssistantHandlers(String approvalRuleHandlerId);
 
     /**
      * 查询抄送人员
-     * 
-     * @param approvalRuleHandlerId
-     *            审批规则处理人ID
+     *
+     * @param approvalRuleHandlerId 审批规则处理人ID
      * @return
      */
     Map<String, Object> queryCCHandlers(String approvalRuleHandlerId);
 
     /**
      * 查询界面元素权限
-     * 
-     * @param approvalRuleHandlerId
-     *            审批规则处理人ID
+     *
+     * @param approvalRuleHandlerId 审批规则处理人ID
      * @return
      */
     Map<String, Object> queryUIElementPermissions(String approvalRuleHandlerId);
 
     /**
      * 获取审批处理人时间限制
-     * 
-     * @param procId
-     *            流程ID
-     * @param procUnitId
-     *            流程环节ID
-     * @param approvalRuleHandlerId
-     *            审批规则处理人ID
+     *
+     * @param procId                流程ID
+     * @param procUnitId            流程环节ID
+     * @param approvalRuleHandlerId 审批规则处理人ID
      * @return
      */
     LimitTime getApprovalRuleHandlerLimitTime(String procId, String procUnitId, String approvalRuleHandlerId);
 
     /**
      * 加载审批规则处理人
-     * 
-     * @param approvalRuleHandlerId
-     *            审批规则处理人ID
+     *
+     * @param approvalRuleHandlerId 审批规则处理人ID
      * @return
      */
     ApprovalRuleHandler loadApprovalRuleHandler(String approvalRuleHandlerId);
@@ -373,22 +342,18 @@ public interface ApprovalRuleApplication {
 
     /**
      * 删除审批规则适用范围
-     * 
-     * @param approvalRuleId
-     *            流程审批规则
-     * @param ids
-     *            审批规则要素ID列表
+     *
+     * @param approvalRuleId 流程审批规则
+     * @param ids            审批规则要素ID列表
      */
 
     void deleteApprovalRuleScopes(String approvalRuleId, List<String> ids);
 
     /**
      * 查询审批规则适用范围
-     * 
-     * @param approvalRuleId
-     *            流程审批规则ID
-     * @param queryRequest
-     *            分页信息
+     *
+     * @param approvalRuleId 流程审批规则ID
+     * @param queryRequest   分页信息
      * @return
      */
     Map<String, Object> queryApprovalRuleScopes(String approvalRuleId, EmptyQueryRequest queryRequest);

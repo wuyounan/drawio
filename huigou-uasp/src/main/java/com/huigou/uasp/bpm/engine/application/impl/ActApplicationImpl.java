@@ -1,22 +1,5 @@
 package com.huigou.uasp.bpm.engine.application.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.huigou.data.query.executor.SQLExecutorDao;
-import com.huigou.util.*;
-import org.activiti.engine.impl.context.Context;
-import org.activiti.engine.impl.persistence.entity.HistoricProcessInstanceEntity;
-import org.activiti.engine.task.Task;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.huigou.cache.SystemCache;
 import com.huigou.context.MessageSourceContext;
 import com.huigou.context.Operator;
@@ -29,28 +12,28 @@ import com.huigou.data.query.model.QueryModel;
 import com.huigou.uasp.bmp.common.application.BaseApplication;
 import com.huigou.uasp.bmp.fn.impl.ProcessFun;
 import com.huigou.uasp.bmp.opm.domain.model.org.Org;
-import com.huigou.uasp.bpm.ActivityKind;
-import com.huigou.uasp.bpm.HandleResult;
-import com.huigou.uasp.bpm.ProcessStatus;
-import com.huigou.uasp.bpm.TaskKind;
-import com.huigou.uasp.bpm.TaskScope;
-import com.huigou.uasp.bpm.TaskStatus;
+import com.huigou.uasp.bpm.*;
 import com.huigou.uasp.bpm.engine.application.ActApplication;
 import com.huigou.uasp.bpm.engine.application.ProcUnitHandlerApplication;
 import com.huigou.uasp.bpm.engine.application.WorkflowApplication;
 import com.huigou.uasp.bpm.engine.domain.dto.BackTaskInfo;
-import com.huigou.uasp.bpm.engine.domain.model.HistoricProcessInstanceExtension;
-import com.huigou.uasp.bpm.engine.domain.model.HistoricTaskInstanceExtension;
-import com.huigou.uasp.bpm.engine.domain.model.HistoricTaskInstanceRelation;
-import com.huigou.uasp.bpm.engine.domain.model.ProcUnitHandler;
-import com.huigou.uasp.bpm.engine.domain.model.ProcUnitHandlerManuscript;
-import com.huigou.uasp.bpm.engine.domain.model.RuntimeTaskExtension;
+import com.huigou.uasp.bpm.engine.domain.model.*;
 import com.huigou.uasp.bpm.engine.domain.query.TaskDetail;
 import com.huigou.uasp.bpm.engine.repository.HistoricProcInstanceExtensionRepository;
 import com.huigou.uasp.bpm.engine.repository.HistoricTaskInstanceExtensionRepository;
 import com.huigou.uasp.bpm.engine.repository.HistoricTaskInstanceRelationRepository;
 import com.huigou.uasp.bpm.engine.repository.RuntimeTaskExtensionRepository;
 import com.huigou.uasp.bpm.managment.application.ProcDefinitionApplication;
+import com.huigou.util.*;
+import org.activiti.engine.impl.context.Context;
+import org.activiti.engine.impl.persistence.entity.HistoricProcessInstanceEntity;
+import org.activiti.engine.task.Task;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.*;
 
 @Service("actApplication")
 public class ActApplicationImpl extends BaseApplication implements ActApplication {
@@ -536,6 +519,11 @@ public class ActApplicationImpl extends BaseApplication implements ActApplicatio
     public Map<String, Object> loadRuntimeTaskById(String taskId) {
         String sql = this.getQuerySqlByName("loadRuntimeTaskById");
         return this.sqlExecutorDao.queryToMap(sql, taskId);
+    }
+
+    @Override
+    public RuntimeTaskExtension queryByRuntimeTaskById(String taskId) {
+        return runtimeTaskExtensionRepository.findOne(taskId);
     }
 
     @Override

@@ -8155,5 +8155,13 @@ END
 ;;
 delimiter ;
 
+ALTER TABLE WF_ApprovalRuleHandlerGroup
+ADD COLUMN LIMIT_HANDLER int NULL COMMENT '分组最少审批人数';
+
+ALTER TABLE wf_procunithandler
+ADD COLUMN LIMIT_HANDLER int NULL COMMENT '分组最少审批人数';
+
+ALTER TABLE wf_procunithandler_cache
+ADD COLUMN LIMIT_HANDLER int NULL COMMENT '分组最少审批人数';
 SET FOREIGN_KEY_CHECKS = 1;
          

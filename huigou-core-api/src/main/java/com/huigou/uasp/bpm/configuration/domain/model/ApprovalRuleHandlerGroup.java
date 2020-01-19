@@ -31,6 +31,13 @@ public class ApprovalRuleHandlerGroup extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "task_execute_mode_id")
     private TaskExecuteMode taskExecuteMode;
+    /**
+     * 最少审批人数
+     *
+     * @since 1.3.3
+     */
+    @Column(name = "limit_handler")
+    private Integer limitHandler;
 
     public TaskExecuteMode getTaskExecuteMode() {
         return taskExecuteMode;
@@ -40,4 +47,11 @@ public class ApprovalRuleHandlerGroup extends AbstractEntity {
         this.taskExecuteMode = taskExecuteMode;
     }
 
+    public Integer getLimitHandler() {
+        return limitHandler;
+    }
+
+    public void setLimitHandler(Integer limitHandler) {
+        this.limitHandler = limitHandler;
+    }
 }
