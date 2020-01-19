@@ -24,7 +24,7 @@
 			<hiddenCol>ORG_KIND_ID,FULL_ID,FULL_NAME,ORG_ID,ORG_NAME,CENTER_ID,CENTER_NAME,DEPT_ID,DEPT_NAME,POSITION_ID,POSITION_NAME,PERSON_ID
 			</hiddenCol>
 			<root>parent_id = :orgRoot or id = :orgRoot</root>
-			<orderby>FULL_SEQUENCE</orderby>
+			<!--<orderby>FULL_SEQUENCE</orderby>-->
 			<condition column="org_kind_id" name="orgKindId" symbol="in"/>
 			<condition column="status" name="status" symbol="in"/>
 			<condition column="is_virtual" name="isVirtual" symbol="in"/>
@@ -41,10 +41,10 @@
 			<hiddenCol>CODE,ORG_KIND_ID,FULL_ID,FULL_NAME,ORG_ID,ORG_NAME,CENTER_ID,CENTER_NAME,DEPT_ID,DEPT_NAME,POSITION_ID,POSITION_NAME,PERSON_ID
 			</hiddenCol>
 			<root>parent_id =:orgRoot or id = :orgRoot</root>
-			<orderby>FULL_SEQUENCE</orderby>
+			<!--<orderby>FULL_SEQUENCE</orderby>-->
 			<condition column="org_kind_id" name="orgKindId" symbol="in"/>
-			<condition column="status" name="status" symbol="in"/>
-			<condition column="is_virtual" name="isVirtual" symbol="in"/>
+			<condition column="status" name="status" type="java.lang.Integer" symbol="in"/>
+			<condition column="is_virtual" name="isVirtual" type="java.lang.Integer" symbol="in"/>
 		</dataModel>
 	</tree>
 	<!-- 功能菜单 -->

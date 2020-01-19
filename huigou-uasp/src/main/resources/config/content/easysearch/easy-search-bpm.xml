@@ -2,8 +2,9 @@
 <easy-search-mappings>
 	<easy-search name="approvalBizElement" desc="选择业务审批要素" >
 		<sql>
-		  select id, code, name, kind_id, data_source_config, sequence from wf_approvalelement where kind_id = 2 order by sequence
+		  select id, code, name, kind_id, data_source_config, sequence from wf_approvalelement where kind_id = 2
 		</sql>
+		<orderby>sequence desc</orderby>
 		<field name="id" code="id" type='hidden'/>
 		<field name="kindId" code="kindId" type='hidden'/>
 		<field name="编码" code="code" width="160"/>
@@ -22,8 +23,8 @@
                and d.proc_id = :procKey
                and d.code = :procUnitId
          )
-         order by sequence
 		</sql>
+		<orderby>sequence desc</orderby>
 		<field name="id" code="id" type='hidden'/>
 		<field name="编码" code="code" width="160"/>
 		<field name="名称" code="name"  width="200"/>

@@ -83,8 +83,9 @@
 			select s.id, s.code, s.name, s.table_name, s.folder_id
 			  from SA_ExcelImportTemplate s
 			 where s.status = 1
-			 order by s.id asc
+			 <!--order by s.id asc-->
 		</sql>
+		<orderby>id asc</orderby>
 		<field name="id" code="id" type='hidden' />
 		<field name="编码" code="code" width="100" />
 		<field name="名称" code="name" width="180" />

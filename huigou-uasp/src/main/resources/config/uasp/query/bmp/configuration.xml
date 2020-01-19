@@ -106,7 +106,7 @@
 			select t.* from tmp_sa_i18nproperties t where t.batch_number=?
 		</sql>
 		<sql name="deleteTempData">
-			delete from tmp_sa_i18nproperties t where t.batch_number=?
+			delete from tmp_sa_i18nproperties  where batch_number=?
 		</sql>
 		<sql name="updataByCode">
 			update sa_i18nproperties

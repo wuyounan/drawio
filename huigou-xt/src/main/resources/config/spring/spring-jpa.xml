@@ -35,7 +35,8 @@
 				<prop key="hibernate.format_sql">true</prop>
 				<prop key="hibernate.dialect">${system.hibernate.dialect}</prop>
 				<prop key="hibernate.enable_lazy_load_no_trans">true</prop>
-				<prop key="hibernate.globally_quoted_identifiers">true</prop>
+				<!--postgresql数据库globally_quoted_identifiers的值为false，其他是true-->
+				<prop key="hibernate.globally_quoted_identifiers">false</prop>
 			</props>
 		</property>
 	</bean>
