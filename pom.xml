@@ -120,7 +120,7 @@
         <mpxj.version>4.5.0-rc1</mpxj.version>
         <xml-apis-xerces.version>2.9.1</xml-apis-xerces.version>
         <xml-apis.version>2.0.2</xml-apis.version>
-        <xerces.version>2.9.1</xerces.version>
+        <xerces.version>2.12.0</xerces.version>
         <xmlbeans.version>2.3.0</xmlbeans.version>
         <tenpay.version>1.0.0</tenpay.version>
         <brc-pa.version>1.0.0</brc-pa.version>
