@@ -94,7 +94,7 @@
         <axiom.version>1.2.13</axiom.version>
         <chardet.version>1.0.0</chardet.version>
         <com.springsource.org.junit.version>4.9.0</com.springsource.org.junit.version>
-        <commons-collections.version>3.1</commons-collections.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
         <commons-fileupload.version>1.2.2</commons-fileupload.version>
         <commons-httpclient.version>3.1</commons-httpclient.version>
         <commons-lang.version>2.4</commons-lang.version>
