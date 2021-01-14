@@ -70,7 +70,7 @@
         <javaee-api.version>6.0</javaee-api.version>
         <servlet-api.version>2.5</servlet-api.version>
         <jsp-api.version>2.1</jsp-api.version>
-        <poi.version>3.9</poi.version>
+        <poi.version>4.1.2</poi.version>
         <antlr.version>2.7.6</antlr.version>
         <cglib-nodep.version>2.1_3</cglib-nodep.version>
         <zxing-code.version>3.3.0</zxing-code.version>
