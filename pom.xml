@@ -140,7 +140,7 @@
         <xalan.version>2.7.1</xalan.version>
         <serializer.version>2.7.1</serializer.version>
         <xmlgraphics-commons.version>1.5</xmlgraphics-commons.version>
-        <mybatis.version>3.2.5</mybatis.version>
+        <mybatis.version>3.5.6</mybatis.version>
         <mybatis.pagehelper.version>4.1.2</mybatis.pagehelper.version>
         <mybatis-spring.version>1.2.2</mybatis-spring.version>
         <hibernate.version>5.1.0.Final</hibernate.version>
