@@ -113,7 +113,7 @@
         <jargs.version>1.0</jargs.version>
         <jasperreports.version>5.5.0</jasperreports.version>
         <jaxb.version>2.2.11</jaxb.version>
-        <jgroup.version>3.1.0.Final</jgroup.version>
+        <jgroup.version>4.0.0.Final</jgroup.version>
         <joda-time.version>2.1</joda-time.version>
         <mchange-commons-java.version>0.2.8</mchange-commons-java.version>
         <mockwebserver.version>1.5.4</mockwebserver.version>
