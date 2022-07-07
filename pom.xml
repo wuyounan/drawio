@@ -55,7 +55,7 @@
         <json-lib.version>2.4</json-lib.version>
         <xom.version>1.2.5</xom.version>
 
-        <spring.version>4.3.9.RELEASE</spring.version>
+        <spring.version>5.2.21.RELEASE</spring.version>
         <oracle.driver.version>11.2.0.1.0</oracle.driver.version>
         <sqlserver.driver.version>1.0</sqlserver.driver.version>
         <huigou.query.version>1.0.0</huigou.query.version>
