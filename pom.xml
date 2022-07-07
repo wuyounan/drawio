@@ -137,7 +137,7 @@
         <!-- Docx4j -->
         <docx4j.version>3.2.2</docx4j.version>
         <antlr-runtime.version>3.3</antlr-runtime.version>
-        <xalan.version>2.7.1</xalan.version>
+        <xalan.version>2.7.2</xalan.version>
         <serializer.version>2.7.1</serializer.version>
         <xmlgraphics-commons.version>1.5</xmlgraphics-commons.version>
         <mybatis.version>3.2.5</mybatis.version>
